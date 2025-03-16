@@ -5,8 +5,6 @@ const config = require('./config');
 
 let libraryManagementWindow;
 
-
-
 async function createLibraryManagementWindow(data) {
     return new Promise((resolve) => {
         libraryManagementWindow = new BrowserWindow({

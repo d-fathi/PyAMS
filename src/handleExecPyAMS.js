@@ -6,8 +6,6 @@ const fs = require('fs');
 const config = require('./config');
 
 
-
-
 ipcMain.handle('show-exec-op', async (event, data) => {
         return new Promise((resolve, reject) => {
            
