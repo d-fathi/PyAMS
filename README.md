@@ -11,7 +11,7 @@ PyAMS: Python for Analog and Mixed Signals
 <p align="center">
  
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.3.4-blue" alt="V 0.3.4">
+    <img src="https://img.shields.io/badge/Version-0.3.7-blue" alt="V 0.3.7">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -46,6 +46,19 @@ What’s changed in versions
 ## Installation
 
 * **Download:** <a href="https://sourceforge.net/projects/pyams/">https://sourceforge.net/projects/pyams/</a>.
+
+.. note::
+
+   To create a PyAMS application from the ``src`` directory:
+
+   1. Download and install **Node.js** from the official website: `https://nodejs.org/ <https://nodejs.org/>`_  
+   2. Download **Python** (or **PyPy**) and add it to the ``src`` directory.  
+   3. Navigate to the ``src`` directory and run the following commands:
+
+      .. code-block:: sh
+
+         npm install
+         npm start
 
 
 
