@@ -194,30 +194,21 @@ function rectSelect() {
             name: 'Pos.y',
             value: parseInt(mtable.select.getAttribute("y")),
             type: "number"
-        }
-    ];
-    if (!mtable.select.hasAttribute("usedstyle")) {
-        mtable.table.push({
+        },{
             name: 'Stroke',
             value: rgb2hex(mtable.select.style.stroke),
             type: "color"
-        });
-
-        mtable.table.push({
+        },{
             name: 'Fill',
             value: rgb2hex(mtable.select.style.fill),
             type: "color"
-        });
-    } else {
-
-        mtable.table.push({
+        },{
             name: 'Style',
             value: 'CSS Code',
             type: "Button",
-            setClick: 'window.foo.newStyle("' + mtable.select.getAttribute("style") + '")'
-        });
+            setClick: 'openEditCSS()'
+        }];
 
-    }
 
     addEventToTable();
 }
@@ -270,32 +261,21 @@ function ellipseSelect() {
             name: 'Pos.y',
             value: parseInt(mtable.select.getAttribute("cy")),
             type: "number"
-        }
-    ];
-
-    if (!mtable.select.hasAttribute("usedstyle")) {
-        mtable.table.push({
+        },{
             name: 'Stroke',
             value: rgb2hex(mtable.select.style.stroke),
             type: "color"
-        });
-
-        mtable.table.push({
+        },{
             name: 'Fill',
             value: rgb2hex(mtable.select.style.fill),
             type: "color"
-        });
-    } else {
-
-        mtable.table.push({
+        },{
             name: 'Style',
             value: 'CSS Code',
             type: "Button",
-            setClick: 'window.foo.newStyle("' + mtable.select.getAttribute("style") + '")'
-        });
-
-    }
-
+            setClick: 'openEditCSS()'
+        }];
+        
     addEventToTable();
 }
 
@@ -357,25 +337,16 @@ function arcSelect() {
             name: 'End angle(°)',
             value: getDeg(mtable.select.getAttribute("endangle")),
             type: "number"
-        }
-    ]
-
-    if (!mtable.select.hasAttribute("usedstyle")) {
-        mtable.table.push({
+        }, {
             name: 'Stroke',
             value: rgb2hex(mtable.select.style.stroke),
             type: "color"
-        });
-    } else {
-
-        mtable.table.push({
+        }, {
             name: 'Style',
             value: 'CSS Code',
             type: "Button",
-            setClick: 'window.foo.newStyle("' + mtable.select.getAttribute("style") + '")'
-        });
-
-    }
+            setClick: 'openEditCSS()'
+        }]
 
     addEventToTable();
 }
@@ -1376,24 +1347,19 @@ function modifiedText(pos,e) {
 //-------Polyline description-------------------------------------
 function polylineSelect() {
     mtable.typeSelect = 'polyline';
-    mtable.table = [];
-
-    if (!mtable.select.hasAttribute("usedstyle")) {
-        mtable.table.push({
+    mtable.table = [{
             name: 'Stroke',
             value: rgb2hex(mtable.select.style.stroke),
             type: "color"
-        });
-    } else {
-
-        mtable.table.push({
+        },
+        {
             name: 'Style',
             value: 'CSS Code',
             type: "Button",
-            setClick: 'window.foo.newStyle("' + mtable.select.getAttribute("style") + '")'
-        });
+            setClick:'openEditCSS()'
+            }];
+       
 
-    }
 
     addEventToTable();
 }
@@ -1416,29 +1382,20 @@ function polylineModified(pos,e) {
 //-------Polygon description-------------------------------------
 function polygonSelect() {
     mtable.typeSelect = 'polygon';
-    mtable.table = [];
-    if (!mtable.select.hasAttribute("usedstyle")) {
-        mtable.table.push({
+    mtable.table = [{
             name: 'Stroke',
             value: rgb2hex(mtable.select.style.stroke),
             type: "color"
-        });
-
-        mtable.table.push({
+        },{
             name: 'Fill',
             value: rgb2hex(mtable.select.style.fill),
             type: "color"
-        });
-    } else {
-
-        mtable.table.push({
+        },{
             name: 'Style',
             value: 'CSS Code',
             type: "Button",
-            setClick: 'window.foo.newStyle("' + mtable.select.getAttribute("style") + '")'
-        });
-
-    }
+           setClick:'openEditCSS()'
+        }];
 
     addEventToTable();
 }

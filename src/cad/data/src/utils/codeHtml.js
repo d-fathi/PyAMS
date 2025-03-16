@@ -44,12 +44,15 @@ function setHtmlCode(text){
   updateHtmlCode();
 }
 
-function getHtmlfromAttr() {
-//window.foo.getHtmlCode(mtable.select.firstChild.firstChild.getAttribute("code"));
-}
 
 async function openEditHtml() {
   const originalText = mtable.select.firstChild.firstChild.getAttribute("code");
-  const editedText = await window.electron.editTextHtml(originalText);
+  const editedText = await window.electron.editTextHtml(originalText,'HTML Code Editor');
   setHtmlCode(editedText);
+}
+
+async function openEditCSS() {
+  const originalText = mtable.select.getAttribute("style");
+  const editedText = await window.electron.editTextHtml(originalText,'Style Editor');
+  mtable.select.setAttribute("style",editedText);
 }

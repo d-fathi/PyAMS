@@ -11,7 +11,7 @@ function startDialogs(mainWindow) {
 // editor of html
 let editWindowHtml;
 
-async function createEditWindowHtml(text) {
+async function createEditWindowHtml(text,caption) {
     return new Promise((resolve) => {
       editWindowHtml = new BrowserWindow({
             width: 800,
@@ -23,6 +23,7 @@ async function createEditWindowHtml(text) {
             resizable: false,
             minimizable: false,
             maximizable: false,
+            title: caption,
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
                 contextIsolation: true,
@@ -49,8 +50,8 @@ async function createEditWindowHtml(text) {
 }
 
 
-ipcMain.handle('edit-text-html', async (event, text) => {
-    return await createEditWindowHtml(text);
+ipcMain.handle('edit-text-html', async (event, text,caption) => {
+    return await createEditWindowHtml(text,caption);
 });
 
 

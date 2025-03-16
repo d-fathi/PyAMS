@@ -28,7 +28,7 @@ contextBridge.exposeInMainWorld('electron', {
     openDialogAbout: () => ipcRenderer.send('open-dialog-about'),
     showConfirmationEditDialog: (message) => ipcRenderer.invoke('show-confirmation-edit-dialog', message),
     //Edit html------------------------------------------------------------------------------
-    editTextHtml: (text) => ipcRenderer.invoke('edit-text-html', text),
+    editTextHtml: (text,caption) => ipcRenderer.invoke('edit-text-html', text,caption),
     onSetTextHtml: (callback) => ipcRenderer.on('set-text-html', (event, text) => callback(text)),
     sendEditedTextHtml: (text) => ipcRenderer.send('save-edited-text-html', text),
     //Params----------------------------------------------------------------------------------
