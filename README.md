@@ -47,18 +47,18 @@ What’s changed in versions
 
 * **Download:** <a href="https://sourceforge.net/projects/pyams/">https://sourceforge.net/projects/pyams/</a>.
 
-.. note::
+## Note
 
-   To create a PyAMS application from the ``src`` directory:
+To create a PyAMS application from the `src` directory:
 
-   1. Download and install **Node.js** from the official website: `https://nodejs.org/ <https://nodejs.org/>`_  
-   2. Download **Python** (or **PyPy**) and add it to the ``src`` directory.  
-   3. Navigate to the ``src`` directory and run the following commands:
+1. Download and install **Node.js** from the official website: [https://nodejs.org/](https://nodejs.org/)
+2. Download **Python** (or **PyPy**) and add it to the `src` directory.
+3. Navigate to the `src` directory and run the following commands:
 
-      .. code-block:: sh
+   ```sh
+   npm install
+   npm start
 
-         npm install
-         npm start
 
 
 
