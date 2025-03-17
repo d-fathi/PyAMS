@@ -11,7 +11,7 @@ PyAMS: Python for Analog and Mixed Signals
 <p align="center">
  
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.3.7-blue" alt="V 0.3.7">
+    <img src="https://img.shields.io/badge/Version-0.3.7-blue" alt="V 0.3.8">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -39,9 +39,10 @@ The objectives of PyAMS is:
 *   **Licensed under:** PyAMS is free to use. GPLv3.
 
 
-## News
+## Web Site
 
-What’s changed in versions
+* **Hom page** <a href="https://pyams.sf.net">https://pyams.sf.net</a>.
+* **PyAMS’s documentation**  <a href="https://pyams.sf.net/doc">https://pyams.sf.net/doc</a>.
 
 ## Installation
 
