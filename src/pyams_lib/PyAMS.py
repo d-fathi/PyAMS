@@ -127,6 +127,8 @@ class param:
     def __truediv__(self, other): return self.value / self._extract_value(other)
     def __rtruediv__(self, other): return self._extract_value(other) / self.value
     def __pow__(self, other): return self.value ** self._extract_value(other)
+    def __mod__(self, other): return self.value % self._extract_value(other)
+    def __rmod__(self, other): return self._extract_value(other) % self.value
     def __neg__(self): return -self.value
     def __pos__(self): return +self.value
     def __iadd__(self, other):
@@ -218,6 +220,8 @@ class signal:
     def __rmul__(self, other): return self.__mul__(other)
     def __truediv__(self, other): return self.value / self._extract_value(other)
     def __rtruediv__(self, other): return self._extract_value(other) / self.value
+    def __mod__(self, other): return self.value % self._extract_value(other)
+    def __rmod__(self, other): return self._extract_value(other) % self.value
     def __pow__(self, other): return self.value ** self._extract_value(other)
     def __neg__(self): return -self.value
     def __pos__(self): return +self.value
@@ -284,6 +288,22 @@ class model:
                 signals.append(obj)
         return signals
 
+
+    def getDSignals(self) -> list:
+        """
+        Retrieve all digital Signal attributes of the model.
+        Returns:
+            list: A list of Signal objects defined in the model.
+        """
+        dsignals = []
+        attributes = dir(self)
+        for attr in attributes:
+            obj = eval(f'self.{attr}')
+            if isinstance(obj, dsignal):
+                obj.name=attr
+                dsignals.append(obj)
+        return dsignals
+
     def getParams(self) -> list:
         """
         Retrieve all Param attributes of the model.
@@ -328,6 +348,11 @@ class model:
         s=self.getSignals();
         for i in range(len(s)):
             s[i].name_=name+'.'+s[i].name;
+
+        s=self.getDSignals();
+        for i in range(len(s)):
+            s[i].name_=name+'.'+s[i].name;
+
         s=self.getParams();
         for i in range(len(s)):
             s[i].name_=name+'.'+s[i].name;
@@ -380,9 +405,11 @@ time.name_='time';
 #                an array
 #-------------------------------------------------------------------------------
 
-from unewton import solven
-from struct_ import option,control
-from progressbar import starTime, displayBar
+from pyams_lib.unewton import solven
+from pyams_lib.struct_ import option,control
+from pyams_lib.progressbar import starTime, displayBar
+from pyams_lib.digital import dsignal,dcircuit
+
 
 
 class circuit:
@@ -397,6 +424,9 @@ class circuit:
         self.nodes = ['0']  # List of nodes, starting with ground
         self.option=option(self)   # Option of circuit simulation
         self.control=control(self) # Control of circuit simulation
+        self.outputs=[]
+        self.tempOutputs=[]
+        self.dcircuit=dcircuit() # creat digitial circuit for add digital elements
 
     def addName(self, name: str, element: model):
         """
@@ -425,8 +455,11 @@ class circuit:
 
         lenElements=len(self.cir)
         i=0;
+
         while (i<lenElements):
          attributes = dir(self.cir[i])
+         # if element type digital add to digital circuit
+         self.dcircuit.addDigitalElement(self.cir[i])
          if 'sub' in attributes:
             newElms=self.cir[i].sub();
             name=self.cir[i].name;
@@ -599,6 +632,8 @@ class circuit:
         '''
          using for plot result "outputs" one finish simulation.
         '''
+        self.tempOutputs=list(outputs)
+
         self.outputs=[]
         for i in range(len(outputs)):
             if(type(outputs[i])==str):
@@ -607,6 +642,24 @@ class circuit:
                 self.outputs+=[{'type':'signal','pos':outputs[i],'data':[]}]
             elif(type(outputs[i])==param):
                 self.outputs+=[{'type':'param','pos':outputs[i],'data':[]}]
+
+    def getOutPuts(self):
+        '''
+         using for get result "outputs" one finish simulation.
+        '''
+        data=[]
+
+        for i in range(1,len(self.outputs)):
+            data+=[self.outputs[i]['data']]
+        return data
+
+    def clearDataOutPuts(self):
+        '''
+         using for clear result or data "outputs".
+        '''
+        self.setOutPuts(*self.tempOutputs)
+
+
 
     def saveOutputs(self):
 
@@ -655,6 +708,18 @@ class circuit:
       plt.tight_layout()
       plt.show()
 
+
+    def print(self,*outputs):
+        '''
+         using for print result "outputs" one finish simulation.
+        '''
+        for i in range(len(outputs)):
+           if(type(outputs[i])==str):  #output it's node
+               output_voltage = self.x[self.nodes.index(outputs[i]) - 1]  # Get voltage at node outputs[i]
+               print(f"Output Voltage at node {outputs[i]}: {output_voltage:.2f} V")
+           else:  #it's signal or param or model(element)
+             print(outputs[i])
+
     def displayBarProgress(self,current, total, start_time):
         displayBar(current, total, start_time)
 
@@ -665,10 +730,11 @@ class circuit:
       Handles transient ('tran') analysis with progress tracking.
       """
 
-
       # Initialize progress tracking
       start_time = starTime()
       global time
+
+      self.clearDataOutPuts();
 
       if self.analysis_['mode'] == 'tran':
         # Add the time variable to outputs for plotting

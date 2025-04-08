@@ -43,7 +43,7 @@ async function createLibraryManagementWindow(data) {
 
      ipcMain.once('save-library-json', (event, newData) => {
         resolve(true);
-        const dataFilePath = path.join(config.folderPath,'library','data.json');
+        const dataFilePath = path.join(config.folderPath,'models','data.json');
         fs.writeFileSync(dataFilePath, JSON.stringify(newData, null, 4), 'utf-8');
         if (libraryManagementWindow) {
         libraryManagementWindow.close();
@@ -60,7 +60,7 @@ async function createLibraryManagementWindow(data) {
 
 
 ipcMain.handle('library-management', async (event) => {
-      const dataFilePath = path.join(config.folderPath,'library','data.json');
+      const dataFilePath = path.join(config.folderPath,'models','data.json');
       let data =JSON.parse(fs.readFileSync(dataFilePath, 'utf-8'));
 
     return await createLibraryManagementWindow(data);

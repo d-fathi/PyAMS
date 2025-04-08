@@ -14,6 +14,7 @@ def getAllSignalsParams(circuit)->dict:
         }
     return result
 
+
 def listSignalsParams(circuit)->list:
     """
     Extracts all signal and parameter names from elements within a given circuit.
@@ -42,7 +43,7 @@ def listSignalsParams(circuit)->list:
 
 
 
-from PyAMS import floatToStr
+from pyams_lib.PyAMS import floatToStr
 
 def getParams(elem)->list:
     """
@@ -51,8 +52,8 @@ def getParams(elem)->list:
     return [{'name': param.name, 'description': param.description, 'unit': param.unit, 'value': floatToStr(param.value)} for param in getattr(elem, 'getParams', lambda: [])()]
 
 
-from PyAMS import circuit,signal,param,time
-from progressbar import displayBarPage
+from pyams_lib.PyAMS import circuit,signal,param,time
+from pyams_lib.progressbar import displayBarPage
 import json;
 
 class cirCAD(circuit):
@@ -75,7 +76,7 @@ class cirCAD(circuit):
           result+=[{'data':data,'label': label}]
        output = { "progress": 100, "data": result, "elapsed_time":self.elapsed_time}
        print(json.dumps(output));
-      
+
 
       def getVal(self):
        result=[]

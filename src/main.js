@@ -96,7 +96,7 @@ ipcMain.handle('open-file-dialog', async () => {
 
 // library (data.json) open and read---------------------------------------------------------------------
 
-// البحث عن جميع المجلدات الفرعية التي تحتوي على ملفات `.sym`
+//Find all subfolders that contain files `.sym`
 function findValidFolders(basePath) {
   let validFolders = [];
 
@@ -114,7 +114,7 @@ function findValidFolders(basePath) {
       }
 
       if (hasSymFile) {
-          validFolders.push(path.relative(basePath, directory)); // حفظ المسار النسبي
+          validFolders.push(path.relative(basePath, directory)); // save dierc
       }
   }
 
@@ -124,8 +124,8 @@ function findValidFolders(basePath) {
 
 ipcMain.handle('read-library-file', async () => {
 
-  const libraryPath = path.join(config.folderPath, 'library');
-  const dataFilePath = path.join(config.folderPath,'library','data.json');
+  const libraryPath = path.join(config.folderPath, 'models');
+  const dataFilePath = path.join(config.folderPath,'models','data.json');
 
   let data =JSON.parse(fs.readFileSync(dataFilePath, 'utf-8'));
   let newData = { libs: [] };
@@ -133,7 +133,7 @@ ipcMain.handle('read-library-file', async () => {
   console.log(libraryPath);
   const validFolders = findValidFolders(libraryPath);
 
-  newData.libs = [...new Set([...data.libs, ...validFolders])].filter(folder => validFolders.includes(folder)); // الحفاظ على الترتيب وحذف الفارغة
+  newData.libs = [...new Set([...data.libs, ...validFolders])].filter(folder => validFolders.includes(folder)); // Keep order and delete empty ones
 
   // تحديث محتويات كل مجلد مع الاحتفاظ بترتيب الملفات
   validFolders.forEach(folder => {
@@ -177,7 +177,7 @@ ipcMain.handle('get-library-files', async (event, libraryName, files) => {
 
 
         for (const file of files) {
-            const fullPath = path.join(config.folderPath,'library',libraryName, file);
+            const fullPath = path.join(config.folderPath,'models',libraryName, file);
             
             try {
                 

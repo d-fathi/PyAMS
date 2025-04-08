@@ -28,7 +28,7 @@ function generatePythonScriptForParams(){
     const baseLibPath = drawing.path+"\\";
     const libPaths = [
         "sys.path.append('" + baseLibPath + "pyams_lib');",
-        ...drawing.dirLibrary.map(dir => `sys.path.append('${baseLibPath}library\\${dir}');`)
+        ...drawing.dirLibrary.map(dir => `sys.path.append('${baseLibPath}models\\${dir}');`)
     ].join('\n');
 
 
@@ -37,8 +37,8 @@ function generatePythonScriptForParams(){
 import sys;
 import json;
 ${libPaths}
-from  ${modelName} import ${modelName};
-from cad import getParams
+from  models import ${modelName};
+from pyams_lib import getParams
 X = ${modelName}(${pins});
 X.setParams('${params}');
 params = getParams(X)
@@ -81,8 +81,8 @@ function generatePythonScriptofCircuit(){
 
     let pythonScript = `import sys;\nimport json;\n${libPaths}\nfrom PyAMS import time;\n`;
 
-    pythonScript += elemList.map(elem =>`from ${elem.symbolname} import ${elem.symbolname};`).join("\n") + "\n";
-    pythonScript += `from cad import cirCAD;\n`; 
+    pythonScript += elemList.map(elem =>`from models import ${elem.symbolname};`).join("\n") + "\n";
+    pythonScript += `from pyams_lib import cirCAD;\n`; 
 
     //get Elements---------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ async function ioPosProbe() {
     //python script
     var pythonScript= generatePythonScriptofCircuit();
     
-    pythonScript += `from cad import listSignalsParams;\n`; 
+    pythonScript += `from pyams_lib import listSignalsParams;\n`; 
     pythonScript += 'data=listSignalsParams(circuit);\n';
     pythonScript += 'print(json.dumps(data))';
     

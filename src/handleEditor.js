@@ -145,7 +145,7 @@ ipcMain.handle('open-file-dialog-editor', async () => {
 //Open file from interface--------------------------------------------------------------------
 ipcMain.handle('edit-text', async (event, modelname,directory) => {
   
-  var filePath=path.join(config.folderPath,'library',directory,modelname+'.py');
+  var filePath=path.join(config.folderPath,'models',directory,modelname+'.py');
   let data = fs.readFileSync(filePath, 'utf8');
       // Remove BOM if present
       if (data.charCodeAt(0) === 0xFEFF) {
