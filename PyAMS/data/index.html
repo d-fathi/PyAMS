@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<!--
+/*
+#---------------------------------------------------------------------------------------------------
+# Name:        Design page (index.html)
+# Author:      d.fathi
+# Created:     25/07/2021
+# Update:      06/08/2024
+# Copyright:   (c) PyAMS 2024
+# Licence:     free
+#---------------------------------------------------------------------------------------------------
+ */
+-->
+<html>
+    <head>
+      <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	    <meta name="viewport"  content="width=device-width, initial-scale=1" />
+    	<link rel="stylesheet" href="src/css/index.css">
+	    <link rel="stylesheet" href="src/css/model.css">
+	    <link rel="stylesheet" href="src/css/styles.css">
+      <link rel="stylesheet" href="src/css/pyCode.css">
+      
+    </head>
+
+<style>
+
+div.fixed {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  border: 1px solid #eee;
+}
+
+
+.button_lib{
+
+  width:80px;
+  height:80px;
+
+}
+
+.divSymText{
+  border: 0.1px solid coral;
+  text-align: center;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  margin-right: 2px;
+  margin-left: 2px;
+  font-size: 10px;
+}
+
+
+#buttons{
+  list-style: none;
+   margin: 0px;
+  padding: 0px;
+}
+
+
+#lii {
+  float: left;
+  margin: 0px;
+  padding: 0px;
+}
+
+.split {
+    display: flex;
+    flex-direction: row;
+}
+
+</style>
+
+    <body>
+      <!--button onclick="addShape('image')">Click me</button>
+      <button onclick="drawing.undo()">Click me</button>
+      <button onclick="drawing.redo();">Click me</button->
+ <button onclick="addShape('arc')">Click me</button>
+ <div id="show"></div-->
+ 
+  <div id="toolbutton"></div>
+
+  <div id="flex">
+    <div id="one" >
+      <div id="one1"></div>
+      <div id="one2"></div>
+    </div>
+    <div id="two">
+    </div>
+  </div>
+
+
+<script src="split.js"></script>
+<script>
+  var instance =Split(['#one', '#two'], {
+  sizes: [25, 75],
+  gutterSize: 10,
+  minSize: [10, 10]
+});
+
+Split(['#one1', '#one2'], {
+  sizes: [50, 50],
+  gutterSize: 10,
+  direction: 'vertical',
+  minSize: [10, 10]
+});
+</script>
+
+<script type="text/javascript" src="plotly-latest.min.js"></script>
+<script type="text/javascript" src="src/utils/information.js"></script>
+<script type="text/javascript" src="src/utils/ruler.js"></script>
+<script type="text/javascript" src="src/utils/polyline.js"></script>
+<script type="text/javascript" src="src/utils/arc.js"></script>
+<script type="text/javascript" src="src/utils/pin.js"></script>
+<script type="text/javascript" src="src/utils/ioparam.js"></script>
+<script type="text/javascript" src="src/utils/part.js"></script>
+<script type="text/javascript" src="src/utils/net.js"></script>
+<script type="text/javascript" src="src/utils/text.js"></script>
+<script type="text/javascript" src="src/utils/body.js"></script>
+<script type="text/javascript" src="src/utils/toolButton.js"></script>
+<script type="text/javascript" src="src/utils/cursor.js"></script>
+<script type="text/javascript" src="src/utils/controle.js"></script>
+<script type="text/javascript" src="src/utils/cnode.js"></script>
+<script type="text/javascript" src="src/utils/utility.js"></script>
+<script type="text/javascript" src="src/utils/measurement.js"></script>
+<script type="text/javascript" src="src/utils/svg.js"></script>
+<script type="text/javascript" src="src/utils/analysis.js"></script>
+<script type="text/javascript" src="src/utils/plots.js"></script>
+<script type="text/javascript" src="src/utils/codePy.js"></script>
+<script type="text/javascript" src="src/utils/codeHtml.js"></script>
+<script type="text/javascript" src="src/utils/codeSpice.js"></script>
+<script type="text/javascript" src="src/selectElements.js"></script>
+<script type="text/javascript" src="src/objectInspector/objectInspector.js"></script>
+<script type="text/javascript" src="src/objectInspector/modifiedSelect.js"></script>
+<script type="text/javascript" src="src/designByMouse.js"></script>
+<script type="text/javascript" src="src/grid.js"></script>
+<script type="text/javascript" src="src/shapes.js"></script>
+<script type="text/javascript" src="src/resize.js"></script>
+<script type="text/javascript" src="src/drawing.js"></script>
+<script type="text/javascript" src="src/ListSymbol.js"></script>
+<script type="text/javascript" src="src/ListElements.js"></script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+<script>
+var drawing=creatPage("two");
+drawing.getObjectInspector("one2");
+drawing.newPage("sym");
+creatToolButton("toolbutton");
+</script>
+
+<script type="text/javascript" src="qwebchannel.js"></script>
+<script type="text/javascript" src="ioData.js"></script>
+<script type="text/javascript" src="ioQt.js"></script>
+<script type="text/javascript" src="std.js"></script>
+
+</body>
+</html>

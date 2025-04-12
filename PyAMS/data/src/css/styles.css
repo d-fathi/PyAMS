@@ -1,0 +1,81 @@
+.gutter {
+  background-repeat: no-repeat;
+  background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+  background-color: #eee;
+  cursor: col-resize;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+}
+
+.gutter.gutter-vertical {
+  background-color: #eee;
+  cursor: row-resize;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+}
+body {
+  margin: 0;
+  height: 100vh;
+   user-select: none;
+}
+
+#flex {
+  display: flex;
+  flex-direction: row;
+  height:calc(100% - 10px);
+}
+
+#one, #three {
+  display: flex;
+  flex-direction: column;
+}
+
+#two {
+  /*background-color: #afc;*/
+  height: 100%;
+}
+
+#one1, #one2 {
+ /* background-color: #acf; */
+ overflow-y: scroll;
+ /* overflow-x: scroll;*/
+}
+
+
+#three1, #three2 {
+  background-color: #fac;
+}
+
+
+
+.vertical-menu {
+ 
+}
+
+.vertical-menu a {
+  background-color: #ffff;
+  color: black;
+  display: block;
+  font-family:Arial;
+  font-size:16px;
+  padding: 12px 12px;
+  text-decoration: none;
+}
+
+
+
+.vertical-menu a:hover {
+  background-color: #ccc;
+}
+
+.vertical-menu a.active {
+  background-color: #eee;
+  color: white;
+}
+
+
+//****Page list of Symbols****//
+
+
+

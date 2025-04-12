@@ -1,0 +1,3 @@
+
+syntexEditorWin.py
+pause

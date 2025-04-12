@@ -27,15 +27,15 @@ PyAMS: Python for Analog and Mixed Signals
 What is PyAMS?
 **************
 
-PyAMS is a software used to simplify modeling analog elements and simulate electronic circuit using pyams_lib
+PyAMS is a software used to simplify simulate electronic circuit and  modeling analog elements  using pyams_lib
 The objectives of PyAMS is:
 
 *	Drawing circuit by schematic;
-*	Creating new PyAMS models of electrical elements by using pyams_lib;
 *	Creating new symbols for models;
+*	Creating new PyAMS models of electrical elements by using pyams_lib;
 *	Simulating the circuit in the selected mode of operation;
 *	Presenting simulation results in a dedicated waveform editor or probe;
-*   PyAMS used Python3+ or PyPy and works on  Linux, Windows, and OSX.
+*   PyAMS used Python3+ or PyPy and works on  Windows , Linux (future), and OSX(future).
 *   **Licensed under:** PyAMS is free to use. GPLv3.
 
 
@@ -48,17 +48,7 @@ The objectives of PyAMS is:
 
 * **Download:** <a href="https://sourceforge.net/projects/pyams/">https://sourceforge.net/projects/pyams/</a>.
 
-## Note
 
-To create a PyAMS application from the `src` directory:
-
-1. Download and install **Node.js** from the official website: [https://nodejs.org/](https://nodejs.org/)
-2. Download **Python** (or **PyPy**) and add it to the `src` directory.
-3. Navigate to the `src` directory and run the following commands:
-
-   ```sh
-   npm install
-   npm start
 
 
 

@@ -1,0 +1,61 @@
+{
+    "Basic": [
+        "Resistor.sym",
+        "Capacitor.sym",
+        "Inductor.sym",
+        "CCVS.sym",
+        "CCCS.sym",
+        "VCCS.sym",
+        "VCVS.sym",
+        "InductorIc.sym",
+        "CapacitorIc.sym",
+        "Conductor.sym",
+        "Load.sym",
+        "NegativeResistance.sym",
+        "NonlinearResistance.sym",
+        "Rzno.sym",
+        "Switch.sym",
+        "SwitchC.sym",
+        "SwitchSample.sym",
+        "Transformer.sym",
+        "TransformerIdeal.sym"
+    ],
+    "Semiconductor": [
+        "Diode.sym",
+        "DiodeBridge.sym",
+        "DiodeLaser.sym",
+        "DiodeZener.sym",
+        "NMOS.sym",
+        "NPN.sym",
+        "PMOS.sym",
+        "PNP.sym"
+    ],
+    "Source": [
+        "DCCurrent.sym",
+        "DCVoltage.sym",
+        "PulsCurrent.sym",
+        "PulsVoltage.sym",
+        "SinCurrent.sym",
+        "SinVoltage.sym",
+        "SquareCurrent.sym",
+        "SquareVoltage.sym",
+        "TrapezoidCurrent.sym",
+        "TrapezoidVoltage.sym"
+    ],
+    "CMOSGates": [
+        "CAND.sym",
+        "CBuffer.sym",
+        "CNAND.sym",
+        "CNOR.sym",
+        "CNOT.sym",
+        "COR.sym",
+        "CXNOR.sym",
+        "CXOR.sym"
+    ],
+    "libs": [
+        "Basic",
+        "Semiconductor",
+        "Source",
+        "CMOSGates"
+    ]
+}

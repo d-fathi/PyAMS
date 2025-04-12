@@ -1,0 +1,101 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<style>
+
+#plot {
+  height: 100%;
+  width: 100%;
+}
+</style>
+</head>
+<body>
+<div id="plot"> </div>
+<script type="text/javascript" src="plotly-latest.min.js"></script>
+<script>
+function print(s){
+alert(s);
+}
+
+var plotConfig = {
+    displaylogo: false,
+    modeBarButtonsToRemove: ['toImage', 'pan2d', 'toggleSpikelines', 'select2d', 'lasso2d', 'resetScale2d']
+};
+
+function plot(data,layout){
+  var e = document.getElementById("plot");
+  Plotly.plot(e,data, layout, plotConfig);
+  reportWindowSize();
+}
+
+function getLayout(data,layout){
+  var e = document.getElementById("plot");
+  layout = JSON.stringify(e.layout);
+  data = JSON.stringify(e.data);
+  return layout;
+}
+
+
+var layout = {
+
+    margin: {
+        l: 35,
+        r: 25,
+        b: 35,
+        t: 35
+    },
+xaxis: {
+        title:{text:''},
+        showgrid:true,
+        gridcolor:"#000000",
+        autorange: true
+    },
+yaxis: {
+        gridcolor:"#000000",
+        showgrid:true,
+        autorange: true
+    },
+title:'Plotly',
+    font: {
+        size: 12,
+        family: 'sans-serif',
+        color:'#000000'
+    },
+legend:{
+  font:
+  {family: 'sans-serif',
+  size: 9,
+  color: '#000000'},
+  bgcolor: '#E2E2E2',
+  bordercolor: '#FFFFFF',
+  borderwidth: 1},
+  showlegend: true,
+  plot_bgcolor: '#ffffff',
+  paper_bgcolor: '#ffffff',
+  bordercolor: '#000000'
+};
+
+data=[{
+           type: 'scatter',
+           x: [0,2,3],
+           y: [-1,5,-4]
+       }
+   ];
+//   plot(data,layout);
+
+function reportWindowSize() {
+  var h = window.innerHeight;
+  var w = window.innerWidth;
+  update = {
+      width:(w-30),
+      height:(h-30)
+  };
+ var e = document.getElementById("plot");
+  Plotly.relayout(e,update);
+}
+
+window.onresize = reportWindowSize;
+</script>
+</body>
+</html>
