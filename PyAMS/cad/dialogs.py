@@ -10,7 +10,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from collections import deque
 import os
-import data_rc
+import cad.data_rc
 
 
 

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Menus and Toolbar</title>
+    <style>
+body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.editor {
+    flex: 1;
+    padding-bottom: 0px;
+    border: 1px solid #ddd;
+    margin: 3px;
+    margin-bottom: 30px;
+    overflow: hidden;
+}
+
+
+
+        .menu-bar {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            padding: 0;
+            font-size: 12px;
+        }
+        .menu-item {
+            position: relative;
+            padding: 5px 10px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .menu-item:hover {
+            background-color: #e9ecef;
+        }
+        .menu-item:hover .dropdown {
+            display: block;
+        }
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            font-size: 12px;
+        }
+        .dropdown-item {
+            padding: 4px 8px;
+            white-space: nowrap;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .dropdown-item img {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+        }
+        .dropdown-item span.shortcut {
+            color: #888;
+            margin-left: auto;
+            padding-left: 10px;
+            text-align: right;
+        }
+        .dropdown-item:hover {
+            background-color: #f1f1f1;
+        }
+        .toolbar {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .toolbar button {
+            background-color: white;
+            border: 1px solid #ddd;
+            padding: 5px;
+            cursor: pointer;
+        }
+        .toolbar button img {
+            width: 16px;
+            height: 16px;
+        }
+        .description-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f8f9fa;
+            border-top: 1px solid #ddd;
+            padding: 5px;
+            font-size: 12px;
+            color: #333;
+        }
+
+
+.disabled {
+    color: #aaa; /* Greyed out text */
+    cursor: not-allowed; /* Show disabled cursor */
+    pointer-events: none; /* Disable interactions */
+    z-index: 1;
+}
+
+.disabled .icon {
+    filter: grayscale(100%);
+    opacity: 0.5;
+}
+
+		
+		
+
+
+    </style>
+
+	    <title>CodeMirror Python Editor</title>
+    
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldgutter.min.css">
+
+    <!-- CodeMirror JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/mode/python/python.min.js"></script>
+
+    <!-- CodeMirror Add-ons for Code Folding -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/indent-fold.min.js"></script>
+	
+	
+</head>
+<body>
+
+	<!-- Editor  -->
+    <div class="editor">
+	  <textarea  id="code"></textarea>
+    </div>
+
+    <!-- Description Bar -->
+    <div class="description-bar" id="description-bar">Hover over an item for details.</div>
+    <script src="editor.js"></script>
+
+
+</body>
+</html>

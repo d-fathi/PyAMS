@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import QTreeWidgetItem,QTreeWidget
 from collections import deque
 from PyQt5.QtCore import QProcess
 import os
-import data_rc
+import cad.data_rc
 import json
 from PyQt5.QtCore import Qt
 

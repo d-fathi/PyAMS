@@ -690,7 +690,7 @@ class Ui_MainWindow(object):
         self.actionEnd.setText(_translate("MainWindow", "End"))
         self.actionPolygon.setText(_translate("MainWindow", "Polygon"))
 from PyQt5 import QtWebEngineWidgets
-import data_rc
+import cad.data_rc
 
 
 if __name__ == "__main__":

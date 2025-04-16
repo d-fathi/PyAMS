@@ -1,10 +1,10 @@
 [
-    "D:/project/PyAMS/demo/InvMOSFET.dcs",
-    "D:/project/PyAMS/demo/AC to DC.dcs",
+    "D:/project/PyAMS/demo/Zener Diode Regulator.dcs",
     "D:/project/PyAMS/demo/voltage divider.dcs",
-    "D:/project/PyAMS_ElectonJs/demo/voltage divider.dcs",
-    "D:/project/PyAMS/demo/lc_oscillator.dcs",
+    "D:/project/PyAMS/demo/AC to DC_sample_diode.dcs",
+    "D:/project/PyAMS/demo/AC to DC.dcs",
     "D:/project/PyAMS/demo/DCGAIN.dcs",
-    "D:/project/PyAMS_Qt/demo/AC to DC.dcs",
-    "D:/project_old_pyqt5_20_02_2025/PyAMS/demo/AC to DC.dcs"
+    "D:/project/PyAMS/demo/RL.dcs",
+    "D:/project/PyAMS/demo/Mutual inductance.dcs",
+    "D:/project/PyAMS/demo/Full wave bridge rectifier.dcs"
 ]

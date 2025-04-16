@@ -6,29 +6,28 @@
 # Update:      12/04/2025
 # Copyright:   (c) PyAMS 2025
 # Web:         https://pyams.sf.net/
-# Version:     0.1.1 (beta)
+# Version:     0.1.2 (beta)
 # Licence:     free  "GPLv3"
 # info:        Symbol Editor: Create and edit custom analog symbols used in circuit design
 #-----------------------------------------------------------------------------------------
 
-from sys import path
-import os
-dire =os.path.dirname(__file__)
-path+=[dire+"\cad"]
-import appcir
+
+
+import cad.appcir
 
 from PyQt5.QtWidgets import QApplication,QMainWindow
-from mainwindow import Ui_MainWindow
+from cad.mainwindow import Ui_MainWindow
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtWebChannel import QWebChannel
-from dialogs import *
-from cad import updateLib,getSymbolsFromLib,getSymbolsFromProject,libraryManagement
-from cad import modifiedParams,getListSignalsNodeParams,analysis
-from description import modifyingDescription
-from PythonEditor import showCode,showPyCode,showCodeBySymEd,showCodeHtml,showCodeSpice,listOfModels
-from graphDescription import showGraph
+from cad.dialogs import *
+from cad.dialogLibraryManagement  import updateLib,getSymbolsFromLib,getSymbolsFromProject,libraryManagement
+from cad.appcir import modifiedParams,getListSignalsNodeParams,analysis
+from cad.description import modifyingDescription
+from cad.PythonEditor import showCode,showPyCode,showCodeBySymEd,showCodeHtml
+from cad.graphDescription import showGraph
+from cad.synedit import openmodel,openmodelBySymEd,openHtml
 import json
 
 
@@ -74,12 +73,9 @@ class Document(QObject):
 
     @pyqtSlot(str)
     def jsexec(self, excute):
+        print('*****')
         print(excute);
-        if self.setWin.ui.actionPause.isEnabled():
-          try:
-           setCommand(excute);
-          except:
-            print('error in:'+excute);
+
 
     @pyqtSlot(str,str)
     def getParams(self,code,modelName):
@@ -91,15 +87,16 @@ class Document(QObject):
 
     @pyqtSlot(str,str)
     def getCode(self,modelName,directory):
-        showCode(self,modelName,directory)
+        openmodel(self.setWin,modelName,directory)
+
+    @pyqtSlot()
+    def getCodeBySymEd(self):
+        openmodelBySymEd(self.setWin)
 
     @pyqtSlot(str)
     def getHtmlCode(self,data):
-        showCodeHtml(self,data)
+        openHtml(self.setWin,data)
 
-    @pyqtSlot(str)
-    def getCodeSpice(self,data):
-        showCodeSpice(self,data)
 
     @pyqtSlot(str)
     def getPyCode(self,file):
@@ -113,11 +110,6 @@ class Document(QObject):
         file=os.path.dirname(self.setWin.filename)+'/lib/'+file;
         self.setWin.openSymbol(file);
 
-
-
-    @pyqtSlot()
-    def getCodeBySymEd(self):
-        showCodeBySymEd(self)
 
     @pyqtSlot(str,bool, result=str)
     def jscallme(self, str_args,typePyAMS):
@@ -321,6 +313,7 @@ class Mainwindow:
 
         # File history
         if(self.pagetype=='sym'):
+          dire =os.path.dirname(__file__)
           self.history_file =dire+"\\cad\\file_history_sym.json"
           self.file_history = self.load_file_history()
           self.update_reopen_menu();
@@ -350,8 +343,9 @@ class Mainwindow:
         appcir.getListSignalsNodeParams(self,result,self.listType);
 
 
+
     def about(self):
-        from about import about
+        from cad.about import about
         dialog =about();
         dialog.w.exec_();
 

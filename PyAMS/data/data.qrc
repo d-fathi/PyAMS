@@ -106,6 +106,10 @@
     <file>image/AddPie.png</file>
     <file>image/AddPolygon.png</file>
     <file>image/CreatParts_Icon.ico</file>
+	<file>synedit/editor.html</file>
+    <file>synedit/editor.js</file>
+	<file>synedit/editor_html.html</file>
+    <file>synedit/editor_html.js</file>
     <file>qwebchannel.js</file>
   </qresource>
 </RCC>

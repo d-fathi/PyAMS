@@ -5,7 +5,7 @@
 # Update:      12/04/2025
 # Copyright:   (c) PyAMS 2025
 # Web:         https://pyams.sf.net/
-# Version:     0.1.1 (beta)
+# Version:     0.1.2 (beta)
 # Licence:     free  "GPLv3"
 # info:        The interface of design and simulation circuit (CAD)
 #-------------------------------------------------------------------------------
@@ -16,9 +16,9 @@ from SymbolEditor import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
-from appcir import analysis
-from dialogs import *
-from cad import libraryManagement
+from cad.appcir import analysis
+from cad.dialogs import *
+from cad.dialogLibraryManagement import libraryManagement
 from PyQt5 import QtWebEngineWidgets
 
 #-------------------------------------------------------------------------------
@@ -91,6 +91,8 @@ class PyAMS(Mainwindow):
         self.ui.actionOscilloscope.setVisible(False);
         self.ui.menuPart.menuAction().setVisible(True);
 
+
+        dire =os.path.dirname(__file__)
         self.history_file =dire+"\\cad\\file_history.json"
         self.file_history = self.load_file_history()
         self.update_reopen_menu();

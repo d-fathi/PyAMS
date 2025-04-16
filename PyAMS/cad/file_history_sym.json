@@ -1,10 +1,10 @@
 [
-    "D:/project/PyAMS/models/Basic/CCCS.sym",
+    "D:/project/PyAMS/models/Semiconductor/DiodeZener.sym",
+    "D:/project/PyAMS/models/CMOSGates/CNOT.sym",
     "D:/project/PyAMS/models/CMOSGates/CNAND.sym",
+    "D:/project/PyAMS/models/Basic/CCCS.sym",
     "D:/project/PyAMS_Qt/library/Basic/Conductor.sym",
     "D:/project/PyAMS/library/Semiconductor/DiodeLaser.sym",
     "D:/project/PyAMS/library/Basic/SwitchSample.sym",
-    "D:/project/PyAMS/library/Basic/CapacitorIc.sym",
-    "D:/publication/dc_work/project/lib/MPPT.sym",
-    "D:/project/PyAMS/library/Source/library.sym"
+    "D:/project/PyAMS/library/Basic/CapacitorIc.sym"
 ]

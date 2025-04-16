@@ -9,14 +9,14 @@
 #-------------------------------------------------------------------------------
 
 from sys import path
-from showGraph import Ui_Dialog
+from cad.showGraph import Ui_Dialog
 from PyQt5.QtWebChannel import QWebChannel
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 import os
 from PyQt5.QtWidgets import QMainWindow, QApplication
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-import data_rc
+import cad.data_rc
 
 
 class graphDescription:

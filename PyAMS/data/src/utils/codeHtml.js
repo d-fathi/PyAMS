@@ -47,6 +47,10 @@ function setHtmlCode(text){
 
 async function openEditHtml() {
   const originalText = mtable.select.firstChild.firstChild.getAttribute("code");
+  if(!drawing.electron){
+    window.foo.getHtmlCode(originalText);
+    return;
+  }
   const editedText = await window.electron.editTextHtml(originalText,'HTML Code Editor');
   setHtmlCode(editedText);
 }
