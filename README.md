@@ -11,7 +11,7 @@ PyAMS: Python for Analog and Mixed Signals
 <p align="center">
  
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.1.2-blue" alt="V 0.1.2">
+    <img src="https://img.shields.io/badge/Version-0.1.3-blue" alt="V 0.1.3">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -44,9 +44,39 @@ The objectives of PyAMS is:
 * **Hom page** <a href="https://pyams.sf.net">https://pyams.sf.net</a>.
 * **PyAMS’s documentation**  <a href="https://pyams.sf.net/doc">https://pyams.sf.net/doc</a>.
 
-## Installation
+## Installation of Software
 
 * **Download:** <a href="https://sourceforge.net/projects/pyams/">https://sourceforge.net/projects/pyams/</a>.
+
+## Screenshots of schematic and data display areas
+
+<h1 align="center">
+    <img src="https://pyams.sourceforge.io/images/C.png" width="900px" alt="PyAMS">
+</h1>
+
+
+## Installation by pip
+
+To install `pyams_cad`, use the following command:
+
+```sh
+pip install pyams_cad
+```
+
+To upgrade to the latest version:
+
+```sh
+pip install --upgrade pyams_cad
+```
+
+### Code:
+
+```python
+
+from pyams import win
+win()
+
+````
 
 
 

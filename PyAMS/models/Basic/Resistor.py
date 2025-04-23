@@ -35,7 +35,6 @@ class Resistor(model):
 
         #Parameters declarations------------------------------------------------
         self.R=param(1000.0,'Ω','Resistance')
-        self.Pout=param(1000.0,'Ω','Resistance')
 
     def analog(self):
         """Defines the resistor's current-voltage relationship using Ohm's Law."""

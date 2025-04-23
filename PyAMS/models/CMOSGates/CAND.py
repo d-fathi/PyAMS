@@ -6,7 +6,6 @@
 # Copyright:   (c) PyAMS
 # Licence:     free
 #-------------------------------------------------------------------------------
-the reStructuredText (RST) documentation for the CMOS AND in the same format as the previous components:
 
 from pyams_lib import model, signal, param
 from pyams_lib import voltage

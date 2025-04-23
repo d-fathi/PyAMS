@@ -2,7 +2,7 @@
 # Name:        Interface of excute
 # Author:      D.fathi
 # Created:     09/10/2022
-# Update:      11/04/2025
+# Update:      20/04/2025
 # Copyright:   (c) D.fathi 2025
 # Licence:     free
 #-------------------------------------------------------------------------------
@@ -13,6 +13,7 @@ import time
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QPushButton,QDialog, QProgressBar, QVBoxLayout, QApplication, QPlainTextEdit
 from PyQt5.QtCore import QProcess
+from cad.config import pyProcess
 import json
 
 
@@ -53,7 +54,7 @@ class processAnalysis:
             self.p.readyReadStandardError.connect(self.handle_stderr)
             self.p.stateChanged.connect(self.handle_state)
             self.p.finished.connect(self.process_finished)  # Clean up once complete.
-            self.p.start(self.main.ppDir+"/pypy/python", [str(self.test)])
+            self.p.start(pyProcess(self.main.ppDir), [str(self.test)])
 
 
 
@@ -133,7 +134,7 @@ class processOpAnalysis:
             self.p.readyReadStandardError.connect(self.handle_stderr)
             self.p.stateChanged.connect(self.handle_state)
             self.p.finished.connect(self.process_finished)  # Clean up once complete.
-            self.p.start(self.main.ppDir+"/pypy/python", [str(self.test)])
+            self.p.start(pyProcess(self.main.ppDir), [str(self.test)])
 
 
 

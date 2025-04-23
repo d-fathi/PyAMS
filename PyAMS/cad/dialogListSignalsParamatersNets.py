@@ -16,6 +16,7 @@ import os
 import cad.data_rc
 import json
 from PyQt5.QtCore import Qt
+from cad.config import pyProcess
 
 #-------------------------------------------------------------------------------
 # class Ui_DialogListSignalsParamaters: intrface of dialog List of Signals
@@ -106,7 +107,7 @@ class listSignalsParamatersNets:
             self.p.stateChanged.connect(self.handle_state)
             self.p.finished.connect(self.process_finished)  # Clean up once complete.
             print(self.test)
-            self.p.start(self.main.ppDir+"/pypy/python", [str(self.test)])
+            self.p.start(pyProcess(self.main.ppDir), [str(self.test)])
 
 
 

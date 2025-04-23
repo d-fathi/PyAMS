@@ -5,7 +5,7 @@
 # Update:      12/04/2025
 # Copyright:   (c) PyAMS 2025
 # Web:         https://pyams.sf.net/
-# Version:     0.1.2 (beta)
+# Version:     0.1.3 (beta)
 # Licence:     free  "GPLv3"
 # info:        The interface of design and simulation circuit (CAD)
 #-------------------------------------------------------------------------------
