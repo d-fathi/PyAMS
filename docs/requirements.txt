@@ -1,4 +1,4 @@
-sphinx==8.0.2
-sphinx_rtd_theme==2.0.0
-sphinx_panels==0.6.0
-sphinx_math_dollar==1.2.1
+sphinx
+sphinx_rtd_theme
+sphinx_panels
+sphinx_math_dollar
