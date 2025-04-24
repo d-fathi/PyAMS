@@ -36,8 +36,7 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosectionlabel',
               'sphinx_rtd_theme',
                'sphinx_panels',
-              'sphinx_math_dollar',
-              'rst2pdf.pdfbuilder']
+              'sphinx_math_dollar']
 
 mathjax_config = {
     'tex2jax': {
@@ -46,7 +45,6 @@ mathjax_config = {
     },
 }
 
-pdf_documents = [('index', 'PyAMS_Documentation', 'PyAMS Documentation', 'Your Name')]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['sphinx_rtd_theme']
