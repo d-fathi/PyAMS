@@ -7,8 +7,8 @@
 # Licence:     free  "GPLv3"
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model, signal, param, time
-from pyams_lib import voltage
+from pyams.lib import model, signal, param, time
+from pyams.lib import voltage
 
 # Trapezoidal Voltage Source Model ---------------------------------------------
 class TrapezoidVoltage(model):
@@ -35,19 +35,19 @@ class TrapezoidVoltage(model):
 
     The voltage waveform is defined as:
 
-    - **Before initial delay (t ≤ Td):**  
+    - **Before initial delay (t ≤ Td):**
       V = V0 + Voff
 
-    - **During the rising edge (0 ≤ t ≤ Tr):**  
+    - **During the rising edge (0 ≤ t ≤ Tr):**
       V = ((V1 - V0) / Tr) * t + V0 + Voff
 
-    - **During the high state (Tr ≤ t ≤ Tr + Tw):**  
+    - **During the high state (Tr ≤ t ≤ Tr + Tw):**
       V = V1 + Voff
 
-    - **During the falling edge (Tr + Tw ≤ t ≤ Tr + Tw + Tf):**  
+    - **During the falling edge (Tr + Tw ≤ t ≤ Tr + Tw + Tf):**
       V = ((V0 - V1) / Tf) * (t - Tr - Tw) + V1 + Voff
 
-    - **During the low state (t > Tr + Tw + Tf):**  
+    - **During the low state (t > Tr + Tw + Tf):**
       V = V0 + Voff
 
     Methods:

@@ -7,9 +7,9 @@
 # Licence:     free  "GPLv3"
 #-------------------------------------------------------------------------------
 
-from pyams_lib import signal,model,param
-from pyams_lib import voltage,current
-from pyams_lib import explim,ddt
+from pyams.lib import signal,model,param
+from pyams.lib import voltage,current
+from pyams.lib import explim,ddt
 
 class DiodeLaser(model):
     """

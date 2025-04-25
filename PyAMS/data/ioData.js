@@ -4,7 +4,7 @@
 # Description: In and Out data
 # Author:      d.fathi
 # Created:     29/08/2021
-# Update:      05/03/2025
+# Update:      23/04/2025
 # Copyright:   (c) PyAMS 2025
 # Licence:     free 
 #-------------------------------------------------------------------------------
@@ -31,8 +31,8 @@ function generatePythonScriptForParams(){
 
 let pythonScript = `
 import json;
-from  models import ${modelName};
-from pyams_lib import getParams
+from pyams.models import ${modelName};
+from pyams.lib import getParams
 X = ${modelName}(${pins});
 X.setParams('${params}');
 params = getParams(X)
@@ -74,8 +74,8 @@ function generatePythonScriptofCircuit(){
     
     let pythonScript = `import json;\n`;
 
-    pythonScript += elemList.map(elem =>`from models import ${elem.symbolname};`).join("\n") + "\n";
-    pythonScript += `from pyams_lib import cirCAD;\n`; 
+    pythonScript += elemList.map(elem =>`from pyams.models import ${elem.symbolname};`).join("\n") + "\n";
+    pythonScript += `from pyams.lib import cirCAD;\n`; 
 
     //get Elements---------------------------------------------------------------------
 
@@ -104,7 +104,7 @@ async function ioPosProbe() {
     //python script
     var pythonScript= generatePythonScriptofCircuit();
     
-    pythonScript += `from pyams_lib import listSignalsParams;\n`; 
+    pythonScript += `from pyams.lib import listSignalsParams;\n`; 
     pythonScript += 'data=listSignalsParams(circuit);\n';
     pythonScript += 'print(json.dumps(data))';
 
@@ -185,7 +185,7 @@ async function ioPosParamAnalysis(type) {
     //python script
     var pythonScript= generatePythonScriptofCircuit();
     
-    pythonScript += `from pyams_lib import listSignalsParams;\n`; 
+    pythonScript += `from pyams.lib import listSignalsParams;\n`; 
     pythonScript += 'data=listSignalsParams(circuit);\n';
     pythonScript += 'print(json.dumps(data))';
 

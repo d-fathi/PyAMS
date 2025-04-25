@@ -5,6 +5,10 @@
 CMOS NOT Gate (Inverter)
 ========================
 
+:red:`Symbol`
+
+.. figure:: NOT.svg
+
 :red:`Information`
 
 A **CMOS NOT Gate** (also known as an inverter) outputs the **inverse** of the input signal. If the input is **HIGH (IH)**, the output is **LOW (OL)**, and vice versa.

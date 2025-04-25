@@ -11,14 +11,15 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QVBoxLayout,QPushButton,QLineEdit,QDialogButtonBox,QLabel,QTextEdit
 from PyQt5.QtCore import QProcess
 from cad.config import pyProcess
+import os
 import json
 
 
 
 class listParams:
-    def __init__(self,main,source):
-        self.test=source
+    def __init__(self,main):
         self.main=main
+        self.path=os.path.dirname(os.path.normpath(self.main.ppDir))
         self.w = QtWidgets.QDialog()
         self.w.resize(450, 240)
         self.p = None
@@ -35,7 +36,8 @@ class listParams:
             self.p.readyReadStandardError.connect(self.handle_stderr)
             self.p.stateChanged.connect(self.handle_state)
             self.p.finished.connect(self.process_finished)  # Clean up once complete.
-            self.p.start(pyProcess(self.main.ppDir), [str(self.test)])
+            self.p.setWorkingDirectory(self.path)
+            self.p.start(pyProcess(self.main.ppDir), ["-m","pyams.temp_script"])
 
 
 

@@ -5,6 +5,10 @@
 CMOS Buffer Gate
 ================
 
+:red:`Symbol`
+
+.. figure:: Buffer.svg
+
 :red:`Information`
 
 A **CMOS Buffer Gate** is used to **isolate** or **amplify** a signal while maintaining the same logical state at the output as the input. It acts as a **voltage buffer** with no change to the logical level, providing electrical isolation and signal amplification.

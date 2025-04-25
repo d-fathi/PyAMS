@@ -7,8 +7,8 @@
 # Licence:     free  "GPLv3"
 #-------------------------------------------------------------------------------
 
-from pyams_lib import signal, model, param
-from pyams_lib import voltage, current
+from pyams.lib import signal, model, param
+from pyams.lib import voltage, current
 from math import atan,pi
 
 class OpAmpPowerSupply(model):

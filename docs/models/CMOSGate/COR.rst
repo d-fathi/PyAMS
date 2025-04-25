@@ -5,6 +5,10 @@
 CMOS OR Gate
 =============
 
+:red:`Symbol`
+
+.. figure:: OR.svg
+
 :red:`Information`
 
 A **CMOS OR Gate** is a fundamental digital logic gate that implements logical disjunction. The output is HIGH (OH) if at least one input is HIGH (IH); otherwise, the output is LOW (OL).

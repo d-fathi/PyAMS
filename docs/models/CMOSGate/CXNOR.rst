@@ -5,6 +5,10 @@
 CMOS XNOR Gate
 ==============
 
+:red:`Symbol`
+
+.. figure:: XNOR.svg
+
 :red:`Information`
 
 A **CMOS XNOR Gate** produces a **HIGH (OH)** output when both inputs are the same (either both **LOW (IL)** or both **HIGH (IH)**). Otherwise, the output is **LOW (OL)**.

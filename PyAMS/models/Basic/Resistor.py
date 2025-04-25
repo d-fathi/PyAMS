@@ -7,16 +7,16 @@
 #-------------------------------------------------------------------------------
 
 
-from pyams_lib import model,signal,param
-from pyams_lib import voltage,current
+from pyams.lib import model,signal,param
+from pyams.lib import voltage,current
 
 #Resistor Model-----------------------------------------------------------------
 class Resistor(model):
     """
     This class implements a Resistor model.
 
-    A resistor limits current flow according to Ohm's Law, which states that 
-    the current through a resistor is proportional to the voltage across it 
+    A resistor limits current flow according to Ohm's Law, which states that
+    the current through a resistor is proportional to the voltage across it
     and inversely proportional to its resistance.
 
     Attributes:

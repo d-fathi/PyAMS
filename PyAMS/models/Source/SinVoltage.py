@@ -7,8 +7,8 @@
 # Licence:     free  "GPLv3"
 #-------------------------------------------------------------------------------
 
-from pyams_lib import signal, param, model, time
-from pyams_lib import voltage
+from pyams.lib import signal, param, model, time
+from pyams.lib import voltage
 from math import sin, pi
 
 # Sine Wave Voltage Source Model -----------------------------------------------

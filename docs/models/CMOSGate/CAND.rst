@@ -5,6 +5,10 @@
 CMOS AND Gate
 =============
 
+:red:`Symbol`
+
+.. figure:: AND.svg
+
 :red:`Information`
 
 A **CMOS AND Gate** is a fundamental digital logic gate that implements logical conjunction. The output is HIGH (OH) only when both inputs are HIGH (IH); otherwise, the output is LOW (OL).

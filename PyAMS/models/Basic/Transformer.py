@@ -6,9 +6,9 @@
 # Copyright:   (c) PyAMS
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model, signal, param
-from pyams_lib import voltage, current
-from pyams_lib import ddt
+from pyams.lib import model, signal, param
+from pyams.lib import voltage, current
+from pyams.lib import ddt
 
 # Mutual Inductor (Transformer) Model
 class Transformer(model):

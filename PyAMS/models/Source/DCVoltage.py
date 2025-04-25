@@ -8,8 +8,8 @@
 #-------------------------------------------------------------------------------
 
 
-from pyams_lib import signal, param, model
-from pyams_lib import voltage
+from pyams.lib import signal, param, model
+from pyams.lib import voltage
 
 # DC Voltage Source Model------------------------------------------------------
 class DCVoltage(model):

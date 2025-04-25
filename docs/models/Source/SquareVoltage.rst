@@ -1,9 +1,17 @@
 .. include:: ../importCSS.txt
 
 Square Voltage
-=============
+==============
+
+:red:`Symbol`
+
+.. figure:: SquareVoltage.svg
 
 :red:`Information`
+
+.. figure:: SquareVoltage.png
+   :scale: 50%
+   :align: center
 
 A **Square Wave Voltage Source** generates a **periodic alternating voltage signal** based on the following equation:
 
@@ -14,6 +22,10 @@ A **Square Wave Voltage Source** generates a **periodic alternating voltage sign
     V_a + V_{off}, & 0 \leq t < T/2 \\
     V_{off}, & T/2 \leq t < T
     \end{cases}
+
+.. figure:: SquareV.png
+   :scale: 50%
+   :align: center
 
 Where:
 

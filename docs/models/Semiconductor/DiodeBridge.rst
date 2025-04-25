@@ -5,7 +5,15 @@
 Diode Bridge
 ===========
 
+:red:`Symbol`
+
+.. figure:: DiodeBridge.svg
+
 :red:`Information`
+
+.. figure:: DiodeBridge.png
+   :scale: 50%
+   :align: center
 
 A **Diode Bridge**, also known as a **Bridge Rectifier**, is an electrical circuit used to convert an **AC input voltage** into a **DC output voltage**. It consists of **four diodes** arranged in a bridge configuration to efficiently rectify alternating current.
 

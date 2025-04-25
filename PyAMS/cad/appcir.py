@@ -20,13 +20,10 @@ import os
 def modifiedParams(self,code,modelName):
    try:
     temp_script = os.path.join(self.ppDir, "temp_script.py")
-
     with open(temp_script, "w", encoding="utf-8") as file:
             file.write(code)
-
-
     from cad.dialogListParams import listParams
-    dialog =listParams(self,temp_script)
+    dialog =listParams(self)
     dialog.w.setWindowTitle("Paramatres of:  "+modelName)
     dialog.w.setWindowIcon(self.setIcon)
     if dialog.w.exec_():
@@ -44,11 +41,10 @@ def modifiedParams(self,code,modelName):
 def getListSignalsNodeParams(self,code,pos,type_):
     try:
       temp_script = os.path.join(self.ppDir, "temp_script.py")
-
       with open(temp_script, "w", encoding="utf-8") as file:
             file.write(code)
       from cad.dialogListSignalsParamatersNets import listSignalsParamatersNets
-      dialog =listSignalsParamatersNets(self,temp_script,pos,type_);
+      dialog =listSignalsParamatersNets(self,pos,type_);
       dialog.w.setWindowTitle("Lists of signals paramatres and nodes");
       dialog.w.setWindowIcon(self.setIcon);
       if dialog.w.exec_():
@@ -77,13 +73,13 @@ def analysis(self,code,op=False):
       title='Analysis';
       if(op):
        from cad.dialogProcessInterface import processOpAnalysis
-       dialog=processOpAnalysis(self,temp_script,title);
+       dialog=processOpAnalysis(self,title);
        dialog.start_process();
        dialog.w.exec_()
        return;
 
       from cad.dialogProcessInterface import processAnalysis
-      dialog=processAnalysis(self,temp_script,title);
+      dialog=processAnalysis(self,title);
       dialog.w.exec_()
 
 

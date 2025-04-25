@@ -5,6 +5,10 @@
 CMOS XOR Gate
 =============
 
+:red:`Symbol`
+
+.. figure:: XOR.svg
+
 :red:`Information`
 
 A **CMOS XOR Gate** is a fundamental digital logic gate that implements logical exclusive disjunction. The output is **HIGH (OH)** when the inputs are different, and **LOW (OL)** when the inputs are the same.

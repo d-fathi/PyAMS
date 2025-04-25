@@ -3,7 +3,15 @@
 Trapezoid Current
 =================
 
+:red:`Symbol`
+
+.. figure:: TrapezoidCurrent.svg
+
 :red:`Information`
+
+.. figure:: TrapezoidCurrent.png
+   :scale: 50%
+   :align: center
 
 A **Trapezoidal Wave Current Source** generates a **current signal** with a linear rise and fall, forming a trapezoidal waveform.
 
@@ -16,6 +24,10 @@ A **Trapezoidal Wave Current Source** generates a **current signal** with a line
     \frac{(I_0 - I_1)}{T_f} \cdot (t - T_r - T_w) + I_1 + I_{off}, & T_r + T_w \leq t \leq T_r + T_w + T_f \\
     I_0 + I_{off}, & t > T_r + T_w + T_f
     \end{cases}
+
+.. figure:: TrapI.png
+   :scale: 50%
+   :align: center
 
 Where:
 

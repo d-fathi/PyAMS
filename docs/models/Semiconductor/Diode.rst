@@ -5,7 +5,15 @@
 Diode
 =====
 
+:red:`Symbol`
+
+.. figure:: Diode.svg
+
 :red:`Information`
+
+.. figure:: Diode.png
+   :scale: 50%
+   :align: center
   
 A **diode** is a semiconductor device that **allows current to flow in one direction** while blocking it in the reverse direction. It follows the **Shockley diode equation**, which defines its current-voltage relationship:
 

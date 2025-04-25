@@ -2,10 +2,18 @@
 
 .. include:: ../importCSS.txt
 
-PMOS
-====
+PMOS Transistor
+==============
+
+:red:`Symbol`
+
+.. figure:: PMOS.svg
 
 :red:`Information`
+
+.. figure:: PMOSFET.png
+   :scale: 20%
+   :align: center
   
 A **P-channel MOSFET (PMOS)** is a type of MOSFET where the **majority charge carriers are holes**. It operates with a **negative gate-to-source voltage (Vgs)** and conducts when **Vgs is lower than the threshold voltage (Vt)**.
 

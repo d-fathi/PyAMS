@@ -6,17 +6,17 @@
 # Copyright:   (c) PyAMS 2024
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model, signal, param
-from pyams_lib import voltage, current
-from models.Basic.Resistor import Resistor
+from pyams.lib import model, signal, param
+from pyams.lib import voltage, current
+from pyams.models.Basic.Resistor import Resistor
 
 # Current-Controlled Switch Model
 class SwitchC(model):
     """
     This class implements a Current-Controlled Switch model.
 
-    The switch operates based on the control current (Ic). 
-    It uses an internal resistor model (Rs) whose resistance changes 
+    The switch operates based on the control current (Ic).
+    It uses an internal resistor model (Rs) whose resistance changes
     depending on the control current level.
 
     Attributes:
@@ -32,7 +32,7 @@ class SwitchC(model):
         sub(): Initializes the internal resistor model.
         analog(): Dynamically updates resistance based on control current.
     """
-    
+
     def __init__(self, pc, nc, p, n):
         # Signal declarations
         self.Ic = signal('in', current, pc, nc)

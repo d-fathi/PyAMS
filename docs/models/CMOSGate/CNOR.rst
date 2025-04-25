@@ -5,6 +5,10 @@
 CMOS NOR Gate
 =============
 
+:red:`Symbol`
+
+.. figure:: NOR.svg
+
 :red:`Information`
 
 A **CMOS NOR Gate** is a fundamental digital logic gate that implements logical NOR operation. The output is **HIGH (OH)** only when both inputs are **LOW (IL)**; otherwise, the output is **LOW (OL)**.

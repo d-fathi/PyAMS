@@ -6,16 +6,16 @@
 # Copyright:   (c) PyAMS
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model,signal,param
-from pyams_lib import voltage,current
-from pyams_lib import ddt
+from pyams.lib import model,signal,param
+from pyams.lib import voltage,current
+from pyams.lib import ddt
 
 #Capacitor model----------------------------------------------------------------
 class Capacitor(model):
     """
     This class implements a Capacitor model.
 
-    A capacitor stores electrical energy in an electric field and its current 
+    A capacitor stores electrical energy in an electric field and its current
     is proportional to the rate of change of voltage across it.
 
     Attributes:

@@ -6,9 +6,9 @@
 # Copyright:   (c) PyAMS
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model,signal,param
-from pyams_lib import voltage,current
-from pyams_lib import ddt
+from pyams.lib import model,signal,param
+from pyams.lib import voltage,current
+from pyams.lib import ddt
 
 
 #Capacitor with initial charge (Ic) model----------------------------------------------------------------
@@ -16,8 +16,8 @@ class CapacitorIc(model):
     """
     This class implements a Capacitor model with an initial charge.
 
-    A capacitor stores electrical energy in an electric field, and its current 
-    is proportional to the rate of change of voltage across it. This model also 
+    A capacitor stores electrical energy in an electric field, and its current
+    is proportional to the rate of change of voltage across it. This model also
     accounts for an initial charge.
 
     Attributes:

@@ -14,16 +14,17 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QPushButton,QDialog, QProgressBar, QVBoxLayout, QApplication, QPlainTextEdit
 from PyQt5.QtCore import QProcess
 from cad.config import pyProcess
+import os
 import json
 
 
 class processAnalysis:
-    def __init__(self,main,source,title):
+    def __init__(self,main,title):
 
         self.w = QDialog()
         self.w.resize(600,400)
-        self.test=source
         self.main=main;
+        self.path=os.path.dirname(os.path.normpath(self.main.ppDir))
         self.w.setWindowTitle(title)
         self.w.setWindowIcon(main.setIcon);
         self.p = None
@@ -54,7 +55,8 @@ class processAnalysis:
             self.p.readyReadStandardError.connect(self.handle_stderr)
             self.p.stateChanged.connect(self.handle_state)
             self.p.finished.connect(self.process_finished)  # Clean up once complete.
-            self.p.start(pyProcess(self.main.ppDir), [str(self.test)])
+            self.p.setWorkingDirectory(self.path)
+            self.p.start(pyProcess(self.main.ppDir), ["-m","pyams.temp_script"])
 
 
 
@@ -107,14 +109,14 @@ class processAnalysis:
 
 class processOpAnalysis:
 
-    def __init__(self,main,source,title):
+    def __init__(self,main,title):
         self.w = QDialog()
         self.w.resize(600,400)
         self.main=main;
+        self.path=os.path.dirname(os.path.normpath(self.main.ppDir))
         self.w.setWindowTitle(title)
         self.w.setWindowIcon(main.setIcon);
         self.p = None
-        self.test=source
         self.text = QPlainTextEdit()
         self.text.setReadOnly(True)
 
@@ -134,7 +136,8 @@ class processOpAnalysis:
             self.p.readyReadStandardError.connect(self.handle_stderr)
             self.p.stateChanged.connect(self.handle_state)
             self.p.finished.connect(self.process_finished)  # Clean up once complete.
-            self.p.start(pyProcess(self.main.ppDir), [str(self.test)])
+            self.p.setWorkingDirectory(self.path)
+            self.p.start(pyProcess(self.main.ppDir), ["-m","pyams.temp_script"])
 
 
 

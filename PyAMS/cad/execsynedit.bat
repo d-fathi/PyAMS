@@ -1,5 +1,0 @@
-PythonEditor.py
-pause
-
-
-

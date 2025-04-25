@@ -7,8 +7,8 @@
 # Licence:     free  "GPLv3"
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model, signal, param, time
-from pyams_lib import voltage
+from pyams.lib import model, signal, param, time
+from pyams.lib import voltage
 
 # Pulse Voltage Source Model---------------------------------------------------
 class PulsVoltage(model):

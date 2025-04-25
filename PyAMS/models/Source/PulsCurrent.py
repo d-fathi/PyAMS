@@ -7,11 +7,11 @@
 # Licence:     free  "GPLv3"
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model,signal,param, time
-from pyams_lib import current
+from pyams.lib import model,signal,param, time
+from pyams.lib import current
 
-from pyams_lib import model, signal, param, time
-from pyams_lib import current
+from pyams.lib import model, signal, param, time
+from pyams.lib import current
 
 # Pulse Current Source Model---------------------------------------------------
 class PulsCurrent(model):

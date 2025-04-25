@@ -5,7 +5,15 @@
 NPN Transistor
 ==============
 
+:red:`Symbol`
+
+.. figure:: NPN.svg
+
 :red:`Information`
+
+.. figure:: NPN.png
+   :scale: 50%
+   :align: center
   
 An **NPN bipolar junction transistor (BJT)** is a three-terminal semiconductor device used for **amplification** and **switching** applications. It consists of three regions:
 

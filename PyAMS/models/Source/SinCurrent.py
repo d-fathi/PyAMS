@@ -8,8 +8,8 @@
 #-------------------------------------------------------------------------------
 
 
-from pyams_lib import signal, param, model, time
-from pyams_lib import current
+from pyams.lib import signal, param, model, time
+from pyams.lib import current
 from math import sin, pi
 
 # Sine Wave Current Source Model -----------------------------------------------

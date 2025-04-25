@@ -7,8 +7,8 @@
 # Licence:     free GPLv3
 #-------------------------------------------------------------------------------
 
-from pyams_lib import signal, param, model
-from pyams_lib import current
+from pyams.lib import signal, param, model
+from pyams.lib import current
 
 # DC Current Source Model------------------------------------------------------
 class DCCurrent(model):

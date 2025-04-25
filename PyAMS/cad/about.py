@@ -86,7 +86,7 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
-        self.label_2.setText(_translate("Dialog", "<html><head/><body><p align=\"center\"><span style=\" font-size:12pt;\">Designing Circuits and Simulating with PyAMS</span></p><p align=\"center\"><span style=\" font-size:12pt;\">PyAMS 0.1.3 </span></p><p align=\"center\"><a href=\"\\&quot;http://pyams.sf.net\\&quot;\"><span style=\" font-size:12pt; text-decoration: underline; color:#0000ff;\">http://pyams.sf.net</span></a></p><p align=\"center\"><span style=\" font-size:12pt;\">© Dhiabi Fathi 2024-2025</span></p></body></html>"))
+        self.label_2.setText(_translate("Dialog", "<html><head/><body><p align=\"center\"><span style=\" font-size:12pt;\">Designing Circuits and Simulating with PyAMS</span></p><p align=\"center\"><span style=\" font-size:12pt;\">PyAMS 0.1.4 </span></p><p align=\"center\"><a href=\"\\&quot;http://pyams.sf.net\\&quot;\"><span style=\" font-size:12pt; text-decoration: underline; color:#0000ff;\">http://pyams.sf.net</span></a></p><p align=\"center\"><span style=\" font-size:12pt;\">© Dhiabi Fathi 2024-2025</span></p></body></html>"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("Dialog", "About"))
         self.textEdit.setHtml(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"

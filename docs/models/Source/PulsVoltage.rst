@@ -1,9 +1,18 @@
 .. include:: ../importCSS.txt
 
-PulsVoltage
-===========
+Puls Voltage
+============
+
+:red:`Symbol`
+
+.. figure:: PulsVoltage.svg
 
 :red:`Information`
+
+
+.. figure:: PulsVoltage.png
+   :scale: 50%
+   :align: center
  
 A **Pulsed Voltage Source** generates a **square wave voltage signal** based on the following equation:
 
@@ -14,6 +23,10 @@ A **Pulsed Voltage Source** generates a **square wave voltage signal** based on 
     V_a + V_{off}, & 0 \leq t < D \cdot T \\
     V_{off}, & D \cdot T \leq t < T
     \end{cases}
+
+.. figure:: PulsV.png
+   :scale: 50%
+   :align: center
 
 Where:
 

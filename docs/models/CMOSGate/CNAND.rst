@@ -5,6 +5,10 @@
 CMOS NAND Gate
 ==============
 
+:red:`Symbol`
+
+.. figure:: NAND.svg
+
 :red:`Information`
 
 A **CMOS NAND Gate** produces a **LOW (OL)** output only when both inputs are **HIGH (IH)**. Otherwise, the output remains **HIGH (OH)**.

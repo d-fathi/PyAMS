@@ -1,7 +1,15 @@
 Diode Laser
 ===========
 
+:red:`Symbol`
+
+.. figure:: Diode.svg
+
 :red:`Information`
+
+.. figure:: Diode.png
+   :scale: 50%
+   :align: center
   
 A **diode laser** is a semiconductor device that **generates coherent light** based on the interaction between electrical current and the active laser medium. It operates similarly to a conventional diode but incorporates additional effects such as **thermal resistance** and **junction capacitance**, which influence its behavior.
 

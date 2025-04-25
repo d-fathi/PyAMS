@@ -3,18 +3,21 @@
 # Name:        Symbol Editor
 # Author:      d.fathi
 # Created:     19/08/2021
-# Update:      12/04/2025
+# Update:      29/04/2025
 # Copyright:   (c) PyAMS 2025
 # Web:         https://pyams.sf.net/
-# Version:     0.1.3 (beta)
+# Version:     0.1.4 (beta)
 # Licence:     free  "GPLv3"
 # info:        Symbol Editor: Create and edit custom analog symbols used in circuit design
 #-----------------------------------------------------------------------------------------
 
+import os
+from sys import path
 
+dire =os.path.dirname(__file__)
+path+=[os.path.join(dire, "cad")]
 
 import cad.appcir
-
 from PyQt5.QtWidgets import QApplication,QMainWindow
 from cad.mainwindow import Ui_MainWindow
 from PyQt5.QtGui import *

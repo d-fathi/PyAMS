@@ -1,10 +1,6 @@
 [
-    "D:/project/PyAMS/demo/Full wave bridge rectifier.dcs",
-    "D:/project/PyAMS/demo/Ring-oscillators.dcs",
-    "D:/project/PyAMS/demo/NotGate.dcs",
-    "D:/project/PyAMS/demo/AC to DC_sample_diode.dcs",
-    "D:/project/PyAMS/demo/AC to DC.dcs",
-    "D:/project/PyAMS/demo/Chua's RLC.dcs",
-    "D:/project/PyAMS/demo/RL.dcs",
-    "D:/project/PyAMS/demo/Zener Diode Regulator.dcs"
+    "D:/project/pyams/demo/voltage divider.dcs",
+    "D:/project/pyams/demo/AC to DC.dcs",
+    "D:/project/pyams/demo/AC to DC_sample_diode.dcs",
+    "D:/project/pyams/demo/Chua's RLC.dcs"
 ]

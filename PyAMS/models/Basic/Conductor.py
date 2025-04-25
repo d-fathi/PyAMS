@@ -7,16 +7,16 @@
 #--------------------------------------------------------------------------------
 
 
-from pyams_lib import model, signal, param
-from pyams_lib import voltage, current
+from pyams.lib import model, signal, param
+from pyams.lib import voltage, current
 
 # Ideal Linear Electrical Conductor Model
 class Conductor(model):
     """
     This class implements an Ideal Linear Electrical Conductor model.
 
-    A conductor is characterized by its conductance (G), which is the reciprocal 
-    of resistance (R). The current flowing through the conductor is proportional 
+    A conductor is characterized by its conductance (G), which is the reciprocal
+    of resistance (R). The current flowing through the conductor is proportional
     to the applied voltage according to Ohm's Law.
 
     Attributes:
@@ -28,7 +28,7 @@ class Conductor(model):
         analog(): Defines the current-voltage relationship:
                   I = G * V
     """
-    
+
     def __init__(self, p, n):
         # Signal declarations
         self.V = signal('in', voltage, p, n)

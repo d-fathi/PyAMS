@@ -6,8 +6,8 @@
 # Copyright:   (c) PyAMS
 #------------------------------------------------------
 
-from pyams_lib import signal, model, param
-from pyams_lib import voltage, current
+from pyams.lib import signal, model, param
+from pyams.lib import voltage, current
 
 # Load Model
 class Load(model):

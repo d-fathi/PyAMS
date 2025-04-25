@@ -8,9 +8,9 @@
 #-------------------------------------------------------------------------------
 
 
-from pyams_lib import signal, model, param
-from pyams_lib import voltage, current
-from pyams_lib import explim
+from pyams.lib import signal, model, param
+from pyams.lib import voltage, current
+from pyams.lib import explim
 
 # Simple BJT (PNP)---------------------------------------------------------------
 class PNP(model):

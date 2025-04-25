@@ -7,8 +7,8 @@
 #https://electronics.stackexchange.com/questions/418003/ideal-dc-transformer-in-ltspice
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model, signal, param
-from pyams_lib import voltage, current
+from pyams.lib import model, signal, param
+from pyams.lib import voltage, current
 
 # Ideal Transformer Model
 class TransformerIdeal(model):

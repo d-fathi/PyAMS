@@ -6,15 +6,15 @@
 # Copyright:   (c) PyAMS
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model, signal, param
-from pyams_lib import current
+from pyams.lib import model, signal, param
+from pyams.lib import current
 
 # Current-Controlled Current Source (CCCS) Model
 class CCCS(model):
     """
     This class implements a Current-Controlled Current Source (CCCS) model.
 
-    A CCCS is a dependent current source where the output current (Iout) 
+    A CCCS is a dependent current source where the output current (Iout)
     is proportional to the input current (Iin) with a gain factor.
 
     Attributes:
@@ -26,7 +26,7 @@ class CCCS(model):
         analog(): Defines the current transformation:
                   Iout = G * Iin
     """
-    
+
     def __init__(self, p1, n1, p2, n2):
         # Signal declarations
         self.Iin = signal('in', current, p1, n1)

@@ -7,8 +7,8 @@
 # Licence:     free
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model, signal, param
-from pyams_lib import voltage
+from pyams.lib import model, signal, param
+from pyams.lib import voltage
 
 # CMOS AND Gate Model ---------------------------------------------------------
 class CAND(model):

@@ -9,8 +9,8 @@
 
 
 
-from pyams_lib import param,model
-from models.Semiconductor.Diode import Diode
+from pyams.lib import param,model
+from pyams.models.Semiconductor.Diode import Diode
 
 
 # Diode Bridge Model------------------------------------------------------------

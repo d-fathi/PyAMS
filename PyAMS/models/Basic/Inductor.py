@@ -6,9 +6,9 @@
 # Copyright:   (c) PyAMS
 #-------------------------------------------------------------------------------
 
-from pyams_lib import signal,model,param
-from pyams_lib import voltage,current
-from pyams_lib import ddt
+from pyams.lib import signal,model,param
+from pyams.lib import voltage,current
+from pyams.lib import ddt
 
 
 #Inductor model-----------------------------------------------------------------
@@ -16,8 +16,8 @@ class Inductor(model):
     """
     This class implements an Inductor model.
 
-    An inductor stores energy in a magnetic field and resists changes in 
-    current flow. The voltage across the inductor is proportional to the 
+    An inductor stores energy in a magnetic field and resists changes in
+    current flow. The voltage across the inductor is proportional to the
     rate of change of current through it.
 
     Attributes:

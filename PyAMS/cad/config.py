@@ -9,8 +9,8 @@
 import os
 
 def pyProcess(dir_):
-    return 'python'
-    #return os.path.join(dir_, "pypy","python")
+    #return 'python'
+    return os.path.join(dir_, "pypy","python")
 
 
 

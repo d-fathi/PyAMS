@@ -3,7 +3,15 @@
 Trapezoid Voltage
 =================
 
+:red:`Symbol`
+
+.. figure:: TrapezoidVoltage.svg
+
 :red:`Information`
+
+.. figure:: TrapezoidVoltage.png
+   :scale: 50%
+   :align: center
 
 A **Trapezoidal Wave Voltage Source** generates a **voltage signal** with a linear rise and fall, forming a trapezoidal waveform.
 
@@ -16,6 +24,10 @@ A **Trapezoidal Wave Voltage Source** generates a **voltage signal** with a line
     \frac{(V_0 - V_1)}{T_f} \cdot (t - T_r - T_w) + V_1 + V_{off}, & T_r + T_w \leq t \leq T_r + T_w + T_f \\
     V_0 + V_{off}, & t > T_r + T_w + T_f
     \end{cases}
+
+.. figure:: TrapV.png
+   :scale: 50%
+   :align: center
 
 Where:
 

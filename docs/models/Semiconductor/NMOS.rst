@@ -4,10 +4,18 @@
 
 .. _nmos:
 
-NMOS
-====
+NMOS Transistor
+===============
+
+:red:`Symbol`
+
+.. figure:: NMOS.svg
 
 :red:`Information`
+
+.. figure:: NMOSFET.png
+   :scale: 25%
+   :align: center
 
 A **N-channel MOSFET (NMOS)** is a three-terminal semiconductor device used for switching and amplification. The current flow between the drain and source is controlled by the gate-to-source voltage.
 

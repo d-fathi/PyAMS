@@ -6,8 +6,8 @@
 # Copyright:   (c) PyAMS
 #-------------------------------------------------------------------------------
 
-from pyams_lib import model, signal, param
-from pyams_lib import voltage, current
+from pyams.lib import model, signal, param
+from pyams.lib import voltage, current
 
 # Voltage-Controlled Current Source (VCCS) Model
 class VCCS(model):

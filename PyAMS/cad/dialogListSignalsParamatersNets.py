@@ -84,16 +84,13 @@ def get_icon_by_nature(style, nature):
 
 
 class listSignalsParamatersNets:
-    def __init__(self,main,test,selected_item,type_):
-        self.type_=type_
-        self.test=test
-        self.selected_item=selected_item
-        print(self.selected_item)
-        self.main=main
-        self.w = QtWidgets.QDialog()
+    def __init__(self,main,selected_item,type_):
 
-        self.path=''
-        self.pathLib=''
+        self.main=main
+        self.type_=type_
+        self.path=os.path.dirname(os.path.normpath(self.main.ppDir))
+        self.selected_item=selected_item
+        self.w = QtWidgets.QDialog()
         self.p = None
         self.start_process()
         self.err=False
@@ -106,8 +103,8 @@ class listSignalsParamatersNets:
             self.p.readyReadStandardError.connect(self.handle_stderr)
             self.p.stateChanged.connect(self.handle_state)
             self.p.finished.connect(self.process_finished)  # Clean up once complete.
-            print(self.test)
-            self.p.start(pyProcess(self.main.ppDir), [str(self.test)])
+            self.p.setWorkingDirectory(self.path)
+            self.p.start(pyProcess(self.main.ppDir), ["-m","pyams.temp_script"])
 
 
 
