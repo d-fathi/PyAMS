@@ -61,8 +61,14 @@ def getImage(child):
         if(child['direction']=='out'):
            return ":image/paramsignals/iout.png"
         return ":image/paramsignals/iin.png"
+    elif (child['nature']=='digital'):
+        if(child['direction']=='out'):
+           return ":image/paramsignals/dout.png"
+        return ":image/paramsignals/din.png"
     elif child['nature']=='node':
          return ":image/paramsignals/node.png"
+    elif child['nature']=='dnode':
+         return ":image/paramsignals/dnode.png"
 
 
 def get_icon_by_nature(style, nature):

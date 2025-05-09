@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="/">
+    <file>image/paramsignals/din.png</file>
+    <file>image/paramsignals/dnode.png</file>
+    <file>image/paramsignals/dout.png</file>
     <file>ioQt.js</file>
     <file>src/utils/codeSpice.js</file>
     <file>showGraph.html</file>
@@ -106,9 +109,9 @@
     <file>image/AddPie.png</file>
     <file>image/AddPolygon.png</file>
     <file>image/CreatParts_Icon.ico</file>
-	<file>synedit/editor.html</file>
+    <file>synedit/editor.html</file>
     <file>synedit/editor.js</file>
-	<file>synedit/editor_html.html</file>
+    <file>synedit/editor_html.html</file>
     <file>synedit/editor_html.js</file>
     <file>qwebchannel.js</file>
   </qresource>

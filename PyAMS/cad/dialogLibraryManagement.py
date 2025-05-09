@@ -196,6 +196,45 @@ import os
 import json
 
 
+def generateInitPy(setDir):
+    """
+    Generates an __init__.py file inside the 'models' directory based on data.json content.
+
+    Parameters:
+    -----------
+    setDir : str
+        Base directory path containing the 'models' folder.
+    """
+    '''
+    base_path = "models"
+    data_json_path = os.path.join(setDir, base_path, "data.json")
+    init_file_path = os.path.join(setDir, base_path, "__init__.py")
+
+    # Load data.json
+    with open(data_json_path, 'r') as f:
+        data = json.load(f)
+
+    lines = []
+
+    for lib in data.get("libs", []):
+        for sym_file in data.get(lib, []):
+            module_path = lib.replace("\\", ".").replace("/", ".")  # cross-platform
+            module_name = sym_file.replace(".sym", "")
+            line = f"from .{module_path}.{module_name} import *"
+            lines.append(line)
+
+    # Write to __init__.py
+    with open(init_file_path, 'w') as f:
+        f.write("\n".join(lines))
+
+    print(f"__init__.py generated with {len(lines)} import statements.")
+    '''
+
+
+
+
+
+
 def updateLib(setDir):
     """
     Updates the data.json file inside the 'models' directory by:
@@ -259,9 +298,50 @@ def updateLib(setDir):
     # Step 3: Update the 'libs' key
     updated_data["libs"] = updated_libs
 
+
+    # تحديث py_files بنفس الأسلوب
+    existing_py_files = original_data.get("py_files", [])
+
+    # جمع ملفات .py الفعلية من القرص (باستثناء __init__.py)
+    found_py_files = []
+    for root, dirs, files in os.walk(full_base_path):
+        for file in files:
+            if file.endswith(".py") and file != "__init__.py":
+                rel_path = os.path.relpath(os.path.join(root, file), setDir)
+                rel_path = rel_path.replace(os.sep, "/")  # متوافقة مع JSON
+                found_py_files.append(rel_path)
+
+    # إزالة الملفات غير الموجودة من الأصل
+    cleaned_py_files = [f for f in existing_py_files if f in found_py_files]
+
+    # إضافة الملفات الجديدة بترتيب أبجدي
+    new_py_files = sorted(set(found_py_files) - set(existing_py_files))
+    final_py_files = cleaned_py_files + new_py_files
+
+    updated_data["py_files"] = final_py_files
+
     # Save updated data to file
     with open(data_json_path, 'w') as f:
         json.dump(updated_data, f, indent=4)
+
+
+    # توليد __init__.py في models
+    init_file_path = os.path.join(full_base_path, "__init__.py")
+    import_lines = []
+
+    for py_file in final_py_files:
+        if py_file.endswith(".py"):
+            no_ext = py_file[:-3]  # إزالة .py
+            parts = no_ext.split("/")  # نستعمل "/" لأن py_files موحدة
+            if parts[0] == "models":
+                parts = parts[1:]  # إزالة "models" من البداية
+            import_path = "." + ".".join(parts)
+            import_lines.append(f"from {import_path} import *")
+
+    # حفظ السطور إلى ملف __init__.py
+    with open(init_file_path, 'w', encoding='utf-8') as f:
+        f.write("\n".join(import_lines) + "\n")
+
 
     return updated_data
 

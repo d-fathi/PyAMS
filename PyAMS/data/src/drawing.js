@@ -224,7 +224,7 @@ function fdrawing(div) {
         self.symbol = {
         fname:"NewFile.sym",
         name: "New",
-        model:"standard",
+        model:"NewModel",
         reference: "X",
         description: " ",
         type:"None"
@@ -314,6 +314,7 @@ function fdrawing(div) {
 	    plotsOpenDataLayoutInDiv();
         modifiedClassText();
         updateHtmlCode();
+        modifiedModelNameParts()
     }
 //******************* "interface of description" or "Objec tInspector" *****************************/
 self.getObjectInspector =function(div){
@@ -325,6 +326,7 @@ self.objectInspector=new fobjectInspector(div, self);
 
 
 }
+
 
 
 

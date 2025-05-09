@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pyams_cad",
-    version="0.1.3.2",
+    version="0.1.4",
     author="Dhiabi.Fathi",
     author_email="dhiabi.fathi@gmail.com",
     description="Design and simulation of circuits and modeling of analog and mixed-signal electronic components using CAD systems.",

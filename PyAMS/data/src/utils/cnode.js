@@ -240,7 +240,7 @@ function modifiedRefNetWithStdPart()
  var parts=document.getElementsByName('part');
  var netIds=[];
  for(var i=0; i<parts.length;i++)
-	 if(strToBool(parts[i].getAttribute('liblocale'))&& (parts[i].getAttribute('modelname')=='GND')){
+	 if(strToBool(parts[i].getAttribute('liblocale'))&& (parts[i].getAttribute('model')=='GND')){
         pins=getListPins(parts[i]);
 		   for(var n=0; n<pins.length; n++){
 			   if(pins[n].elem.childNodes[1].style.display=="none") 

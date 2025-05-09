@@ -22,7 +22,7 @@ function generatePythonScriptForParams(){
     var params=getParams();
 
     // get model name------------------------------
-    var modelName= mtable.select.getAttribute("modelname");
+    var modelName= mtable.select.getAttribute("model");
 
     //get lib path---------------------------------
  
@@ -45,7 +45,7 @@ print(json.dumps(params))  #
 async function showParams(){
 
 var pythonScript=generatePythonScriptForParams();
-var modelName= mtable.select.getAttribute("modelname");
+var modelName= mtable.select.getAttribute("model");
 
 if(!drawing.electron){
   window.foo.getParams(pythonScript, modelName);
@@ -69,22 +69,23 @@ if(!drawing.electron){
 
 function generatePythonScriptofCircuit(){
 
+
     var elemList=netList();
     //get lib path---------------------------------
     
     let pythonScript = `import json;\n`;
 
-    pythonScript += elemList.map(elem =>`from pyams.models import ${elem.symbolname};`).join("\n") + "\n";
+    pythonScript += elemList.map(elem =>`from pyams.models import ${elem.model};`).join("\n") + "\n";
     pythonScript += `from pyams.lib import cirCAD;\n`; 
 
     //get Elements---------------------------------------------------------------------
 
     pythonScript += elemList.map(elem => 
-        `${elem.ref} = ${elem.symbolname}(${elem.pins.map(pin => `"${pin}"`).join(",")});`
+        `${elem.ref} = ${elem.model}(${elem.pins.map(pin => `"${pin}"`).join(",")});`
     ).join("\n") + "\n"; 
 
 
-    // get paramtres-------------------------------
+    // get paramtres------------------------------------------------------------------
     pythonScript += elemList.map(elem => `${elem.ref}.setParams(" ${elem.params} ");` ).join("\n") + "\n";
 
     //get circuit---------------------------------------------------------------------
@@ -142,7 +143,7 @@ async function ioProbe(){
     var nature= mtable.select.getAttribute("nature");
     //python script
     var pythonScript= generatePythonScriptofCircuit();
-    if(nature=='node')
+    if((nature=='node')||(nature=='dnode'))
       pythonScript += `circuit.setOutPuts("${str.split('.')[0]}")\n`;
     else
       pythonScript += `circuit.setOutPuts(${str})\n`;
@@ -209,7 +210,7 @@ async function ioPosParamAnalysis(type) {
             }
         }
       } catch (error) {
-        alert(error);
+        
     }
 }
 
@@ -312,15 +313,18 @@ function ioSetPosProbe(pos,unit_,type_) {
   function getSource(){
     var pythonScript= generatePythonScriptofCircuit();
 
+    
+
+
     var elem=drawing.resize.setElement;
     var analy=JSON.parse(elem.getAttribute("description"));
 
     var r=analy.yAxe.outputs;
-    var outputs = r.map(output => output.type === 'node' ? `"${output.name.split('.')[0]}"` : output.name);
+    var outputs = r.map(output => (output.type === 'node' ||output.type === 'dnode' ) ? `"${output.name.split('.')[0]}"` : output.name);
     var r=analy.xAxe;
-
+   
     if (r.used) {
-      const outputName = r.type === 'node' ? `"${r.name.split('.')[0]}"` : r.name;
+      const outputName = (r.type === 'node' ||r.type === 'dnode' ) ? `"${r.name.split('.')[0]}"` : r.name;
       outputs.push(outputName);
      };/* else {
       outputs.push(analy.type === "DC Sweep" ? analy.dcsweep.param : 'time');
@@ -336,6 +340,7 @@ function ioSetPosProbe(pos,unit_,type_) {
 
    pythonScript+=`\n\n# Set outputs for plotting;\ncircuit.setOutPuts(${outputs.join(',')});\n`;
    pythonScript+=`\n\n# Set outputs for plotting;\ncircuit.analysis(${cmd});\ncircuit.run();\ncircuit.result();`;
+
 
    return pythonScript;
   }
@@ -381,17 +386,63 @@ layout.xaxis.title.text=xNameAnalysis;
 //Plot data------------------------------------------------------------------------------------------
   
   var data=[];
+  var ndigit=0;
+
+
+  for (var i = 1; i < list.length - usexXAxe; i++) {
+    if (list[i].type !== 'digital') {
+      ndigit = 1;
+    }
+  }
+  
   for (var i = 1; i < list.length-usexXAxe; i++) {
-          data.push({
+    if(list[i].type === 'digital') {
+      ndigit++;
+
+      var x_ = 'x' + ndigit;
+      var y_ = 'y' + ndigit;
+      if(ndigit==1) 
+        var yaxis='yaxis';
+      else
+        var yaxis='yaxis'+ndigit;
+
+      layout[yaxis] = {
+          ticktext: ['0', '1'],
+          tickvals: [0, 1],
+          title: {
+          text: 'Digital' 
+          }
+      };
+    } else {
+      layout['yaxis'] = {};
+      var x_ = 'x1';
+      var y_ = 'y1';
+    }
+
+    data.push({
                   type: 'scatter',
                   name: list[i].label,
                   line: {
                       color: outputs[i-1].color
                   },
                   y: list[i].data,
-                  x: l
+                  x: l,
+                  xaxis: x_,
+                  yaxis: y_
               });
       }
+
+
+  
+  layout.grid = {
+    rows: ndigit,
+    columns: 1,
+    pattern: 'independent',
+    roworder: 'bottom to top'
+  };
+
+
+
   
 var elem=drawing.resize.setElement.lastChild.firstChild;
 //elem.innerHTML = "<div name='plots' style='border-style: double;zoom:60%'  ondblclick='showPlotInModel(this)'></div>";

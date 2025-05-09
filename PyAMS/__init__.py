@@ -1,10 +1,9 @@
 
 import sys,os
 from PyQt5.QtWidgets import QApplication
-from sys import path
-import os
+
 dire =os.path.dirname(__file__)
-path+=[dire]
+sys.path+=[dire]
 
 from .PyAMS import  *
 
@@ -19,4 +18,3 @@ def win():
         w.pathLib=r+'//demo';
         w.show();
         sys.exit(app.exec_());
-

@@ -246,11 +246,21 @@ for(var i=0;i<list.length;i++){
 function addItemsToPageLibs(listItems) {
  var x=document.getElementById("selectLibs");
  x.innerHTML='';
+ var oledg='';
 
- for (i=0; i<listItems.length; i++){
+ for (var i=0; i<listItems.length; i++){
+   const [group, subgroup] = listItems[i].split(/[/\\]+/);
+   if (group !== oledg) {
+     var optgroup = document.createElement("optgroup");
+     optgroup.label = group;
+     optgroup.style="font-size: 12px; font-weight: bold; color:rgb(247, 244, 244); background-color:rgb(100, 100, 100);";
+     x.appendChild(optgroup);
+     oledg=group;
+   }
    var option=document.createElement("option");
-   option.text=listItems[i];
+   option.text=subgroup;
    option.value= i;
+   option.setAttribute('dir',listItems[i]);
    x.add(option);
  }
 //addListSymbToPageLibs(listSymb);
@@ -258,7 +268,7 @@ function addItemsToPageLibs(listItems) {
 
 function addSymToPage(index)
 {   var sel=document.getElementById("selectLibs");
-	  var dir=sel.options[sel.selectedIndex].text;
+	  var dir=sel.options[sel.selectedIndex].getAttribute('dir');
 
 	if(listSymbols.length>index)
 	  addPart(listSymbols[index].sym,dir,true,listSymbols[index].name);

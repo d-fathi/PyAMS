@@ -96,7 +96,10 @@ class processAnalysis:
         self.message("Process finished.")
         self.p = None
         self.progress.setValue(100)
-        self.main.ui.m_webview.page().runJavaScript("dataPlot("+str(self.result["data"])+");")
+        try:
+            self.main.ui.m_webview.page().runJavaScript("dataPlot("+str(self.result["data"])+");")
+        except:
+           pass
 
 
     def close(self):

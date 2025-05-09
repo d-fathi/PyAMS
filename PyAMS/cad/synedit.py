@@ -7,8 +7,9 @@
 #-------------------------------------------------------------------------------
 
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout,QDialogButtonBox,QMessageBox
+from PyQt5.QtWidgets import QApplication, QDialog, QVBoxLayout,QDialogButtonBox,QMessageBox,QFileDialog
 from PyQt5.QtWebEngineWidgets import QWebEngineView
+from findModel import find_class_definition
 import json
 import cad.data_rc
 import os
@@ -19,7 +20,7 @@ import os
 #-------------------------------------------------------------------------------
 
 class openCode(QDialog):
-    def __init__(self,code,file):
+    def __init__(self,code,file,new=False):
         super().__init__()
         self.setWindowTitle(f" Editor dialog  of model: {file}")
         self.setWindowIcon(QtGui.QIcon(":/image/logo.png"))
@@ -30,6 +31,7 @@ class openCode(QDialog):
         self.layout.addWidget(self.webEngineView);
         self.webEngineView.page().setUrl(QtCore.QUrl("qrc:/synedit/editor.html"));
         self.webEngineView.loadFinished.connect(lambda: self.openCode(code))
+        self.new=new
 
 
 
@@ -48,16 +50,25 @@ class openCode(QDialog):
 
 
     def save(self,text):
-        with open(self.file, 'w',encoding='utf-8') as f:
-            f.write(text)
-        self.reject();
+
+        if(self.new):
+           fname = QFileDialog.getSaveFileName(None, 'Save File',self.file,'python file *.py')
+           if(fname[0]!=''):
+                with open(fname[0], 'w',encoding='utf-8') as f:
+                  f.write(text)
+                self.reject();
+        else:
+
+           with open(self.file, 'w',encoding='utf-8') as f:
+              f.write(text)
+           self.reject();
 
     def getTextSave(self):
        self.webEngineView.page().runJavaScript("saveCode()",self.save)
 
 
     def isTextChanged(self,result):
-        if result:
+        if result or self.new:
             ret = QMessageBox.question(self, 'MessageBox', "Do you want to save your changes? ", QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
             if ret == QMessageBox.Yes:
                 self.getTextSave();
@@ -78,17 +89,54 @@ class openCode(QDialog):
 
 
 def openmodel(self,modelName,directory):
-
     def setmodel():
-       file=self.path+'/models/'+directory+'/'+modelName+'.py'
-       if os.path.exists(file):
-          code = open(file, 'r', encoding="utf-8").read()
-       else:
-          code=''
-       window = openCode(code,file)
-
-       if window.exec_():
+       results=find_class_definition(modelName,self.path+"//models")
+       for path, line_number, code in results:
+          print(f'{path}:{line_number}: {code}')
+          code = open(path, 'r', encoding="utf-8").read()
+          window = openCode(code,path)
+          if window.exec_():
             pass
+          break
+       if(len(results)==0):
+            ret = QMessageBox.question( None,'MessageBox',
+            f'The model "{modelName}" does not exist. Do you want to create it?',
+            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+            QMessageBox.Cancel)
+
+            if ret == QMessageBox.Yes:
+                import textwrap
+                from datetime import datetime
+
+                now = datetime.now()
+                date_str = now.strftime("%d/%m/%Y")
+                time_str = now.strftime("%H:%M:%S")
+
+                code = textwrap.dedent(f"""\
+                   #-------------------------------------------------------------------------------
+                   # Name:        {modelName}
+                   # Author:
+                   # Created:     {date_str} at {time_str}
+                   # Modified:    {date_str}
+                   # Copyright:   (c)
+                   #-------------------------------------------------------------------------------
+
+                   from pyams.lib import model, signal, param
+                   from pyams.lib import voltage, current
+
+                   # {modelName} model----------------------------------------------------------------
+                   class {modelName} (model):
+                        pas
+                        """)
+
+                window = openCode(code,self.path,True)
+                if window.exec_():
+                   pass
+            elif ret == QMessageBox.No:
+                pass
+            else:
+                pass
+
 
     from PyQt5.QtCore import QTimer
     QTimer.singleShot(1, setmodel)
@@ -96,26 +144,16 @@ def openmodel(self,modelName,directory):
 
 
 def openmodelBySymEd(self):
-
-    def setmodel():
       file=self.filename
       if file=='NewFile.sym':
          QMessageBox.about(None, 'Model not exist','Save your new symbol');
       else:
-        root, ext = os.path.splitext(file)
-        file=root+'.py'
-        file_exists = os.path.exists(file)
-        if(file_exists):
-           code = open(file, 'r', encoding="utf-8").read()
-        else:
-           code=''
+         from pathlib import Path
+         path = Path(file)
+         modelName = path.stem
+         print(modelName)
+         openmodel(self,modelName,'')
 
-      window = openCode(code,file)
-      if window.exec_():
-        pass
-
-    from PyQt5.QtCore import QTimer
-    QTimer.singleShot(1, setmodel)
 
 
 #--------------------------------------------------------------------------------

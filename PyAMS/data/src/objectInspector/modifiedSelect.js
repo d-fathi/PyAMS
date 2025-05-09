@@ -89,17 +89,15 @@ function pageSelect(self) {
             name: 'Model.file',
             value: 'show',
             type: "Button",
-            setClick: 'window.foo.getCodeBySymEd()'
+            setClick: 'window.foo.getCode("'+ drawing.symbol.model +'","std")'
         }
     ];
     if(typePyAMS){
        // mtable.table.splice(5, 1);
        mtable.table[5]= {
         name: 'Model.name',
-        value: drawing.symbol.fname.split('.')[0],
+        value: drawing.symbol.model,
         type: "text",
-        condition: [['readonly', 'true']],
-
     }
     }
     self.creat();
@@ -151,10 +149,7 @@ function pageModified(pos,e) {
         break;
 
     case 5:
-        drawing.symbol.type = e.value;
-        if (drawing.pageType == 'sym')
-             modifiedRefName(e.value);
-        break;
+        drawing.symbol.model = e.value;
     }
   } else {
     switch (pos) {

@@ -1,0 +1,10 @@
+[
+    "D:/project/pyams/models/Analog/Basic/VCVS.sym",
+    "D:/project/pyams/models/Digital/Gate/XOR.sym",
+    "D:/project/pyams/models/Digital/Gate/XNOR.sym",
+    "D:/project/pyams/models/Digital/Gate/OR.sym",
+    "D:/project/pyams/models/Digital/Gate/NOT.sym",
+    "D:/project/pyams/models/Digital/Gate/NOR.sym",
+    "D:/project/pyams/models/Digital/Gate/NAND.sym",
+    "D:/project/pyams/models/Digital/Gate/Buffer.sym"
+]

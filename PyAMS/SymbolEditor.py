@@ -25,7 +25,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtWebChannel import QWebChannel
 from cad.dialogs import *
-from cad.dialogLibraryManagement  import updateLib,getSymbolsFromLib,getSymbolsFromProject,libraryManagement
+from cad.dialogLibraryManagement  import generateInitPy,updateLib,getSymbolsFromLib,getSymbolsFromProject,libraryManagement
 from cad.appcir import modifiedParams,getListSignalsNodeParams,analysis
 from cad.description import modifyingDescription
 from cad.PythonEditor import showCode,showPyCode,showCodeBySymEd,showCodeHtml
@@ -138,6 +138,7 @@ class Document(QObject):
     @pyqtSlot(result=list)
     def importLibs(self):
         self.setWin.libs=updateLib(self.setWin.path);
+        generateInitPy(self.setWin.path)
         self.setWin.importFilesProject();
         return  self.setWin.libs['libs'];
 
@@ -733,12 +734,12 @@ class Mainwindow:
 #-------------------------------------------------------------------------------
 
 if __name__ == "__main__":
-        import sys
-        app=QApplication(sys.argv);
 
-        w=Mainwindow();
-        w.show();
-        w.path=os.path.dirname(sys.argv[0])+'/library';
-        w.pathLib=w.path+'\library'
-
-        sys.exit(app.exec_());
+         import sys
+         app = QApplication(sys.argv)
+         w = Mainwindow()
+         w.show()
+         base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
+         w.path = os.path.join(base_path, 'models')
+         w.pathLib = os.path.join(w.path, 'models')
+         sys.exit(app.exec_());

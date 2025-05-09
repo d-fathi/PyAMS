@@ -175,18 +175,23 @@ class PyAMS(Mainwindow):
 #-------------------------------------------------------------------------------
 # __main__: start PyAMS software
 #-------------------------------------------------------------------------------
-def  main():
-        app=QApplication(sys.argv);
-        w=PyAMS();
-        r=sys.argv[0].replace('\\','/');
-        w.ppDir=os.path.dirname(r);
-        w.path=os.path.dirname(r);
-        w.pathLib=os.path.dirname(r)+'/demo';
-        if(len(sys.argv)>1):
-            w.ui.m_webview.loadFinished.connect(lambda: w.openFromShow(sys.argv[1]))
-        #w.message('exe',t);
-        w.show();
-        sys.exit(app.exec_());
+def main():
+    app = QApplication(sys.argv)
+
+    w = PyAMS()
+
+    # Obtenir le chemin absolu de l'exécutable / script
+    r = os.path.abspath(sys.argv[0])
+    w.ppDir = os.path.dirname(r)
+    w.path = w.ppDir
+    w.pathLib = os.path.join(w.ppDir, 'demo')
+
+    # Charger un fichier si un argument est fourni
+    if len(sys.argv) > 1:
+        w.ui.m_webview.loadFinished.connect(lambda: w.openFromShow(sys.argv[1]))
+
+    w.show()
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()

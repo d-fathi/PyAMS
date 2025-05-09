@@ -745,7 +745,7 @@ function addName(part) {
     part.setAttribute("sref", newName);
     part.setAttribute("directory", drawing.dir);
     part.setAttribute("liblocale", drawing.libLocale);
-    part.setAttribute("modelname", drawing.modelname);
+    part.setAttribute("symbolfile", drawing.symbolfile);
     part.setAttribute("model", model);
     updateRefParts();
 
@@ -824,9 +824,39 @@ function openEditor(modelname,directory){
     window.foo.getCode(modelname,directory)
 }
 
+
+function modifiedModelNameParts(){
+    var listp = document.getElementsByName('part');
+    for(var i=1;i<listp.length;i++)
+      if(listp[i].getAttribute("modelname")){
+        var modelname = listp[i].getAttribute("modelname");
+        listp[i].setAttribute("symbolfile", modelname + '.sym');
+        listp[i].firstChild.setAttribute("model", modelname);
+        listp[i].setAttribute("model", modelname);
+        listp[i].removeAttribute("modelname");
+    }
+}
+
 function getPartPyAMSDescription(self) {
 
 
+
+    if(mtable.select.getAttribute("directory")=='standard'){
+        mtable.table = [{
+            name: 'Symbol.name',
+            value: mtable.select.firstChild.getAttribute("symbolname"),
+            type: "text",
+            condition: [['readonly', 'true']]
+        },{
+            name: 'Symbol.file',
+            value: mtable.select.getAttribute("directory"),
+            type: "text",
+            condition: [['readonly', 'true']]
+        }]
+
+        self.creat();
+        return;
+    }
     
     mtable.table = [{
             name: 'Symbol.name',
@@ -835,7 +865,7 @@ function getPartPyAMSDescription(self) {
             condition: [['readonly', 'true']]
         },{
             name: 'Symbol.file',
-            value: mtable.select.getAttribute("modelname")+'.sym',
+            value: mtable.select.getAttribute("symbolfile"),
             type: "text",
             condition: [['readonly', 'true']]
         }, {
@@ -849,7 +879,7 @@ function getPartPyAMSDescription(self) {
             type: "text"
         }, {
             name: 'Model.name',
-            value: mtable.select.getAttribute("modelname"),
+            value: mtable.select.getAttribute("model"),
             type: "text",
             condition: [['readonly', 'true']],
    
@@ -863,7 +893,7 @@ function getPartPyAMSDescription(self) {
             name: 'Model.file',
             value: 'show',
             type: "Button",
-            setClick: 'openEditor("' + mtable.select.getAttribute("modelname") + '","' +mtable.select.getAttribute("directory")+ '")'
+            setClick: 'openEditor("' + mtable.select.getAttribute("model") + '","' +mtable.select.getAttribute("directory")+ '")'
         }
     ];
    

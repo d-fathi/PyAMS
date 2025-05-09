@@ -15,11 +15,25 @@ function getPosRef(ref)
 					position.name=r;
                     return position;
                 }
+
+            var s = document.getElementsByName('part');
+            for (var j = 0; j < s.length; j++) {
+                    if (s[j].getAttribute("sref") == r[0]) {
+                        var parElem = s[j];
+                        position.x = parseInt(parElem.getAttribute('x'));
+                        position.y = parseInt(parElem.getAttribute('y'));
+                        position.w = parseInt(parElem.getAttribute('width'));
+                        position.h = parseInt(parElem.getAttribute('height'));
+                        position.used=true;
+                        position.name=r;
+                        return position;
+                    }
             }
+        }
 			
 			
 		var s = document.getElementsByName('net');
-		if('V'==r[1])
+		if(('V'==r[1]) || ('D'==r[1]))
 		for (var j = 0; j < s.length; j++) {
 			elem=s[j];
 			ref=elem.getAttribute("ref");
@@ -162,6 +176,14 @@ function stylePosProbe(nature,elem){
     switch(nature){
         case 'node':
             elem.childNodes[1].style.stroke = "#0000ff";
+        break;
+
+        case 'dnode':
+            elem.childNodes[1].style.stroke = "#7dc29a";
+        break;
+
+        case 'digital':
+            elem.childNodes[1].style.stroke = "#7dc29a";
         break;
 
         case 'param':
