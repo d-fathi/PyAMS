@@ -47,6 +47,8 @@ Table of Contents
   Simulation.rst
   Symbols.rst
   Modeling.rst
+  ModelingDigital.rst
+  DSignal.rst
   Models.rst
   Examples.rst
   WebPage.rst

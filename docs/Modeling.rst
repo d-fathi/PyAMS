@@ -3,15 +3,14 @@
 Modeling
 ========
 
-The modeling of analog elements in PyAMS is based on writing their description using the PyAMS libraray (pyams.lib) respecting the following structure:
+The modeling of analog elements in `pyams.lib` is based on defining their behavior using the Python language while following a structured approach:
 
-1.  Declaration of the library;
-2.  Creation of the name of the model;
-3.  Adding parameters with an initial value;
-4.  Adding type of signals (current or voltage);
-5.  Adding sub-models if available.
-6.  Definition of relations between signals and parameters in analog function.
-8.  Definition of the start function (optional).
+1. Declaring the required library;
+2. Defining the model name;
+3. Specifying parameters with initial values;
+4. Defining signal types (current or voltage);
+5. Adding sub-models if applicable;
+6. Establishing relationships between signals and parameters.
 
 The general structure for modeling an analog element in `pyams.lib` is illustrated in the following example:
 
@@ -22,17 +21,30 @@ The general structure for modeling an analog element in `pyams.lib` is illustrat
    class NameOfElement(model):          # Model definition
 
         def __init__(self, ports):      # Initialization function
-                                        # Declare signals and parameters
+                                        # Declare signals (analog or digital) and parameters
 
+        def sub(self):                  # Sub-function
+                                        # Define sub-circuit or sub-model
+
+        def start(self):                # Start function
+                                        # Initialize values at the start of simulation
+ 
         def analog(self):               # Analog function
                                         # Define equations or analog operations
+
+        def digital(self):              # Digital function
+                                        # Define digital operations
+
+
+
 
 Initial and Analog Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The initialization function (``def __init__``) is used to create ports for connections, define signals, and set default values for variables and parameters. The analog function (``def analog``) is responsible for defining the mathematical relationships between signals and parameters, representing the behavioral model of the analog element.
+The initialization function (``def __init__``) is used to create ports for connections, define signals (analog or digital), 
+and set default values for variables and parameters. The analog function (``def analog``) or digital function (``def digital``) is responsible for defining the mathematical relationships between signals and parameters, representing the behavioral model of  analog or digital elements .
 
-The ``__init__`` and ``analog`` functions are the core components of a model. Additionally, there are two optional functions:
+The ``__init__`` , ``analog`` or  ``digital``functions are the core components of a model. Additionally, there are two optional functions:
 
 - **Sub-function:** Used to construct sub-circuits within the model.
 - **Start function:** Initializes values when starting a simulation.
@@ -86,12 +98,4 @@ Operation  Description                       Result
 `+=`         get value                         real
 =========  ================================  =========
 
-Local parameters and Functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. toctree::
-   :maxdepth: 3
 
-  Parameters.rst
-  Functions.rst
-
-.. End

@@ -6,6 +6,7 @@ Overview
 of analog elements using the **pyams_lib** library, along with custom-designed symbols.
 
 Key Features:
+
 - Free and open-source, distributed under the GNU General Public License (GPL).
 - Supports detailed operating point analysis (OP), DC analysis, and time-domain analysis.
 - Planned support for frequency-domain analysis in future releases.

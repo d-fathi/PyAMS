@@ -59,17 +59,19 @@ The steps of design symbol
  
   .. figure:: /images/sym_06.png
 
+*  **Step 7**  Add name of model and edit name.
+
   .. note::
 
-   The name of model (which is automatically generated) is the same as the name of the symbol file.
+   The name of the model must be added in the line of ``Model.name``, and the code should be written using the editor by clicking the button for the ``Model.file`` and saving it in the directory of models.
 
   .. figure:: /images/sym_07.png
 
- *  **Step 7** Create a PyAMS model for resistance..
+ *  **Step 8** Create a PyAMS model for resistance..
  
   .. figure:: /images/sym_08.png
 
- Or attach symbol with PyAMS model by placed or saved in the same directory with the same name of model (with extension *.py
+ you can attach symbol with PyAMS model by placed or saved in the same directory with the same name of model with extension *.py
 
  .. figure:: /images/sym_09.png
 
@@ -84,7 +86,7 @@ The modeling of analog elements in PyAMS is based on writing their description u
 
  .. note::
 
-  The name of  model must have the same name as the Python file and the symbol file.
+  The name of  model must have the same name ``Model.name`` in the symbol editor.
 
  .. figure:: /images/sym_10.png
 
