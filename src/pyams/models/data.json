@@ -1,0 +1,95 @@
+{
+    "libs": [
+        "Analog\\Basic",
+        "Analog\\Source",
+        "Analog\\Semiconductor",
+        "Analog\\CMOSGates",
+        "Digital\\Source",
+        "Digital\\Gate",
+        "Digital\\Converter",
+        "Digital\\Combinational"
+    ],
+    "Analog\\Basic": [
+        "Resistor.sym",
+        "Capacitor.sym",
+        "Inductor.sym",
+        "Conductor.sym",
+        "Load.sym",
+        "CCCS.sym",
+        "CCVS.sym",
+        "VCCS.sym",
+        "VCVS.sym",
+        "Transformer.sym",
+        "TransformerIdeal.sym",
+        "CapacitorIc.sym",
+        "InductorIc.sym",
+        "NegativeResistance.sym",
+        "NonlinearResistance.sym",
+        "Switch.sym",
+        "SwitchC.sym",
+        "SwitchSample.sym"
+    ],
+    "Analog\\CMOSGates": [
+        "CAND.sym",
+        "CNAND.sym",
+        "COR.sym",
+        "CNOR.sym",
+        "CNOT.sym",
+        "CBuffer.sym",
+        "CXOR.sym",
+        "CXNOR.sym"
+    ],
+    "Analog\\Semiconductor": [
+        "Diode.sym",
+        "DiodeBridge.sym",
+        "DiodeLaser.sym",
+        "DiodeZener.sym",
+        "NMOS.sym",
+        "PMOS.sym",
+        "NPN.sym",
+        "PNP.sym"
+    ],
+    "Analog\\Source": [
+        "DCCurrent.sym",
+        "DCVoltage.sym",
+        "PulsCurrent.sym",
+        "PulsVoltage.sym",
+        "SinCurrent.sym",
+        "SinVoltage.sym",
+        "SquareCurrent.sym",
+        "SquareVoltage.sym",
+        "TrapezoidCurrent.sym",
+        "TrapezoidVoltage.sym"
+    ],
+    "Digital\\Combinational": [
+        "BCD7SegmentDecoder.sym",
+        "DEMUX1to2.sym",
+        "DEMUX1to4.sym",
+        "Decoder2to4.sym",
+        "Decoder3to8.sym",
+        "Encoder4to2.sym",
+        "FullAdder.sym",
+        "HalfAdder.sym",
+        "MUX2to1.sym",
+        "MUX4to1.sym"
+    ],
+    "Digital\\Converter": [
+        "AnalogDigital.sym",
+        "DigitalAnalog.sym"
+    ],
+    "Digital\\Gate": [
+        "AND.sym",
+        "Buffer.sym",
+        "NAND.sym",
+        "NOR.sym",
+        "NOT.sym",
+        "OR.sym",
+        "XNOR.sym",
+        "XOR.sym"
+    ],
+    "Digital\\Source": [
+        "Clk.sym",
+        "High.sym",
+        "Low.sym"
+    ]
+}

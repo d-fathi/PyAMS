@@ -1,0 +1,124 @@
+{
+  "name": "PyAMS",
+  "version": "0.1.6",
+  "description": "Python for Analog and Mixed Signals",
+  "author": "d.fathi",
+  "license": "MIT",
+  "main": "main.js",
+  "devDependencies": {
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "asar": true,
+    "appId": "pyams.sf.net",
+    "productName": "PyAMS",
+    "copyright": "Copyright © 2025 PyAMS. All rights reserved.",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "extraFiles": [{
+      "from":"demo",
+      "to":"demo"
+      },{
+       "from":"pyams",
+       "to":"pyams"
+        },{
+        "from":"pypy",
+        "to":"pypy"
+        }],
+    "files": [
+      "main.js",
+      "index.html",
+      "package.json",
+      "preload.js",
+      "handleEditor.js",
+      "handleDialogs.js",
+      "handleListSignalsParams.js",
+      "handleParam.js",
+      "handleExecPyAMS.js",
+      "handleGestionLibrary.js",
+      "config.js",
+      "dialogs/about.html",
+      "dialogs/editHtml.html",
+      "dialogs/list.html",
+      "dialogs/params.html",
+      "dialogs/processAnalysis.html",
+      "editor/editor.html",
+      "editor/editor.js",
+      "dialogs/logo.png",
+      "dialogs/library.html",
+      "build/logo_win.ico",
+      "build/logo.ico",
+      "cad/index.css",
+      "data/split.js",
+      "data/src/css/index.css",
+      "data/src/css/model.css",
+      "data/src/css/styles.css",
+      "data/src/css/pyCode.css",
+      "data/plotly-latest.min.js",
+      "data/src/utils/information.js",
+       "data/src/utils/ruler.js",
+      "data/src/utils/polyline.js",
+      "data/src/utils/arc.js",
+      "data/src/utils/pin.js",
+      "data/src/utils/ioparam.js",
+      "data/src/utils/part.js",
+      "data/src/utils/net.js",
+      "data/src/utils/text.js",
+      "data/src/utils/body.js",
+      "data/src/utils/toolButton.js",
+      "data/src/utils/cursor.js",
+      "data/src/utils/controle.js",
+      "data/src/utils/cnode.js",
+      "data/src/utils/utility.js",
+      "data/src/utils/measurement.js",
+"data/src/utils/svg.js",
+"data/src/utils/analysis.js",
+"data/src/utils/plots.js",
+"data/src/utils/codePy.js",
+"data/src/utils/codeHtml.js",
+"data/src/utils/codeSpice.js",
+"data/src/selectElements.js",
+"data/src/objectInspector/objectInspector.js",
+"data/src/objectInspector/modifiedSelect.js",
+"data/src/designByMouse.js",
+"data/src/grid.js",
+"data/src/shapes.js",
+"data/src/resize.js",
+"data/src/drawing.js",
+"data/src/ListSymbol.js",
+"data/src/ListElements.js",
+"data/ioData.js",
+"data/std.js",
+  "cad/images.js",
+    "cad/dataHtml.js",
+    "cad/index.js",
+    "cad/action.js",
+    "cad/user.js",
+    "cad/files.js"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/logo.ico"
+    },
+   "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}

@@ -15,7 +15,8 @@ What is PyAMS?
 
 **PyAMS (Python for Analog and Mixed Signals)** is an open-source software tool designed to simplify the simulation 
 of electronic circuits and the modeling of analog elements using the ``pyams_lib`` library. 
-It is developed with Python 3+ and PyQt5, and currently supports Windows, with plans for Linux and macOS in the future.
+It is developed with Python 3+, and currently supports Windows, with plans for Linux and macOS in the future. the interface created 
+using ElectronJS and NodeJs.
 
 The main features of PyAMS include:
 

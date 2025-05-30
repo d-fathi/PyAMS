@@ -1,0 +1,86 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/theme/dracula.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldgutter.min.css">
+
+  
+    <style>
+        body {
+    margin: 0;
+    padding: 5px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 13px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+         .ok-button {
+            text-align: right;
+            padding: 10px;
+            border-top: 1px solid #aaa;
+            background: #f0f0f0;
+        }
+        .ok-button button {
+            padding: 5px 15px;
+        }
+
+    </style>
+
+    <!-- CodeMirror JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.js"></script>
+
+    <!-- تحميل XML قبل HTMLMixed -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/mode/xml/xml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/mode/htmlmixed/htmlmixed.min.js"></script>
+
+    <!-- CodeMirror Add-ons for Code Folding -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/brace-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/xml-fold.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/comment-fold.min.js"></script>
+
+</head>
+<body>
+
+    <!--h2>HTML Code Editor</h2-->
+    
+    <div class="editor-container">
+        <textarea id="html-editor"></textarea>
+    </div>
+    <div class="ok-button">
+         <button onclick="saveText()">💾 Save</button>
+     </div>
+
+    <script>
+
+var editor = CodeMirror.fromTextArea(document.getElementById("html-editor"), {
+            mode: "htmlmixed",
+            theme: "dracula",
+            lineNumbers: true,
+            indentUnit: 4,
+            matchBrackets: true,
+            autoCloseTags: true,
+            foldGutter: true,
+            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            window.electron.onSetTextHtml((text) => {
+                editor.setValue(text);
+            });
+        });
+    
+        function saveText() {
+            const newText = editor.getValue();
+            window.electron.sendEditedTextHtml(newText); // ⬅️ transfer to `main.js`
+        }
+    </script>
+</body>
+</html>

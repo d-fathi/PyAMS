@@ -11,7 +11,7 @@ PyAMS: Python for Analog and Mixed Signals
 <p align="center">
  
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.1.4-blue" alt="V 0.1.4">
+    <img src="https://img.shields.io/badge/Version-0.1.5-blue" alt="V 0.1.5">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -55,26 +55,18 @@ The objectives of PyAMS is:
 </h1>
 
 
-## Installation by pip
 
-To install `pyams_cad`, use the following command:
+## Note
 
-```sh
-pip install pyams_cad
-```
+To create a PyAMS application from the `src` directory:
 
-To upgrade to the latest version:
+1. Download and install **Node.js** from the official website: [https://nodejs.org/](https://nodejs.org/)
+2. Download **Python** (or **PyPy**) and add it to the `PyAMS` directory.
+3. Navigate to the `src` directory and run the following commands:
 
-```sh
-pip install --upgrade pyams_cad
-```
-
-### Code:
-
-```python
-
-from pyams import win
-win()
+   ```sh
+   npm install
+   npm start
 
 ````
 

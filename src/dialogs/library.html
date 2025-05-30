@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library management</title>
+    <style>
+         body { font-family: Arial, sans-serif; }
+        .container { display: flex; gap: 20px; }
+        .list-container { display: flex; flex-direction: column; }
+        select { width: 200px; height: 200px; }
+        .button-group { display: flex; gap: 5px; width: 100%; justify-content: center; }
+        .button-group button { margin: 4px; width: 50%; }
+         button { padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="list-container">
+            <h3>Library</h3>
+            <select id="library" size="10" onchange="updateSymbols(); updateLibraryButtons();">
+            </select>
+            <div class="button-group">
+                <button id="libUpButton" onclick="moveLibraryUp()" disabled>&uarr; Up</button>
+                <button id="libDownButton" onclick="moveLibraryDown()" disabled>&darr;  Down</button>
+            </div>
+        </div>
+        <div class="list-container">
+            <h3>Symbols</h3>
+            <select id="symbols" size="10" onchange="updateSymbolButtons();">
+            </select>
+            <div class="button-group">
+                <button id="upButton" onclick="moveSymbolUp()" disabled>&uarr; Up</button>
+                <button id="downButton" onclick="moveSymbolDown()" disabled>&darr; Down</button>
+            </div>
+        </div>
+    </div>
+    <br>
+    <button onclick="confirmSelection()">OK</button>
+    <button onclick="window.close()">Cancel</button>
+    <script>
+        let data = {
+            'libs': []
+        };
+        
+        const librarySelect = document.getElementById('library');
+        const symbolsSelect = document.getElementById('symbols');
+        const libUpButton = document.getElementById('libUpButton');
+        const libDownButton = document.getElementById('libDownButton');
+        const upButton = document.getElementById('upButton');
+        const downButton = document.getElementById('downButton');
+        
+        function populateLibraries() {
+            data.libs.forEach(lib => {
+                let option = new Option(lib, lib);
+                librarySelect.add(option);
+            });
+            librarySelect.selectedIndex = 0;
+            updateSymbols();
+            updateLibraryButtons();
+            updateSymbolButtons();
+        }
+
+        function updateSymbols() {
+            const selectedLib = librarySelect.value;
+            symbolsSelect.innerHTML = '';
+            data[selectedLib].forEach(symbol => {
+                let option = new Option(symbol, symbol);
+                symbolsSelect.add(option);
+            });
+            updateSymbolButtons();
+        }
+
+        function moveLibraryUp() {
+            let index = librarySelect.selectedIndex;
+            if (index > 0) {
+                [data.libs[index - 1], data.libs[index]] = [data.libs[index], data.libs[index - 1]];
+                refreshLibrary();
+                librarySelect.selectedIndex = index - 1;
+                updateSymbols();
+                updateLibraryButtons();
+            }
+        }
+
+        function moveLibraryDown() {
+            let index = librarySelect.selectedIndex;
+            if (index < data.libs.length - 1) {
+                [data.libs[index], data.libs[index + 1]] = [data.libs[index + 1], data.libs[index]];
+                refreshLibrary();
+                librarySelect.selectedIndex = index + 1;
+                updateSymbols();
+                updateLibraryButtons();
+            }
+        }
+
+        function moveSymbolUp() {
+            let index = symbolsSelect.selectedIndex;
+            let selectedLib = librarySelect.value;
+            if (index > 0) {
+                [data[selectedLib][index - 1], data[selectedLib][index]] = [data[selectedLib][index], data[selectedLib][index - 1]];
+                updateSymbols();
+                symbolsSelect.selectedIndex = index - 1;
+                updateSymbolButtons();
+            }
+        }
+
+        function moveSymbolDown() {
+            let index = symbolsSelect.selectedIndex;
+            let selectedLib = librarySelect.value;
+            if (index < data[selectedLib].length - 1) {
+                [data[selectedLib][index], data[selectedLib][index + 1]] = [data[selectedLib][index + 1], data[selectedLib][index]];
+                updateSymbols();
+                symbolsSelect.selectedIndex = index + 1;
+                updateSymbolButtons();
+            }
+        }
+
+        function refreshLibrary() {
+            librarySelect.innerHTML = '';
+            populateLibraries();
+        }
+
+        function updateLibraryButtons() {
+            libUpButton.disabled = librarySelect.selectedIndex <= 0;
+            libDownButton.disabled = librarySelect.selectedIndex >= data.libs.length - 1;
+        }
+
+        function updateSymbolButtons() {
+            upButton.disabled = symbolsSelect.selectedIndex <= 0;
+            downButton.disabled = symbolsSelect.selectedIndex >= symbolsSelect.options.length - 1;
+        }
+
+        function confirmSelection() {
+            window.electron.sendLibrary(data);
+            
+        }
+
+
+       
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+            window.electron.onSetDataLibrary((dataJson) => {
+              data=dataJson;
+              populateLibraries();
+            });
+        });
+    </script>
+</body>
+</html>
