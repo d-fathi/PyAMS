@@ -8,5 +8,6 @@ The elements in the circuit are designed by the symbol editor and modeled using 
 .. toctree::
    :maxdepth: 2
   models/Analog/index.rst
+  models/Digital/index.rst
 .. End
 

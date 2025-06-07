@@ -3,7 +3,13 @@ Release History
 
 .. raw:: html
 
-   <p><b><span style="color:red;">Version 0.1.5</span></b> (30/04/2025)</p>
+   <p><b><span style="color:red;">Version 0.1.6</span></b> (07/06/2025)</p>
+
+- In this version (alpha), Update gates.
+
+.. raw:: html
+
+   <p><b><span style="color:red;">Version 0.1.5</span></b> (30/05/2025)</p>
 
 - In this version (alpha), The interface of PyAMS was created by ElectronJS (v34.2.0) and NodeJs (v22.13.1).
 - Using **pyams_lib** (v0.2.1).

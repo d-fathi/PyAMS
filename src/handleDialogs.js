@@ -63,8 +63,8 @@ let dialogWindow = null;
 ipcMain.on('open-dialog-about', () => {
   if (!dialogWindow) {
       dialogWindow = new BrowserWindow({
-          width: 500,
-          height: 395,
+          width: 600,
+          height: 420,
           parent: BrowserWindow.getFocusedWindow(),
           icon: path.join(__dirname, 'build', 'logo_win.ico'), // 🖼️ modified logo
           modal: true,
@@ -108,7 +108,7 @@ ipcMain.on('open-browser-window', (event, data) => {
       if(data=="webPage")
         dialogWindow.loadURL('http://pyams.sf.net/');
       if(data=="elements")
-        dialogWindow.loadURL('https://pyams.sourceforge.io/doc/Elements.html');
+        dialogWindow.loadURL('https://pyams.sourceforge.io/doc/Models.html');
   
         dialogWindow.on('closed', () => {
             dialogWindow = null;

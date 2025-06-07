@@ -8,7 +8,6 @@ For PyAMS ``pyams_cad``:
 - **PyAMS documentation**: `<https://pyams-cad.readthedocs.io/>`_
 - **PyAMS GitHub**: `<https://github.com/d-fathi/pyams/>`_
 - **PyAMS SourceForge**: `<https://sourceforge.net/projects/pyams/>`_
-- **PyAMS PyPI**: `<https://pypi.org/project/pyams_cad/>`_
 - **PyAMS Support**:  `<https://ko-fi.com/pyams/>`_
 - **PyAMS Wiki**:
 

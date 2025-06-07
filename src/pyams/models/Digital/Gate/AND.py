@@ -2,6 +2,7 @@
 # Name:        AND
 # Author:      Dhiabi Fathi
 # Created:     02/05/2025
+# Modified:    07/06/2025
 # Copyright:   (c) PyAMS
 # Licence:     free
 #-------------------------------------------------------------------------------

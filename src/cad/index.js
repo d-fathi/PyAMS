@@ -51,7 +51,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     { "label": "separator" },
                     { "label": "Flip Horizontal", "icon": images.flipHorizontal, "shortcut": "Shift+H", "action": "horizontal", "description": "Flip Horizontal" },
                     { "label": "Flip Vertically", "icon": images.flipVertically, "shortcut": "Shift+V", "action": "vertically", "description": "Flip Vertically" },
-                    { "label": "Rotate", "icon": images.Rotate, "shortcut": "Shift+R", "action": "rotate", "description": "Rotate" }
+                    { "label": "Rotate", "icon": images.Rotate, "shortcut": "Shift+R", "action": "rotate", "description": "Rotate" },
+                    { "label": "separator" },
+                    { "label": "Show grid", "icon": "", "hidden":true, "shortcut": " ", "action": "showGrid", "description": "Show or hide grid", "id": "showGrid" }
+                    //{ "label": "Show ruler", "icon": "", "hidden":true, "shortcut": " ", "action": "showRuler", "description": "Show or hide ruler", "id": "showRuler" },
                 ]
             },
             {
@@ -168,6 +171,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 dropdownItem.innerHTML = `<img src="${item.icon}" alt="${item.label}" class="icon">${item.label} <span class="shortcut">${item.shortcut}</span>`;
                 if(item.hidden) {
                     dropdownItem.firstChild.style.visibility = "hidden"; // Hide the item if hidden is true 
+                }
+
+                if(item.id) {
+                    dropdownItem.id = item.id; // Set the id if provided
+                    dropdownItem.innerHTML = `<input type="checkbox" checked  readonly>${item.label} <span class="shortcut">${item.shortcut}</span>`;
                 }
                 
 

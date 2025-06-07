@@ -81,8 +81,8 @@ function createBody(self) {
   </div>
   <div  id="areaGlobal"  contenteditable="false" >
         <svg id="svg" width="800" height="800"  viewBox="0 0 800 800"   >
-        <path id="smallGrid" d="M 10 0 H 800" fill="none" stroke="gray" stroke-width="0.1"  vector-effect= "non-scaling-stroke"/>
-        <path id="grid" d="M 100 0 V 200" fill="none" stroke="gray" stroke-width="0.2" vector-effect= "non-scaling-stroke"/>
+        <path id="smallGrid" d="M 10 0 H 800" fill="none" stroke="gray" stroke-width="0.3"  vector-effect= "non-scaling-stroke"/>
+        <path id="grid" d="M 100 0 V 200" fill="none" stroke="gray" stroke-width="0.5" vector-effect= "non-scaling-stroke"/>
 		    <path id="select" d="" fill="none" stroke="blue" stroke-width="1" vector-effect= "non-scaling-stroke"/>
 		    <g id="sym" name="sym"></g>
 		    <g id="selElms"  fill="none" stroke="red" ></g>

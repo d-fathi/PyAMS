@@ -3,7 +3,7 @@
 
 
 async function openFile(){
-  alert(drawing.pageType);
+
   const result = await window.electron.openFileDialog(drawing.pageType);
   if (result) {
     if(result.fileExtension=='sym')

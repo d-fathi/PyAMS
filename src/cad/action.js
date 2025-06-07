@@ -81,6 +81,12 @@ function setAction(value){
         drawing.redo();
     break;
 
+    case "showGrid":
+        drawing.grid.showGrid = !drawing.grid.showGrid;  
+        drawing.showGrid(drawing.grid.showGrid);
+        document.getElementById("showGrid").firstChild.checked = drawing.grid.showGrid; 
+    break;
+
     case "gnd":
       addGnd();
     break;
