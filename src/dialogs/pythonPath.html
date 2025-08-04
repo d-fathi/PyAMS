@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Python Folder Selector</title>
+  <style>
+          .ok-button {
+            text-align: right;
+            padding: 10px;
+            border-top: 1px solid #aaa;
+            background: #f0f0f0;
+        }
+        .ok-button button {
+            padding: 5px 15px;
+        }
+    </style>
+</head>
+<body>
+   
+  <h3>Select the Python folder you want to use:</h3>
+  <br>
+  <div id="folders"></div>
+  <hr>
+  <br>
+  <button id="save" disabled>Save</button>
+
+  <script>
+    
+        const foldersDiv = document.getElementById('folders');
+        foldersDiv.innerHTML = '';
+
+            document.addEventListener("DOMContentLoaded", async () => {
+              const pythonFolder = await window.electron.getPythonFolder();
+              // You can now use pythonPath as needed
+            window.electron.pythonFolders((dirs,dirsWithPath ) => {
+ 
+
+    foldersDiv.innerHTML = '<h3></h3>';
+
+    
+
+      dirs.forEach((dir, index) => {
+      const label = document.createElement('label');
+      label.style.display = 'block';
+
+      const radio = document.createElement('input');
+      radio.type = 'radio';
+      radio.name = 'pythonFolder';
+      radio.value = dir;
+
+  
+      if (index === 0) {
+        radio.checked = true;
+      }
+
+      if (dir === pythonFolder) {
+        radio.checked = true;
+      }
+
+
+      label.appendChild(radio);
+      label.appendChild(document.createTextNode(' ' +dirsWithPath[index]));
+      foldersDiv.appendChild(label);
+    });
+
+  });
+
+
+        document.getElementById('save').disabled = false;
+});
+
+        document.getElementById('save').addEventListener('click', () => {
+            const selectedFolder = document.querySelector('input[name="pythonFolder"]:checked').value;
+            window.electron.savePythonFolder(selectedFolder);
+            window.close();
+        });
+      
+  </script>
+
+</body>
+</html>

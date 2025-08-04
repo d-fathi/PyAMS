@@ -45,7 +45,7 @@ function modifedSizeCodePy(element) {
       }
       if(e.length==0){
         var e = element.firstChild.firstChild;
-        console.log(e.value);
+      //  console.log(e.value);
 		    e.style.width = w-10+'px';
         e.style.height = h-10+'px'
       }
@@ -69,6 +69,14 @@ function modifedSizeCodePy(element) {
 		/* */
     }
 }
+
+
+async function openEditCodePy() {
+  const originalText = mtable.select.firstChild.firstChild.getAttribute("code");
+  const editedText = await window.electron.editCodePy(originalText,'Python Code Editor');
+  mtable.select.firstChild.firstChild.setAttribute("code",editedText);
+}
+
 
 function pyCodeData(list){
 

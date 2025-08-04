@@ -10,7 +10,7 @@
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-# utiles: used for convert value
+# real to string  and string to real
 #-------------------------------------------------------------------------------
 
 def floatToStr(value: float) -> str:
@@ -656,6 +656,9 @@ class circuit:
     def getOpertingPoint(self):
         self.x,s=solven(self.x,self.feval,self.option)
         self.dcircuit.feval();
+        self.x,s=solven(self.x,self.feval,self.option)
+        self.dcircuit.feval();
+
         return self.x
 
     def setOutPuts(self,*outputs):
@@ -879,7 +882,16 @@ class circuit:
         '''
         self.analysis_=kwargs
 
-
-
+listNewNode=[]
+def newNode() -> str:
+    """
+    Create a new node with a unique name.
+    Returns:
+        str: A unique node name.
+    """
+    global listNewNode
+    name = f"node_inter_{len(listNewNode) + 1}"
+    listNewNode.append(name)
+    return name
 
 

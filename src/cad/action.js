@@ -122,6 +122,10 @@ function setAction(value){
        window.electron.openDialogAbout();
     break;
 
+    case "pythonPath":
+       window.electron.openDialogPythonPath();
+    break;
+
     case "after":
       after_();
     break;
@@ -406,8 +410,8 @@ function displayByPageType(){
 
   toolbarButtons.oscilloscope.style.display ="none";
   menuitems.oscilloscope.style.display ="none";
-  toolbarButtons.codePy.style.display ="none";
-  menuitems.codePy.style.display ="none";
+ // toolbarButtons.codePy.style.display ="none";
+ // menuitems.codePy.style.display ="none";
   toolbarButtons.image.style.display ="none";
   menuitems.image.style.display ="none";
   
@@ -431,6 +435,8 @@ function displayByPageType(){
   menuitems.net.style.display =displayPage;
   toolbarButtons.probe.style.display =displayPage;
   menuitems.probe.style.display =displayPage;
+ // toolbarButtons.codePy.style.display =displayPage;
+ // menuitems.codePy.style.display =displayPage;
 
   toolbarButtons.pin.style.display =displaySym;
   menuitems.pin.style.display =displaySym;

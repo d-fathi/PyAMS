@@ -436,7 +436,7 @@ function modifiedImage(pos,e) {
 }
 
 //-------codePy description ---------------------------------------------------
-function codePySelect(self) {
+function codePySelect___(self) {
   window.foo.importPythonFiles(function (val) {
 	var codePy_ = mtable.select;
   //alert(val);
@@ -475,7 +475,7 @@ function codePySelect(self) {
 
 }
 
-function modifiedcodePy(pos,e) {
+function modifiedcodePy__(pos,e) {
 
   var codePy_ = mtable.select;
 
@@ -596,6 +596,82 @@ function modifiedcodeHTML(pos,e) {
     if (mtable.resize.setElement)
         mtable.resize.creatEllipse();
 }
+
+
+
+//-------codePy description ---------------------------------------------------
+function codePySelect() {
+
+	var codePy_ = mtable.select;
+	mtable.typeSelect = 'codeHTML';
+        mtable.table = [{
+            name: 'Pos.x',
+            value: parseInt(mtable.select.getAttribute("x")),
+            type: "number"
+            }, {
+            name: 'Pos.y',
+            value: parseInt(mtable.select.getAttribute("y")),
+            type: "number"
+            }, {
+            name: 'Width',
+            value: parseInt(mtable.select.getAttribute("width")),
+            type: "number"
+            }, {
+            name: 'Height',
+            value: parseInt(mtable.select.getAttribute("height")),
+            type: "number"
+          }, {
+               name: 'Model code',
+               value: 'show',
+               type: "Button",
+              setClick: 'openEditCodePy()'
+            }
+        ];
+
+
+}
+
+function modifiedcodePy(pos,e) {
+
+  var codeHTML_ = mtable.select;
+
+        switch (pos) {
+
+        case 0:
+             codeHTML_.setAttribute("x", e.value);
+            break;
+        case 1:
+             codeHTML_.setAttribute("y", e.value);
+            break;
+        case 2:
+             codeHTML_.setAttribute("width", e.value);
+            break;
+        case 3:
+             codeHTML_.setAttribute("height", e.value);
+            break;
+        case 5:
+             mtable.select.firstChild.firstChild.style.fontSize =e.value+"px";
+             break;
+        case 6:
+             mtable.select.firstChild.firstChild.style.fontFamily =e.value;
+            break;
+        case 7:
+             mtable.select.firstChild.firstChild.style.color =e.value;
+             break;
+        case 8:
+              mtable.select.firstChild.firstChild.style.backgroundColor =e.value;
+              break;
+		}
+
+
+    modifedSizeCodeHtml(mtable.select);
+
+    deleteEllipseMS(mtable.resize);
+    if (mtable.resize.setElement)
+        mtable.resize.creatEllipse();
+}
+
+
 
 //-------codeSpice description ---------------------------------------------------
 function codeSpiceSelect() {

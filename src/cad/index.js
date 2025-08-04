@@ -57,6 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     //{ "label": "Show ruler", "icon": "", "hidden":true, "shortcut": " ", "action": "showRuler", "description": "Show or hide ruler", "id": "showRuler" },
                 ]
             },
+            
             {
                 "title": "Add",
                 "items": [
@@ -87,7 +88,9 @@ document.addEventListener("DOMContentLoaded", () => {
             }, {
                 "title": "Simulation",
                 "items": [
-                    { "label": "Run Analysis", "icon": images.runAnalysis, "shortcut": " ", "action": "runAnalysis", "description": "Run Analysis" }
+                    { "label": "Run Analysis", "icon": images.runAnalysis, "shortcut": " ", "action": "runAnalysis", "description": "Run Analysis" },
+                    { "label": "separator" },
+                    { "label": "Python path", "icon": "", "hidden":true, "shortcut": " ", "action": "pythonPath", "description": "Python Path" }
                 ]
             },
             {

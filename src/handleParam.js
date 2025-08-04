@@ -3,6 +3,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const fs = require('fs');
 const config = require('./config');
+const handleExecPyAMS = require('./handleExecPyAMS');
 
 
 
@@ -13,7 +14,7 @@ function setupHandlersParam(mainWindow) {
         return new Promise((resolve, reject) => {
  
             const scriptPath = path.join(config.folderPath, 'temp_script.py');
-            const pypyPath = path.join(config.folderPath, 'pypy', 'python.exe');
+            const pypyPath = handleExecPyAMS.getPythonFolder();
             
             fs.writeFileSync(scriptPath, pythonScript, 'utf8');
             exec(`"${pypyPath}" "${scriptPath}"`, (error, stdout, stderr) => {

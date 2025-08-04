@@ -30,10 +30,20 @@ contextBridge.exposeInMainWorld('electron', {
     saveAsWindowEditor: (data,filepath) => ipcRenderer.invoke('save-as-window-editor',data,filepath),
     openDialogAbout: () => ipcRenderer.send('open-dialog-about'),
     showConfirmationEditDialog: (message) => ipcRenderer.invoke('show-confirmation-edit-dialog', message),
+    //Python path dialog-------------------------------------------------------------------
+    openDialogPythonPath: () => ipcRenderer.send('dialog-python-path'),
+    pythonFolders: (callback) => ipcRenderer.on('python-folders', (event, dirs,dirsWithPath) => callback(dirs,dirsWithPath)),
+    savePythonFolder: (folder) => ipcRenderer.invoke('save-python-folder', folder),
+    getPythonFolder: () => ipcRenderer.invoke('get-python-folder'),
+    
     //Edit html------------------------------------------------------------------------------
     editTextHtml: (text,caption) => ipcRenderer.invoke('edit-text-html', text,caption),
     onSetTextHtml: (callback) => ipcRenderer.on('set-text-html', (event, text) => callback(text)),
     sendEditedTextHtml: (text) => ipcRenderer.send('save-edited-text-html', text),
+    //Edit codePy------------------------------------------------------------------------------
+    editCodePy: (text,caption) => ipcRenderer.invoke('edit-codePy', text,caption),
+    onSetCodePy: (callback) => ipcRenderer.on('set-codePy', (event, text) => callback(text)),
+    sendEditedCodePy: (text) => ipcRenderer.send('save-edited-codePy', text),
     //Params----------------------------------------------------------------------------------
     getParams: (pythonScript) => ipcRenderer.invoke('get-params', pythonScript),
     editParams: (params, modelName) => ipcRenderer.invoke('edit-params', params, modelName),

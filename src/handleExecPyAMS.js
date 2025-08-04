@@ -5,12 +5,26 @@ const { spawn } = require("child_process");
 const fs = require('fs');
 const config = require('./config');
 
+function getPythonFolder(){    
+    
+    const configPath = path.join(config.folderPath,'python', 'config.json');
+    if (fs.existsSync(configPath)) {
+        try {
+            const _json = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+            return path.join(config.folderPath, 'python', _json.pythonPath, "python.exe") 
+        } catch (e) {
+            return null;
+        }
+    }
+    return null;
+}
+
 
 ipcMain.handle('show-exec-op', async (event, data) => {
         return new Promise((resolve, reject) => {
            
             const scriptPath = path.join(config.folderPath, 'temp_script.py');
-            const pypyPath = path.join(config.folderPath, 'pypy', 'pypy.exe');
+            const pypyPath =  getPythonFolder();
          
             fs.writeFileSync(scriptPath, data, 'utf8');
 
@@ -87,9 +101,12 @@ async function createAnalysisWindow(sourceCode) {
             }
 
             const scriptPath = path.join(config.folderPath, 'temp_script.py');
-            const pypyPath = path.join(config.folderPath, 'pypy', 'pypy.exe');
+            const pypyPath = getPythonFolder();
+
+            console.log("PyPy Path:", pypyPath);
+            console.log("scriptPath:", scriptPath);
     
-            console.log("Starting PyPy process...");
+            console.log("Starting Python process...");
             pypyProcess = spawn(pypyPath, [scriptPath]);
     
             pypyProcess.stdout.on("data", (data) => {
@@ -151,6 +168,12 @@ async function createAnalysisWindow(sourceCode) {
 ipcMain.handle('analysis-dialog', async (event, sourceCode) => {
     return await createAnalysisWindow(sourceCode);
 });
+
+
+
+module.exports = {
+    getPythonFolder
+  };
 
 
 

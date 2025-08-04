@@ -13,12 +13,13 @@ function addCodeHtml(elem) {
 
 function modifedSizeCodeHtml(element) {
     if (element.getAttribute("name") == "codeHTML") {
-
         var x = parseInt(element.getAttribute("x"));
         var y = parseInt(element.getAttribute("y"));
         var w = parseInt(element.getAttribute("width"));
         var h = parseInt(element.getAttribute("height"));
+
         element.setAttribute('transform', "translate(" + x + "," + y + ")");
+        
         element.firstChild.style.height=h+'px';
         element.firstChild.style.width=w+'px';
         element.firstChild.firstChild.style.height=h+'px';
@@ -54,6 +55,7 @@ async function openEditHtml() {
   const editedText = await window.electron.editTextHtml(originalText,'HTML Code Editor');
   setHtmlCode(editedText);
 }
+
 
 async function openEditCSS() {
   const originalText = mtable.select.getAttribute("style");

@@ -239,10 +239,11 @@ function fobjectInspector(id, drawingIntarface) {
 		mtable.typeSelect='';
 		mtable.newElem=null;
 
-        
+       
 
         if (select) {
             mtable.select = select;
+			
             switch (mtable.select.getAttribute("name")) {
             case "rect":
                 rectSelect();
@@ -279,9 +280,10 @@ function fobjectInspector(id, drawingIntarface) {
 	            self.creat();
 	            break;
 
-					case 'codePy':
+			case 'codePy':
 	           codePySelect(self);
-	           break;
+			   self.creat();
+	        break;
 
 		 case 'codeHTML':
 	 	   codeHTMLSelect();

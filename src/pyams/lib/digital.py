@@ -156,6 +156,8 @@ class dsignal:
 
 
 
+def digitalValue(val):
+    return dsignal(direction='in', port='0', value=val)
 
 
 
@@ -289,17 +291,17 @@ class dcircuit:
       """
       Evaluate the circuit digital
       """
+      for i in range(len(self.cir)):
+         for  signal,pos in self.outDSignals:
+            self.x[pos] =signal.value
 
-      for  signal,pos in self.outDSignals:
-           self.x[pos] =signal.value
+         for  signal,pos in self.inDSignals:
+            signal.value = self.x[pos]
 
-      for  signal,pos in self.inDSignals:
-           signal.value = self.x[pos]
+         self.executeMixedSignals()
 
-      self.executeMixedSignals()
-
-      for element in self.cir:
-          element.digital()
+         for element in self.cir:
+             element.digital()
 
 
 

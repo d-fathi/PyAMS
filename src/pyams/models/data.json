@@ -4,10 +4,7 @@
         "Analog\\Source",
         "Analog\\Semiconductor",
         "Analog\\CMOSGates",
-        "Digital\\Source",
-        "Digital\\Gate",
-        "Digital\\Converter",
-        "Digital\\Combinational"
+        "Project\\CGS_CIGS"
     ],
     "Analog\\Basic": [
         "Resistor.sym",
@@ -27,7 +24,8 @@
         "NonlinearResistance.sym",
         "Switch.sym",
         "SwitchC.sym",
-        "SwitchSample.sym"
+        "SwitchSample.sym",
+        "ResistrorAnalysis.sym"
     ],
     "Analog\\CMOSGates": [
         "CAND.sym",
@@ -59,37 +57,11 @@
         "SquareCurrent.sym",
         "SquareVoltage.sym",
         "TrapezoidCurrent.sym",
-        "TrapezoidVoltage.sym"
+        "TrapezoidVoltage.sym",
+        "DCCurrent2.sym"
     ],
-    "Digital\\Combinational": [
-        "BCD7SegmentDecoder.sym",
-        "DEMUX1to2.sym",
-        "DEMUX1to4.sym",
-        "Decoder2to4.sym",
-        "Decoder3to8.sym",
-        "Encoder4to2.sym",
-        "FullAdder.sym",
-        "HalfAdder.sym",
-        "MUX2to1.sym",
-        "MUX4to1.sym"
-    ],
-    "Digital\\Converter": [
-        "AnalogDigital.sym",
-        "DigitalAnalog.sym"
-    ],
-    "Digital\\Gate": [
-        "AND.sym",
-        "Buffer.sym",
-        "NAND.sym",
-        "NOR.sym",
-        "NOT.sym",
-        "OR.sym",
-        "XNOR.sym",
-        "XOR.sym"
-    ],
-    "Digital\\Source": [
-        "Clk.sym",
-        "High.sym",
-        "Low.sym"
+    "Project\\CGS_CIGS": [
+        "CGS.sym",
+        "CIGS.sym"
     ]
 }

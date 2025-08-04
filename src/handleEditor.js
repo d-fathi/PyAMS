@@ -1,6 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const { exec } = require('child_process');
 const { spawn } = require("child_process");
+handleExecPyAMS = require('./handleExecPyAMS');
 
 const path = require('path');
 const fs = require('fs');
@@ -19,7 +20,7 @@ ipcMain.handle('find-model', async (event, data) => {
         return new Promise((resolve, reject) => {
            
             const scriptPath = path.join(config.folderPath, 'temp_script.py');
-            const pypyPath = path.join(config.folderPath, 'pypy', 'pypy.exe');
+            const pypyPath = handleExecPyAMS.getPythonFolder();
          
             fs.writeFileSync(scriptPath, data, 'utf8');
 

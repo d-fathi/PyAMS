@@ -1,6 +1,6 @@
 {
   "name": "PyAMS",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Python for Analog and Mixed Signals",
   "author": "d.fathi",
   "license": "MIT",
@@ -30,8 +30,8 @@
        "from":"pyams",
        "to":"pyams"
         },{
-        "from":"pypy",
-        "to":"pypy"
+        "from":"python",
+        "to":"python"
         }],
     "files": [
       "main.js",
@@ -50,6 +50,8 @@
       "dialogs/list.html",
       "dialogs/params.html",
       "dialogs/processAnalysis.html",
+      "dialogs/editCodePy.html",
+      "dialogs/pythonPath.html",
       "editor/editor.html",
       "editor/editor.js",
       "dialogs/logo.png",
