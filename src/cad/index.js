@@ -16,6 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     { "label": "Save", "icon": images.save, "shortcut": "Ctrl+S", "action": "saveFile", "description": "Save the current file" },
                     { "label": "Save As..", "icon": "", "hidden":true,"shortcut": " ", "action": "saveAsFile", "description": "Save as the current file" },
                     { "label": "separator" },
+                    { "label": "It's a project.", "icon": "", "hidden":true, "checked":'', "shortcut": " ", "action": "itProject", "description": "This file project [yas/No]", "id": "ItProject" },
+                    { "label": "separator" },
                     { "label": "New symbol File", "icon": images.symbol, "shortcut": "Ctrl+N+S", "action": "newSymbol", "description": "Create a new symbol" },
                   /*  { "label": "separator" },
                     { 
@@ -53,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     { "label": "Flip Vertically", "icon": images.flipVertically, "shortcut": "Shift+V", "action": "vertically", "description": "Flip Vertically" },
                     { "label": "Rotate", "icon": images.Rotate, "shortcut": "Shift+R", "action": "rotate", "description": "Rotate" },
                     { "label": "separator" },
-                    { "label": "Show grid", "icon": "", "hidden":true, "shortcut": " ", "action": "showGrid", "description": "Show or hide grid", "id": "showGrid" }
+                    { "label": "Show grid", "icon": "", "hidden":true, "checked":'checked', "shortcut": " ", "action": "showGrid", "description": "Show or hide grid", "id": "showGrid" }
                     //{ "label": "Show ruler", "icon": "", "hidden":true, "shortcut": " ", "action": "showRuler", "description": "Show or hide ruler", "id": "showRuler" },
                 ]
             },
@@ -178,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if(item.id) {
                     dropdownItem.id = item.id; // Set the id if provided
-                    dropdownItem.innerHTML = `<input type="checkbox" checked  readonly>${item.label} <span class="shortcut">${item.shortcut}</span>`;
+                    dropdownItem.innerHTML = `<input type="checkbox" ${item.checked}  readonly>${item.label} <span class="shortcut">${item.shortcut}</span>`;
                 }
                 
 
@@ -259,6 +261,8 @@ document.addEventListener("DOMContentLoaded", () => {
     drawing.newPage("sym");
 
     displayByPageType();
+
+    
 
 });
 

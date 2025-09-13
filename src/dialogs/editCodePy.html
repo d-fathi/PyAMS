@@ -1,86 +1,251 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    
-    <!-- CodeMirror CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/theme/dracula.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldgutter.min.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-    <style>
-        body {
-    margin: 0;
-    padding: 5px;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 13px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-         .ok-button {
-            text-align: right;
-            padding: 10px;
-            border-top: 1px solid #aaa;
-            background: #f0f0f0;
+  <!-- CodeMirror CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldgutter.min.css">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+
+    .tabs {
+      display: flex;
+      font-size: 12px;
+      border-bottom: 1px solid #ccc;
+    
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      margin-right: 5px;
+    }
+
+    .tab.active {
+      background: #fff;
+      font-weight: bold;
+    }
+
+    .editor-container {
+      display: none;
+    }
+
+    .editor-container.active {
+      display: block;
+    }
+
+    .ok-button {
+      text-align: right;
+      padding: 10px;
+      border-top: 1px solid #aaa;
+      background: #f0f0f0;
+    }
+
+    .ok-button button {
+      padding: 5px 15px;
+    }
+
+    #progress-container {
+            width: 100%;
+            background-color: #ddd;
+            margin-top: 20px;
         }
-        .ok-button button {
-            padding: 5px 15px;
+
+    #progress-bar {
+            width: 0%;
+            height: 30px;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
         }
 
-    </style>
+    .container {
+        height: calc(100vh - 650px); /* Set max height */
+        overflow-y: auto; /* Enable vertical scrolling */
+        border: 1px solid #6e6c6c;
+        font-size: 11px;
+    }
+  </style>
 
-    <!-- CodeMirror CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/theme/dracula.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldgutter.min.css">
-
-    <!-- CodeMirror JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/mode/python/python.min.js"></script>
-
-    <!-- CodeMirror Add-ons for Code Folding -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldgutter.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/indent-fold.min.js"></script>
-
+  <!-- CodeMirror JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/foldgutter.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.14/addon/fold/indent-fold.min.js"></script>
 </head>
 <body>
+<div style="font-size: 12px; color: #555; margin-bottom: 10px;">
+    <strong>Note:</strong> The first tab shows the source code of the circuit (read-only). The second tab allows you to edit the analysis code. Click "Run" to execute the combined code.<
+  <h3>Edit Python Code</h3>
+  <div class="tabs">
+    <div class="tab" onclick="showTab(0)">Source Code of circuit</div>
+    <div class="tab active" onclick="showTab(1)">Source Code of anaysis</div>
+  </div>
 
-    <!--h2>HTML Code Editor</h2-->
-    
-    <div class="editor-container">
-        <textarea id="py-editor"></textarea>
+  <div class="editor-container active" id="editor-container-0">
+    <textarea id="code-editor-0"># Python source code 1</textarea>
+  </div>
+
+  <div class="editor-container" id="editor-container-1">
+    <textarea id="code-editor-1"># Python source code 2</textarea>
+  </div>
+</div>
+
+  <div id="python-output"  style="font-size: 12px; color: #555; margin-bottom: 10px;">
+    <h3>Python Output:</h3>
+    <div class="container" id="process"></div>
+    <div id="progress-container">
+        <div id="progress-bar">0%</div>
     </div>
-    <div class="ok-button">
-         <button onclick="saveText()">💾 Save</button>
-     </div>
+    <p>Elapsed Time: <span id="elapsed-time">0:00</span></p>
+  </div>
 
-    <script>
+  <div class="ok-button">
+    <button onclick="saveText()">💾 Save</button>
+    <button id="runBtn" onclick="runPython()">🐍 Run</button>
+    <button id="stopBtn" onclick="stopExecution()">🛑 Stop</button>
+  </div>
 
-var editor = CodeMirror.fromTextArea(document.getElementById("py-editor"), {
-            mode: "python",
-            theme: "dracula",
-            lineNumbers: true,
-            indentUnit: 4,
-            matchBrackets: true,
-            autoCloseTags: true,
-            foldGutter: true,
-            gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
-        });
+  <script>
+    let editors = [];
+    let resultData = "";
+    
+
+   
+    // Create read-only editor for tab 0
+    editors.push(CodeMirror.fromTextArea(document.getElementById("code-editor-0"), {
+      mode: "python",
+      theme: "dracula",
+      lineNumbers: true,
+      indentUnit: 4,
+      readOnly: true,
+      foldGutter: true,
+      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+    }));
+
+    // Create editable editor for tab 1
+    editors.push(CodeMirror.fromTextArea(document.getElementById("code-editor-1"), {
+      mode: "python",
+      theme: "dracula",
+      lineNumbers: true,
+      indentUnit: 4,
+      matchBrackets: true,
+      foldGutter: true,
+      gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+    }));
+
+    function showTab(index) {
+      document.querySelectorAll(".tab").forEach((tab, i) => {
+        tab.classList.toggle("active", i === index);
+      });
+      document.querySelectorAll(".editor-container").forEach((container, i) => {
+        container.classList.toggle("active", i === index);
+        if (i === index) {
+          editors[i].refresh(); // Refresh editor to fix display issue
+        }
+      });
+    }
+
+    /*function saveText() {
+      editors.forEach((editor, i) => {
+        const content = editor.getValue();
+        console.log(`Editor ${i + 1} Content:\n`, content);
+
+      });
+      alert("✅ Code saved (check console)!");
+    }*/
+
 
         document.addEventListener("DOMContentLoaded", () => {
-            window.electron.onSetCodePy((text) => {
-                editor.setValue(text);
+            window.electron.onSetCodePy((codeCircuit,codeAnalysis) => {
+                editors[1].setValue(codeAnalysis);
+                editors[0].setValue(codeCircuit);
+                syncLineStart();
             });
         });
     
         function saveText() {
-            const newText = editor.getValue();
-            window.electron.sendEditedCodePy(newText); // ⬅️ transfer to `main.js`
+            const newText = editors[1].getValue();
+            window.electron.sendEditedCodePy({text:newText,data:resultData}); // ⬅️ transfer to `main.js`
         }
+
+         showTab(1); // Show the second tab by default
+
+         function recreateEditor1FromLine(startLine) {
+  if (editors[1]) {
+    editors[1].toTextArea(); // حذف المحرر القديم
+  }
+
+  editors[1] = CodeMirror.fromTextArea(document.getElementById("code-editor-1"), {
+    mode: "python",
+    theme: "dracula",
+    lineNumbers: true,
+    indentUnit: 4,
+    matchBrackets: true,
+    foldGutter: true,
+    firstLineNumber: startLine,
+    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+  });
+}
+
+
+document.getElementById("stopBtn").disabled = true;
+
+function runPython() {
+  const code =editors[0].getValue()+editors[1].getValue();
+  const outputDiv = document.getElementById('python-output');
+   document.getElementById("stopBtn").disabled = false;
+   document.getElementById("runBtn").disabled = true;
+   resultData = "";
+  window.electron.runPythonCode(code);
+}
+
+  
+window.electron.onPyCodeProgress((result) => {
+            let percent = result.progress;
+            if(result.data){
+            resultData=result.data;
+            document.getElementById("process").innerHTML += '<span style="color:red;">There is data you can show in interface</span><br>';
+            }
+            document.getElementById("progress-bar").style.width = percent + "%";
+            document.getElementById("progress-bar").innerText = percent + "%";
+            document.getElementById("elapsed-time").innerText = result.elapsed_time;
+        });
+
+window.electron.onPyCodeContainer((data) => {
+            document.getElementById("process").innerText += data + "\n";
+        });
+
+window.electron.pyCodeClose(() => {
+  document.getElementById("stopBtn").disabled = true;
+  document.getElementById("runBtn").disabled = false;
+  document.getElementById("process").innerText += "Python process finished.\n";
+});
+
+function stopExecution() {
+  window.electron.stopPythonExecution();
+  document.getElementById("stopBtn").disabled = true;
+  document.getElementById("runBtn").disabled = false;
+  document.getElementById("process").innerText += "Execution stopped.\n";
+}
+
+function syncLineStart() {
+  const startLine = editors[0].lineCount() + 1;
+  recreateEditor1FromLine(startLine);
+}
     </script>
 </body>
 </html>

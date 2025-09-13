@@ -14,6 +14,9 @@ contextBridge.exposeInMainWorld('electron', {
     saveAsFile: (filename, content, fileExtension) => ipcRenderer.invoke('save-as-file', filename, content, fileExtension),
     requestCloseIDE: (callback) => ipcRenderer.on('request-close-IDE', (event) => callback()),
     closeWindowIDE: () => ipcRenderer.send('close-window-IDE'),
+    //Projects management----------------------------------------------------------------------
+    createFolderModels: (filename) => ipcRenderer.invoke('create-folder-Models', filename),
+    getLibraryFilesFromProject: (projectFile) => ipcRenderer.invoke('get-library-files-from-project', projectFile),
     //ُEditor of python------------------------------------------------------------------------
     findModel: (data) => ipcRenderer.invoke('find-model', data),
     editText: (filePath, linePos) => ipcRenderer.invoke('edit-text', filePath, linePos),
@@ -31,7 +34,7 @@ contextBridge.exposeInMainWorld('electron', {
     openDialogAbout: () => ipcRenderer.send('open-dialog-about'),
     showConfirmationEditDialog: (message) => ipcRenderer.invoke('show-confirmation-edit-dialog', message),
     //Python path dialog-------------------------------------------------------------------
-    openDialogPythonPath: () => ipcRenderer.send('dialog-python-path'),
+    openDialogPythonPath: () => ipcRenderer.invoke('dialog-python-path'),
     pythonFolders: (callback) => ipcRenderer.on('python-folders', (event, dirs,dirsWithPath) => callback(dirs,dirsWithPath)),
     savePythonFolder: (folder) => ipcRenderer.invoke('save-python-folder', folder),
     getPythonFolder: () => ipcRenderer.invoke('get-python-folder'),
@@ -41,9 +44,14 @@ contextBridge.exposeInMainWorld('electron', {
     onSetTextHtml: (callback) => ipcRenderer.on('set-text-html', (event, text) => callback(text)),
     sendEditedTextHtml: (text) => ipcRenderer.send('save-edited-text-html', text),
     //Edit codePy------------------------------------------------------------------------------
-    editCodePy: (text,caption) => ipcRenderer.invoke('edit-codePy', text,caption),
-    onSetCodePy: (callback) => ipcRenderer.on('set-codePy', (event, text) => callback(text)),
+    editCodePy: (codeCircuit,codeAnalysis,caption) => ipcRenderer.invoke('edit-codePy', codeCircuit,codeAnalysis,caption),
+    onSetCodePy: (callback) => ipcRenderer.on('set-codePy', (event, codeCircuit,codeAnalysis) => callback(codeCircuit,codeAnalysis)),
     sendEditedCodePy: (text) => ipcRenderer.send('save-edited-codePy', text),
+    runPythonCode: (code) => ipcRenderer.send('run-python-code', code),
+    onPyCodeProgress: (callback) => ipcRenderer.on("pyCode-progress", (event, data) => callback(data)),
+    onPyCodeContainer: (callback) => ipcRenderer.on("pyCode-container", (event, data) => callback(data)),
+    pyCodeClose: (callback) => ipcRenderer.on("pyCode-close", (event) => callback()),
+    stopPythonExecution: () => ipcRenderer.send('stop-python-execution'),
     //Params----------------------------------------------------------------------------------
     getParams: (pythonScript) => ipcRenderer.invoke('get-params', pythonScript),
     editParams: (params, modelName) => ipcRenderer.invoke('edit-params', params, modelName),
@@ -56,6 +64,9 @@ contextBridge.exposeInMainWorld('electron', {
     sendEditedList: (newSelect) => ipcRenderer.send('save-list-value', newSelect),
     //Execut Script python-------------------------------------------------------------------
     executOP: (data) => ipcRenderer.invoke('show-exec-op', data),
+    //Python version-----------------------------------------------------------------------
+    getPythonVersion: () => ipcRenderer.invoke('get-python-version'),
+   // updatePythonVersion: () => ipcRenderer.on('update-python-version', (event) => callback()),
     //Analysis-------------------------------------------------------------------------------
     analysisDialog: (source) => ipcRenderer.invoke('analysis-dialog',source),
     startProgress: () => ipcRenderer.send("start-progress"),
@@ -66,6 +77,7 @@ contextBridge.exposeInMainWorld('electron', {
     //Help------------------------------------------------------------------------------------
     openBrowserWindow:(event, data)=> ipcRenderer.send('open-browser-window',event,  data),
 });
+
 
 
 

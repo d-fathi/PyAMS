@@ -245,6 +245,7 @@ ipcMain.handle('get-library-files', async (event, libraryName, files) => {
 });
 
 
+
 // Display a confirmation message and return the result to `index.html`
 ipcMain.handle('show-confirmation-dialog', async (event, message) => {
   const result = await dialog.showMessageBox(mainWindow,{
@@ -319,6 +320,58 @@ ipcMain.handle('save-file', async (event, filename, content) => {
       }
   
 });
+
+
+//Projects management----------------------------------------------------------------------
+ipcMain.handle('create-folder-Models', async (event, filename) => {
+    console.log(filename);
+    const projectPath = path.dirname(filename);
+    // build new folder path
+    const modelsPath = path.join(projectPath, "models");
+  try {
+    if (!fs.existsSync(modelsPath)) {
+      fs.mkdirSync(modelsPath, { recursive: true });
+      return { success: true, message: 'Folder created successfully.', 'projectPath': projectPath, 'modelsPath': modelsPath };
+    } else {
+      return { success: false, message: 'Folder already exists.', 'projectPath': projectPath, 'modelsPath': modelsPath  };
+    }
+  } catch (error) {
+    return { success: false, message: `Error creating folder: ${error.message}` };
+  }   
+});
+
+
+ipcMain.handle('get-library-files-from-project', async (event, projectFile) => {
+    console.log(projectFile);
+    let fileContents = [];
+    const folderPath = path.dirname(projectFile);
+    // build new folder path
+    const modelsPath = path.join(folderPath, "models");
+
+    console.log(modelsPath);
+
+    try {
+        // قراءة جميع الملفات داخل modelsPath
+        const files = fs.readdirSync(modelsPath);
+
+        files.forEach(file => {
+            if (file.endsWith(".sym")) {
+                const filePath = path.join(modelsPath, file);
+                const symContent = fs.readFileSync(filePath, "utf8");
+                fileContents.push({
+                    sym: symContent,
+                    name: path.basename(file, ".sym")  // الاسم فقط
+                });
+            }
+        });
+
+    } catch (err) {
+        console.error("Error reading modelsPath:", err);
+    }
+   
+   return {fileContents}
+});
+
 
 
 

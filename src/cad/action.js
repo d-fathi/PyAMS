@@ -87,6 +87,18 @@ function setAction(value){
         document.getElementById("showGrid").firstChild.checked = drawing.grid.showGrid; 
     break;
 
+    case "itProject":
+        if(user.fileName=='New file'){
+          alert('Please save the file first.');
+          break;
+        }
+
+        drawing.itProject = !drawing.itProject;
+        drawing.modified = true;
+        createProjectModels();
+
+    break;
+
     case "gnd":
       addGnd();
     break;
@@ -123,7 +135,7 @@ function setAction(value){
     break;
 
     case "pythonPath":
-       window.electron.openDialogPythonPath();
+       openDialogPythonPath();
     break;
 
     case "after":
@@ -162,6 +174,24 @@ function setAction(value){
   updateListElements();
 }
 
+// function it project
+
+
+async function createProjectModels(){
+        document.getElementById("ItProject").firstChild.checked = drawing.itProject; 
+        if(drawing.itProject){
+        const data= await window.electron.createFolderModels(user.fileName);
+        drawing.modelsPath=data.modelsPath;
+        drawing.projectPath=data.projectPath;
+        } else {
+          drawing.modelsPath='';
+          drawing.projectPath='';
+        }
+        
+        updateLibrary();
+        updatResult();
+   }
+
 
 var ioDic = {
   x: 0,
@@ -178,6 +208,7 @@ var ioDic = {
   selectAnalysis: false,
   selectShowAnalysis: false,
   itProject:false,
+  pythonVersion:'',
   undoPos: '  '
 };
 
@@ -271,12 +302,15 @@ function dataToInterface() {
       ioDic.selectShowAnalysis = itSelectShowAnalysis();
       ioDic.showPolarity =drawing.showPolarity;
       ioDic.itProject=drawing.itProject;
+      
       enable();
       document.getElementById("description-bar").innerHTML=`
       <div style="width: 70px; float: left; border:#eeeeee solid 0.5px;">x:${ioDic.x }</div>
       <div style="width: 70px; float: left; border:#eeeeee solid 0.5px;">y:${ioDic.y }</div>
       <div style="width: 150px; float: left; border:#eeeeee solid 0.5px;">${ioDic.undoPos }</div>
       <div style="width: 150px; float: left; border:#eeeeee solid 0.5px;">Zoom: ${ioDic.zoom }</div>
+      <div style="width: 450px; float: left; border:#eeeeee solid 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
+      title="Python version: ${ioDic.pythonVersion}">Python version: ${ioDic.pythonVersion}</div>
       `;
   }
 
@@ -435,8 +469,7 @@ function displayByPageType(){
   menuitems.net.style.display =displayPage;
   toolbarButtons.probe.style.display =displayPage;
   menuitems.probe.style.display =displayPage;
- // toolbarButtons.codePy.style.display =displayPage;
- // menuitems.codePy.style.display =displayPage;
+  menuitems.itProject.style.display =displayPage;
 
   toolbarButtons.pin.style.display =displaySym;
   menuitems.pin.style.display =displaySym;
@@ -536,6 +569,14 @@ document.addEventListener("keyup", function(event) {
    
 
 });
+
+
+
+async function openDialogPythonPath()
+{
+ await window.electron.openDialogPythonPath();
+ getPythonVersion();
+}
 
 
 

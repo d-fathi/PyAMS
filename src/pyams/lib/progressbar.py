@@ -29,6 +29,7 @@ def starTime():
 
 
 def displayBar(current, total, start_time):
+    return displayBarPage(current, total, start_time)
     bar_length = 40  # Length of the progress bar
     progress = current / total
     elapsed_time = time.time() - start_time

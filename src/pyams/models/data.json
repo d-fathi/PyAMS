@@ -3,14 +3,13 @@
         "Analog\\Basic",
         "Analog\\Source",
         "Analog\\Semiconductor",
-        "Analog\\CMOSGates",
-        "Project\\CGS_CIGS"
+        "Analog\\CMOSGates"
     ],
     "Analog\\Basic": [
         "Resistor.sym",
         "Capacitor.sym",
-        "Inductor.sym",
         "Conductor.sym",
+        "Inductor.sym",
         "Load.sym",
         "CCCS.sym",
         "CCVS.sym",
@@ -39,9 +38,9 @@
     ],
     "Analog\\Semiconductor": [
         "Diode.sym",
-        "DiodeBridge.sym",
         "DiodeLaser.sym",
         "DiodeZener.sym",
+        "DiodeBridge.sym",
         "NMOS.sym",
         "PMOS.sym",
         "NPN.sym",
@@ -59,9 +58,5 @@
         "TrapezoidCurrent.sym",
         "TrapezoidVoltage.sym",
         "DCCurrent2.sym"
-    ],
-    "Project\\CGS_CIGS": [
-        "CGS.sym",
-        "CIGS.sym"
     ]
 }

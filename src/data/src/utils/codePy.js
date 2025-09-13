@@ -3,8 +3,8 @@ function addCode(elem) {
     var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'foreignObject');
     newElement.setAttribute("x", 0);
     newElement.setAttribute("y", 0);
-    newElement.setAttribute("width", 222);
-    newElement.setAttribute("height", 200);
+    newElement.setAttribute("width", 122);
+    newElement.setAttribute("height", 100);
 	  newElement.style.height =128+'px';
 	  newElement.style.width =222+'px';
     newElement.style.backgroundColor = "rgba(255, 99, 71, 0.2)";
@@ -13,7 +13,60 @@ function addCode(elem) {
 	 // newElement.innerHTML ='<textarea name="textareacodepy" style="font-size: 8px; background-color: #444;  color: white;  font-family: monospace;">AppPyAMS.setOut();\nAppPyAMS.analysis(mode="op");</textarea>';
     elem.appendChild(newElement);
     elem.setAttribute("fpython",'None')
+    elem.setAttribute("code",'circuit.setOutPuts(" ");\n\circuit.analysis(mode="op");\n\circuit.run();');
 }
+
+
+function generateCodePyofCircuit(){
+
+
+    var elemList=netList();
+    //get lib path---------------------------------
+    
+    let pythonScript = getModelsPath();
+    pythonScript += elemList.map(elem =>`from ${elem.posModel} import ${elem.model};`).join("\n") + "\n";
+    pythonScript += `from pyams.lib import circuit;\n`; 
+
+    //get Elements---------------------------------------------------------------------
+
+    pythonScript += elemList.map(elem => 
+        `${elem.ref} = ${elem.model}(${elem.pins.map(pin => `"${pin}"`).join(",")});`
+    ).join("\n") + "\n"; 
+
+
+    // get paramtres------------------------------------------------------------------
+    pythonScript += elemList.map(elem => `${elem.ref}.setParams(" ${elem.params} ");` ).join("\n") + "\n";
+
+    //get circuit---------------------------------------------------------------------
+    pythonScript += 'circuit = circuit();\n';
+    pythonScript += 'circuit.addElements({'+elemList.map(elem => `'${elem.ref}':${elem.ref}` ).join(",") + '})\n';
+
+
+    return  pythonScript;
+
+}
+
+
+async function openEditCodePy() {
+
+  const originalText = mtable.select.getAttribute("code");
+  const circuitText=generateCodePyofCircuit();
+  const editedText = await window.electron.editCodePy(circuitText,originalText,'Python Code Editor');
+  mtable.select.setAttribute("code",editedText.text);
+
+  if( editedText.data=='') {
+    mtable.select.firstChild.innerHTML =ico_svg;
+    modifedSizeCodePy(mtable.select);
+    return;
+  }
+  
+  const svgMatch = editedText.data.match(/<svg[^>]*>[\s\S]*<\/svg>/i);
+  let svgOnly = svgMatch ? svgMatch[0] : '';
+  mtable.select.firstChild.innerHTML=svgOnly;
+  modifedSizeCodePy(mtable.select);
+  
+}
+
 
 function modifedSizeCodePy(element) {
 
@@ -71,11 +124,6 @@ function modifedSizeCodePy(element) {
 }
 
 
-async function openEditCodePy() {
-  const originalText = mtable.select.firstChild.firstChild.getAttribute("code");
-  const editedText = await window.electron.editCodePy(originalText,'Python Code Editor');
-  mtable.select.firstChild.firstChild.setAttribute("code",editedText);
-}
 
 
 function pyCodeData(list){

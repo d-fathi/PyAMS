@@ -271,6 +271,17 @@ function addItemsToPageLibs(listItems) {
    option.setAttribute('dir',listItems[i]);
    x.add(option);
  }
+ if(drawing.itProject){
+     var optgroup = document.createElement("optgroup");
+     optgroup.label ='Project';
+     optgroup.style="font-size: 12px; font-weight: bold; color:rgb(247, 244, 244); background-color:rgb(100, 100, 100);";
+     x.appendChild(optgroup);
+    var option=document.createElement("option");
+     option.text='Models';
+     option.value= 9999;
+     option.setAttribute('dir','Project[Models]');
+    x.add(option);
+ }
 //addListSymbToPageLibs(listSymb);
 }
 

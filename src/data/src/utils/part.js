@@ -827,7 +827,7 @@ async function openEditor(modelname,directory) {
 
         // window.foo.getCode(modelname,directory)
           //const editedText = await window.electron.editText(modelname,directory);
-          findModel(modelname);
+          findModel(modelname,directory);
       }
 
 
@@ -987,9 +987,16 @@ function netList() {
     var list = [];
     for (var i = 0; i < parts.length; i++)
         if (!strToBool(parts[i].firstChild.getAttribute('std'))) {
+            var folder= parts[i].getAttribute("directory");
+            if(folder!='Project[Models]')
+                var posModel=`pyams.models`;
+            else
+                var posModel= parts[i].getAttribute('model');
+
             list.push({
                 symbolname: parts[i].getAttribute('modelname'),
                 model: parts[i].getAttribute('model'),
+                posModel: posModel,
                 type: parts[i].firstChild.getAttribute('type'),
                 ref: parts[i].getAttribute('sref'),
                 directory: parts[i].getAttribute('directory'),
@@ -998,6 +1005,21 @@ function netList() {
             });
         }
     return list;
+}
+
+
+function getModelsPath() {
+
+    var parts = document.getElementsByName('part');
+
+    for (var i = 0; i < parts.length; i++)
+        if (!strToBool(parts[i].firstChild.getAttribute('std'))) {
+            var folder= mtable.select.getAttribute("directory");
+              if(folder!='Project[Models]')
+                return `\nimport sys\nsys.path.append(r'${drawing.modelsPath}')\n`
+          
+        }
+    return ` `;
 }
 
 

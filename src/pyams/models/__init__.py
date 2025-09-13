@@ -46,5 +46,3 @@ from .Analog.Source.SquareCurrent import *
 from .Analog.Source.SquareVoltage import *
 from .Analog.Source.TrapezoidCurrent import *
 from .Analog.Source.TrapezoidVoltage import *
-from .Project.CGS_CIGS.CGS import *
-from .Project.CGS_CIGS.CIGS import *

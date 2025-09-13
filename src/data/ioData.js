@@ -10,6 +10,8 @@
 #-------------------------------------------------------------------------------
 */
 
+const { use } = require("react");
+
 function generatePythonScriptForParams(){
     // get pins-----------------------------------
     const pins = [...mtable.select.children]
@@ -23,6 +25,13 @@ function generatePythonScriptForParams(){
 
     // get model name------------------------------
     var modelName= mtable.select.getAttribute("model");
+    var folder= mtable.select.getAttribute("directory");
+
+    if(folder!='Project[Models]')
+      var setModel=`from pyams.models import ${modelName} `;
+    else
+      var setModel=`import sys\nsys.path.append(r'${drawing.modelsPath}')\nfrom ${modelName} import ${modelName} `; 
+    
 
     //get lib path---------------------------------
  
@@ -31,7 +40,7 @@ function generatePythonScriptForParams(){
 
 let pythonScript = `
 import json;
-from pyams.models import ${modelName};
+${setModel};
 from pyams.lib import getParams
 X = ${modelName}(${pins});
 X.setParams('${params}');
@@ -42,9 +51,15 @@ print(json.dumps(params))  #
 
 }
 
-function generatePythonScriptForFindModel(modelName){
+function generatePythonScriptForFindModel(modelName,folder){
 
-  let pythonScript = `
+  if(folder=='Project[Models]'){
+    var func=`find_class_definition('${modelName}', os.path.join(r'${drawing.modelsPath}')) `;
+  }
+  else
+    var func=`find_class_definition('${modelName}', os.path.join(r'${drawing.path}', 'pyams','models'))`;
+
+let pythonScript = `
 import os
 import json;
 
@@ -58,13 +73,13 @@ def find_class_definition(class_name, root_dir='.'):
                     with open(filepath, 'r', encoding='utf-8') as file:
                         for lineno, line in enumerate(file, start=1):
                             if line.strip().startswith(f'class {class_name}'):
-                                matches.append({'filepath':filepath, 'line':lineno})
+                                matches.append({'filepath':filepath, 'line':lineno, 'file':filename})
                 except (UnicodeDecodeError, FileNotFoundError):
                     continue
     return matches
 
 
-results =find_class_definition('${modelName}', os.path.join(r'${drawing.path}', 'pyams','models'));
+results =${func};
 print(json.dumps(results))
                 `;
     return pythonScript;
@@ -96,9 +111,9 @@ class ${modelName} (model):
 }
 
 
-async function findModel(modelName){
+async function findModel(modelName,folder){
 
-  var pythonScript=generatePythonScriptForFindModel(modelName);
+  var pythonScript=generatePythonScriptForFindModel(modelName,folder);
 
   try {
       const result = await window.electron.findModel(pythonScript);
@@ -118,6 +133,20 @@ async function findModel(modelName){
   }
    window.electron.creatPythonModels(); // Ensure __init__.py is created with imports
 } 
+
+/*async function getModelNamesForParts(){
+  var listp = document.getElementsByName('part');
+    for(var i=1;i<listp.length;i++)
+      if(listp[i]. getAttribute("directory")!='standard'){
+        var pythonScript=generatePythonScriptForFindModel(listp[i].getAttribute("model"),listp[i].getAttribute("directory"));
+        try {
+            const result = await window.electron.findModel(pythonScript);
+            if(result.length!=0){
+              listp[i].setAttribute("modelFile",result[0].file);
+            }
+    }
+ 
+}*/
 
 
 async function findModelFromSymbolEditor(){ 
@@ -536,3 +565,17 @@ var elem=drawing.resize.setElement.lastChild.firstChild;
 Plotly.newPlot(elem, data, layout, plotConfig);
 Plotly.update(elem);
 }
+
+//---------------------------------get python version-------------------------//
+async function getPythonVersion(){
+
+  try {
+      
+    const result = await window.electron.getPythonVersion();
+    pythonVersion=result;
+    ioDic.pythonVersion=pythonVersion; 
+  } catch (error) {
+    window.electron.showAlert('Error',error.message);
+  }
+}
+

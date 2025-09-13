@@ -58,60 +58,17 @@ ipcMain.handle('edit-text-html', async (event, text,caption) => {
 });
 
 
-// editor of codePy
-let editWindowCodePy;
 
-async function createEditWindowCodePy(text,caption) {
-    return new Promise((resolve) => {
-      editWindowCodePy = new BrowserWindow({
-            width: 800,
-            height: 395,
-            parent: BrowserWindow.getFocusedWindow(), 
-            modal: true,
-            icon: path.join(__dirname, 'build', 'logo_win.ico'), // 🖼️ modified logo
-            autoHideMenuBar: true,
-            resizable: false,
-            minimizable: false,
-            maximizable: false,
-            title: caption,
-            webPreferences: {
-                preload: path.join(__dirname, 'preload.js'),
-                contextIsolation: true,
-                enableRemoteModule: false,
-                nodeIntegration: false
-            }
-        });
-        var pathpage=path.join(__dirname,'dialogs','editCodePy.html')
-        
-        editWindowCodePy.loadFile(pathpage);
-
-        editWindowCodePy.webContents.once('did-finish-load', () => {
-            editWindowCodePy.webContents.send('set-codePy', text);
-        });
-
-        ipcMain.once('save-edited-codePy', (event, newText) => {
-            resolve(newText); // ⬅️ return to `index.html`
-            if (editWindowCodePy) {
-                editWindowCodePy.close();
-                editWindowCodePy = null;
-            }
-        });
-    });
-}
-
-
-ipcMain.handle('edit-codePy', async (event, text,caption) => {
-    return await createEditWindowCodePy(text,caption);
-});
 
 //Python path dialog--------------------------------------------------------------------------
 
 let pythonPathWindow = null;
 
-ipcMain.on('dialog-python-path', () => {
+async function createDialogPythonPath() {
+    return new Promise((resolve) => {
   if (!pythonPathWindow) {
       pythonPathWindow = new BrowserWindow({
-          width: 500,
+          width: 610,
           height: 300,
           parent: BrowserWindow.getFocusedWindow(),
           icon: path.join(__dirname, 'build', 'logo_win.ico'), // 🖼️ modified logo
@@ -140,9 +97,17 @@ ipcMain.on('dialog-python-path', () => {
 
       pythonPathWindow.on('closed', () => {
           pythonPathWindow = null;
+           resolve(null); // ⬅️ return to `index.html`
       });
   }
 });
+
+}
+
+ipcMain.handle('dialog-python-path', async (event) => {
+    return await createDialogPythonPath();
+});
+
 
 
 ipcMain.handle('save-python-folder', async (event, folder) => {

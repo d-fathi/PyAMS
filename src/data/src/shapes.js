@@ -511,8 +511,8 @@ function fshapes(svg, setDrawing, width, height) {
             newElement.setAttribute("x", 10);
             newElement.setAttribute("y", 10);
 			newElement.setAttribute("title", "CodePy");
-            newElement.setAttribute("width", 200);
-            newElement.setAttribute("height", 100);
+            newElement.setAttribute("width", 100);
+            newElement.setAttribute("height", 50);
             newElement.setAttribute("class", "codePy");
             newElement.setAttribute("name", "codePy");
 			newElement.setAttribute("rot", "0");

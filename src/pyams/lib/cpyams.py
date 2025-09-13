@@ -713,6 +713,27 @@ class circuit:
                 data+=[pos.value]
 
 
+    def show(self,plt):
+        '''
+        using for show result "outputs" in page.
+        '''       
+        # Save the plot to a SVG string
+        import io,json
+        buf = io.StringIO()
+        plt.savefig(buf, format="svg")
+        svg_code = buf.getvalue()
+        buf.close()
+        
+
+        output = {
+        "progress": 100,
+        "data": svg_code
+        }
+        
+        print(json.dumps(output));
+
+
+
     def plot(self):
       """
       Plot the output signals or node voltages over time or parameter variations.

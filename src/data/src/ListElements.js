@@ -39,7 +39,6 @@ function selectElemByIndex(i){
 	drawing.objectInspector.getSelect(elem);
 	getListElementsAddToPageDescription();
 
-
 }
 
 

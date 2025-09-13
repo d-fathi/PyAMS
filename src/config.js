@@ -9,6 +9,4 @@ const folderPath = app.getAppPath();
 
 module.exports = {
     folderPath
-  };
-
- 
+};

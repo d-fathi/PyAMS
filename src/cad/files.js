@@ -11,23 +11,36 @@ async function openFile(){
     else 
       {
         drawing.newPage('dcs');
-        const data = await window.electron.readLibraryFile();
+      /*  const data = await window.electron.readLibraryFile();
         const libraryName=data['libs'][0];
         const files=data[libraryName];
         const files_ = await window.electron.getLibraryFiles(libraryName,files);
         addItemsToPageLibs(data['libs']);
-        addListSymbToPageLibs(files_.fileContents);
+        addListSymbToPageLibs(files_.fileContents);*/
       }
     
 
     drawing.setSymbol(result.fileContent);
     user={fileName:result.filePath,fileExtension:result.fileExtension,baseName:result.fileName};
+    document.getElementById("ItProject").firstChild.checked = drawing.itProject;
+    if(result.fileExtension!='sym')
+       updateLibrary();
+
+    
+    if(drawing.itProject){
+        const data= await window.electron.createFolderModels(user.fileName);
+        drawing.modelsPath=data.modelsPath;
+        drawing.projectPath=data.projectPath;
+    }
+
     enable();
     updateListElements();
     displayByPageType();
   }    
   
 }
+
+
 
 async function updateLibrary() {
    const data = await window.electron.readLibraryFile();
@@ -48,6 +61,7 @@ drawing.newPage('dcs');
 drawing.dirLibrary=[];
 data['libs'].forEach(item => drawing.dirLibrary.push(item));
 user={fileName:'New file',fileExtension:'dcs',baseName:'New file'};
+document.getElementById("ItProject").firstChild.checked =false;
 const libraryName=data['libs'][0];
 const files=data[libraryName];
 const files_ = await window.electron.getLibraryFiles(libraryName,files);
@@ -72,11 +86,19 @@ posPathProjectExe();
 
 
 async function importSymbols(pos){
-const data = await window.electron.readLibraryFile();
-var libraryName=data['libs'][pos];
-var files=data[libraryName];
-const files_ = await window.electron.getLibraryFiles(libraryName,files);
-addListSymbToPageLibs(files_.fileContents);
+
+if(pos!=9999){
+  const data = await window.electron.readLibraryFile();
+  var libraryName=data['libs'][pos];
+  var files=data[libraryName];
+  const files_ = await window.electron.getLibraryFiles(libraryName,files);
+  addListSymbToPageLibs(files_.fileContents);
+}
+ else{
+  const files_project = await window.electron.getLibraryFilesFromProject(user.fileName);
+ addListSymbToPageLibs(files_project.fileContents);
+ }
+
 }
 
 
