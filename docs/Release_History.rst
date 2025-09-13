@@ -3,9 +3,17 @@ Release History
 
 .. raw:: html
 
+   <p><b><span style="color:red;">Version 0.1.8</span></b> (13/09/2025)</p>
+
+- In this version 0.1.8: a PyCode dialog box has been added, aimed at analyzing electronic circuits using Python with the pyams-lib package..
+
+   <p><b><span style="color:red;">Version 0.1.7</span></b> (07/06/2025)</p>
+
+- In this version 0.1.7: Python Selection for Simulation.
+
    <p><b><span style="color:red;">Version 0.1.6</span></b> (07/06/2025)</p>
 
-- In this version (alpha), Update gates.
+- In this version 0.1.6: Update gates.
 
 .. raw:: html
 

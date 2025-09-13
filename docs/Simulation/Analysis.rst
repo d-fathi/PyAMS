@@ -1,5 +1,5 @@
-Analysis
-=========
+The mode of analysis
+=====================
 
 The simulation of analog circuits by means of PyAMS
 can be performed in three different domains: 

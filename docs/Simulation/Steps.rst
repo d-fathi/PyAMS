@@ -1,6 +1,6 @@
 
 
-The steps of simulation 
+Simulation by analysis
 =======================
 
 The simulation of circuits in PyAMS-CAD is based by Graphical user interface in six steps:
@@ -103,4 +103,61 @@ The simulation of circuits in OP is based by tree steps:
 :red:`3. Run OP analysis`
 
 .. figure:: ../images/pyams_16.png
+
+
+
+Simulation using PyCode
+=======================
+
+The **PyCode** feature allows circuit analysis and processing using Python, 
+with the possibility of leveraging many user-installed packages such as 
+``matplotlib``, ``numpy``, ``pandas``, and more.
+
+.. note::
+
+   You can add any Python version to PyAMS by selecting *Python* in the dialog 
+   and using the *Python Path* option to specify the interpreter you want to use.
+
+Steps for circuit study using PyCode
+------------------------------------
+
+1. Add a **PyCode** block to the schematic.
+2. Click **Show** — a dialog will appear with two pages:
+   
+   - The first page displays the circuit code, which cannot be modified directly from the schematic.
+   - The second page extends the first one, where you can apply circuit analysis 
+     using built-in Python packages, along with ``pyams-lib``.
+
+3. Execute the analysis and obtain the results.
+4. Display the results in the graphical interface.
+
+
+:red:`1. Add a PyCode block to the schematic`
+
+.. figure:: ../images/pyams_17.png
+
+:red:`2. Click Show`
+
+.. figure:: ../images/pyams_18.png
+
+* 1. The first page displays the circuit code, which cannot be modified directly from the schematic.
+
+.. figure:: ../images/pyams_19.png
+
+* 2. The second page extends the first one, where you can apply circuit analysis 
+
+.. figure:: ../images/pyams_20.png
+
+:red:`3. Execute the analysis and obtain the results`
+
+.. figure:: ../images/pyams_21.png
+
+  Click to save 
+
+:red:`4. Display the results in the graphical interface`
+
+.. figure:: ../images/pyams_22.png
+
+
+
 

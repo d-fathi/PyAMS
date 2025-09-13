@@ -18,7 +18,7 @@ The objectives of this interface are:
 *	Drawing circuit by schematic (CAD approach);
 *	Modifying parameters of elements;
 *	Simulating the circuit in the selected mode of operation.
-*	Presenting simulation results in a probe or in a waveform.
+*	Presenting simulation results in a probe or in a waveform (plotly-matplotlib).
 
 
 .. toctree::

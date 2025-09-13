@@ -51,6 +51,7 @@ Table of Contents
   ModelingDigital.rst
   DSignal.rst
   Models.rst
+  Python.rst
   Examples.rst
   WebPage.rst
   Donate.rst
