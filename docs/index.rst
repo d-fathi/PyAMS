@@ -50,6 +50,7 @@ Table of Contents
   Modeling.rst
   ModelingDigital.rst
   DSignal.rst
+  Project.rst
   Models.rst
   Python.rst
   Examples.rst

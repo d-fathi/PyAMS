@@ -95,7 +95,8 @@ ipcMain.handle('open-file-dialog', async (event, pageType) => {
       const fileExtension = path.extname(filePath).slice(1); 
       const fileContent = fs.readFileSync(filePath, 'utf8');
       const fileName= path.basename(filePath);
-      return { filePath, fileContent, fileExtension, fileName};
+      const folderPath=path.dirname(filePath);
+      return { filePath, fileContent, fileExtension, fileName, folderPath  };
   }
   return null;
 });

@@ -55,6 +55,8 @@ function generatePythonScriptForFindModel(modelName,folder){
 
   if(folder=='Project[Models]'){
     var func=`find_class_definition('${modelName}', os.path.join(r'${drawing.modelsPath}')) `;
+  } else  if(folder=='local'){
+    var func=`find_class_definition('${modelName}', os.path.join(r'${user.folderPath}')) `;
   }
   else
     var func=`find_class_definition('${modelName}', os.path.join(r'${drawing.path}', 'pyams','models'))`;
@@ -150,7 +152,7 @@ async function findModel(modelName,folder){
 
 
 async function findModelFromSymbolEditor(){ 
-  findModel(drawing.symbol.model);
+  findModel(drawing.symbol.model,'local');
 }
 
 

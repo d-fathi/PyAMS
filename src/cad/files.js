@@ -21,7 +21,7 @@ async function openFile(){
     
 
     drawing.setSymbol(result.fileContent);
-    user={fileName:result.filePath,fileExtension:result.fileExtension,baseName:result.fileName};
+    user={fileName:result.filePath,fileExtension:result.fileExtension,baseName:result.fileName,folderPath:result.folderPath};
     document.getElementById("ItProject").firstChild.checked = drawing.itProject;
     if(result.fileExtension!='sym')
        updateLibrary();
@@ -110,7 +110,7 @@ function newCircuit(){
 function newSymbol(){
    drawing.newPage('sym');
    updateListElements();
-   user={fileName:'New file', fileExtension:'sym', baseName:'New file'};
+   user={fileName:'New file', fileExtension:'sym', baseName:'New file', folderPath:''};
    displayByPageType();
 }
 

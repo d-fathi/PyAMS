@@ -742,6 +742,7 @@ function fshapes(svg, setDrawing, width, height) {
                 self.points = getArrayPoints(els[i]);
 
                 get = pointInPolyline(self.points, self.offset);
+                
                 if (get[0]) {
                     listElsInPos.push({
                         pos: get[1],
@@ -832,7 +833,7 @@ function fshapes(svg, setDrawing, width, height) {
         if (evtTarget.classList.contains('draggable')) {
 
 			if(evtTarget.parentElement.getAttribute("name")=="sym")
-			{console.log('***aaaaa***');
+			{
             self.setCritElem = evtTarget;
             return true;
 			}

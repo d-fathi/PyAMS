@@ -20,20 +20,21 @@ function polylineToAttribute(points, dx, dy) {
 }
 
 function pointInPolyline(points, p) {
+    var a=0.5;
     for (var i = 0; i < points.length - 1; i++) {
-        if (Math.abs(points[i].x-points[i + 1].x)>2) {
+        if (Math.abs(points[i].x-points[i + 1].x)>a) {
             var a = (points[i].y - points[i + 1].y) / (points[i].x - points[i + 1].x);
             var b = points[i].y - a * points[i].x;
-            if ((p.x >= Math.min(points[i].x, points[i + 1].x)-2) && (p.x <= Math.max(points[i].x, points[i + 1].x)+2)) {
-                if ((p.y >= Math.min(points[i].y, points[i + 1].y)-2) && (p.y <= Math.max(points[i].y, points[i + 1].y)+2))
-                    if (Math.abs((a * p.x + b) - p.y) <= 2)
+            if ((p.x >= Math.min(points[i].x, points[i + 1].x)-a) && (p.x <= Math.max(points[i].x, points[i + 1].x)+a)) {
+                if ((p.y >= Math.min(points[i].y, points[i + 1].y)-a) && (p.y <= Math.max(points[i].y, points[i + 1].y)+a))
+                    if (Math.abs((a * p.x + b) - p.y) <= a)
                         return [true,Math.abs((a * p.x + b) - p.y)]
 
             }
         }
 		else {
             if ((p.x >= points[i].x-4) && (p.x <= points[i].x+4)) {
-                if ((p.y >= Math.min(points[i].y, points[i + 1].y)-2) && (p.y <= Math.max(points[i].y, points[i + 1].y)+2))
+                if ((p.y >= Math.min(points[i].y, points[i + 1].y)-a) && (p.y <= Math.max(points[i].y, points[i + 1].y)+a))
                         return [true,Math.abs(p.x-points[i].x)];
             }
         }

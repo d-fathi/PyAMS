@@ -3,6 +3,13 @@ Release History
 
 .. raw:: html
 
+   <p><b><span style="color:red;">Version 0.1.9</span></b> (13/09/2025)</p>
+
+- In this version 0.1.9: Creat project file with models folder..
+- Added the ability to save and load circuit designs in a project file format (.pyamsproj) (future).
+
+.. raw:: html
+
    <p><b><span style="color:red;">Version 0.1.8</span></b> (13/09/2025)</p>
 
 - In this version 0.1.8: a PyCode dialog box has been added, aimed at analyzing electronic circuits using Python with the pyams-lib package..
