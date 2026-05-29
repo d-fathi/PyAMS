@@ -1,38 +1,10 @@
 
 
-
-
 async function openFile(){
-
-  const result = await window.electron.openFileDialog(drawing.pageType);
+  const result = await window.electron.openFileDialog('dcs');
   if (result) {
-    if(result.fileExtension=='sym')
-      newSymbol();
-    else 
-      {
-        drawing.newPage('dcs');
-      /*  const data = await window.electron.readLibraryFile();
-        const libraryName=data['libs'][0];
-        const files=data[libraryName];
-        const files_ = await window.electron.getLibraryFiles(libraryName,files);
-        addItemsToPageLibs(data['libs']);
-        addListSymbToPageLibs(files_.fileContents);*/
-      }
-    
-
-    drawing.setSymbol(result.fileContent);
-    user={fileName:result.filePath,fileExtension:result.fileExtension,baseName:result.fileName,folderPath:result.folderPath};
-    document.getElementById("ItProject").firstChild.checked = drawing.itProject;
-    if(result.fileExtension!='sym')
-       updateLibrary();
-
-    
-    if(drawing.itProject){
-        const data= await window.electron.createFolderModels(user.fileName);
-        drawing.modelsPath=data.modelsPath;
-        drawing.projectPath=data.projectPath;
-    }
-
+    addNewTabOpenFile(result.fileExtension,result.filePath,result.fileContent,result.fileName);
+    drawing.path=result.folderPath;
     enable();
     updateListElements();
     displayByPageType();
@@ -40,19 +12,6 @@ async function openFile(){
   
 }
 
-
-
-async function updateLibrary() {
-   const data = await window.electron.readLibraryFile();
-   drawing.dirLibrary=[];
-   data['libs'].forEach(item => drawing.dirLibrary.push(item));
-   const libraryName=data['libs'][0];
-   const files=data[libraryName];
-   const files_ = await window.electron.getLibraryFiles(libraryName,files);
-   addItemsToPageLibs(data['libs']);
-   addListSymbToPageLibs(files_.fileContents);
-   return true;
-}
 
 
 async function loadLibrary() {
@@ -75,12 +34,7 @@ async function posPathProjectExe(){
 }
 
 
-window.onload = function () {
-loadLibrary();
-dataToInterface();
-posPathProjectExe();
 
-};
 
 
 
@@ -117,15 +71,21 @@ function newSymbol(){
 
 
 async function saveAsFile() {
-  const filename = user.fileName;
+
+  const activeFile = files.find(f => f.active);
   const content = drawing.getSymbol();
 
-  const result = await window.electron.saveAsFile(filename, content,user.fileExtension);
-  
+  const result = await window.electron.saveAsFile(activeFile.name, content, activeFile.type);
+
   if (result.success) {
-    user.fileName=result.path;
-    user.baseName=result.fileName;
+    activeFile.filePath = result.path;
+    activeFile.name = result.fileName;
+    drawing.fileName=result.fileName;
+    drawing.path=result.folderPath;
     drawing.modified=false;
+    saveCurrentTab();
+    renderTabs();
+    caption();
     return true;
   }
 
@@ -134,18 +94,41 @@ async function saveAsFile() {
 
 
 async function saveFile() {
-  const filename = user.fileName;
+
+  const activeFile = files.find(f => f.active);
   const content = drawing.getSymbol();
 
-  const result = await window.electron.saveFile(filename, content);
-  
+  if(!activeFile.filePath)
+    return await saveAsFile();
+
+  const result = await window.electron.saveFile(activeFile.filePath, content);
   if (result.success) {
     drawing.modified=false;
+    saveCurrentTab();
+    caption();
     return true;
   } else {
       return false;
   }
 }
+
+
+function window_load() {
+//loadLibrary();
+dataToInterface();
+//posPathProjectExe();
+
+};
+
+function caption(){
+            if (drawing.pageType=='sym') var title='Symbol Editor'; 
+           else var title='Python for Analog and Mixed Signals';
+
+           if(drawing.modified)
+               document.title=title+'  ['+drawing.fileName+'* ]';
+           else 
+               document.title =title+'  ['+drawing.fileName+']';
+      }
 
 
 

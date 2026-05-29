@@ -1,6 +1,6 @@
 {
   "name": "PyAMS",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "Python for Analog and Mixed Signals",
   "author": "d.fathi",
   "license": "MIT",
@@ -18,24 +18,28 @@
     "asar": true,
     "appId": "pyams.sf.net",
     "productName": "PyAMS",
-    "copyright": "Copyright © 2025 PyAMS. All rights reserved.",
+    "copyright": "Copyright © 2024-2026 PyAMS. All rights reserved.",
     "directories": {
       "output": "dist",
       "buildResources": "build"
     },
-    "extraFiles": [{
-      "from":"demo",
-      "to":"demo"
-      },{
-       "from":"pyams",
-       "to":"pyams"
-        },{
-        "from":"python",
-        "to":"python"
-        }],
+    "extraFiles": [
+      {
+        "from": "demo",
+        "to": "demo"
+      },
+      {
+        "from": "pyams",
+        "to": "pyams"
+      },
+      {
+        "from": "python",
+        "to": "python"
+      }
+    ],
     "files": [
       "main.js",
-      "index.html",
+      "form.html",
       "package.json",
       "preload.js",
       "handleEditor.js",
@@ -66,7 +70,7 @@
       "data/src/css/pyCode.css",
       "data/plotly-latest.min.js",
       "data/src/utils/information.js",
-       "data/src/utils/ruler.js",
+      "data/src/utils/ruler.js",
       "data/src/utils/polyline.js",
       "data/src/utils/arc.js",
       "data/src/utils/pin.js",
@@ -81,36 +85,69 @@
       "data/src/utils/cnode.js",
       "data/src/utils/utility.js",
       "data/src/utils/measurement.js",
-"data/src/utils/svg.js",
-"data/src/utils/analysis.js",
-"data/src/utils/plots.js",
-"data/src/utils/codePy.js",
-"data/src/utils/codeHtml.js",
-"data/src/utils/codeSpice.js",
-"data/src/selectElements.js",
-"data/src/objectInspector/objectInspector.js",
-"data/src/objectInspector/modifiedSelect.js",
-"data/src/designByMouse.js",
-"data/src/grid.js",
-"data/src/shapes.js",
-"data/src/resize.js",
-"data/src/drawing.js",
-"data/src/ListSymbol.js",
-"data/src/ListElements.js",
-"data/ioData.js",
-"data/std.js",
-  "cad/images.js",
-    "cad/dataHtml.js",
-    "cad/index.js",
-    "cad/action.js",
-    "cad/user.js",
-    "cad/files.js"
+      "data/src/utils/svg.js",
+      "data/src/utils/analysis.js",
+      "data/src/utils/plots.js",
+      "data/src/utils/codePy.js",
+      "data/src/utils/codeHtml.js",
+      "data/src/utils/codeSpice.js",
+      "data/src/selectElements.js",
+      "data/src/designByMouse.js",
+      "data/src/grid.js",
+      "data/src/shapes.js",
+      "data/src/resize.js",
+      "data/src/drawing.js",
+      "data/src/ListSymbol.js",
+      "data/src/ListElements.js",
+      "data/ioData.js",
+      "data/std.js",
+      "cad/images.js",
+      "cad/dataHtml.js",
+      "cad/index.js",
+      "cad/action.js",
+      "cad/user.js",
+      "cad/files.js",
+      "images/arc.svg",
+      "images/ellipse.svg",
+      "images/rect.svg",
+      "images/polyline.svg",
+      "images/polygon.svg",
+      "images/text.svg",
+      "images/end.svg",
+      "images/Gnd.svg",
+      "images/python.svg",
+      "images/label.svg",
+      "images/new_project.svg",
+      "images/new-file.svg",
+      "images/open.svg",
+      "images/save.svg",
+      "images/saveas.svg",
+      "images/copy.svg",
+      "images/cut.svg",
+      "images/past.svg",
+      "images/undo.svg",
+      "images/redo.svg",
+      "images/zoom-in.svg",
+      "images/zoom-out.svg",
+      "images/html.svg",
+      "images/file.svg",
+      "images/flipHorizontal.svg",
+      "images/flipVertically.svg",
+      "images/rotate.svg",
+      "form/tabs-container.js",
+      "form/tabs-container.css",
+      "form/sidebar.js",
+      "form/properties_panel.js",
+      "form/properties_panel.css",
+      "form/modifiedSelect.js",
+      "form/objectInspector.js",
+      "form/logo.png"
     ],
     "win": {
       "target": "nsis",
       "icon": "build/logo.ico"
     },
-   "nsis": {
+    "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowElevation": false,
@@ -122,5 +159,8 @@
     "linux": {
       "target": "AppImage"
     }
+  },
+  "dependencies": {
+    "monaco-editor": "^0.55.1"
   }
 }

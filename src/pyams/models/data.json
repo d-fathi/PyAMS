@@ -1,52 +1,53 @@
 {
     "libs": [
-        "Analog\\Basic",
-        "Analog\\Source",
-        "Analog\\Semiconductor",
-        "Analog\\CMOSGates"
+        "Basic",
+        "Source",
+        "CMOSGates",
+        "Semiconductor"
     ],
-    "Analog\\Basic": [
+    "Basic": [
         "Resistor.sym",
         "Capacitor.sym",
-        "Conductor.sym",
+        "CapacitorIc.sym",
+        "Capacitorrd.sym",
         "Inductor.sym",
-        "Load.sym",
+        "InductorIc.sym",
         "CCCS.sym",
         "CCVS.sym",
         "VCCS.sym",
         "VCVS.sym",
-        "Transformer.sym",
-        "TransformerIdeal.sym",
-        "CapacitorIc.sym",
-        "InductorIc.sym",
+        "Conductor.sym",
+        "Load.sym",
         "NegativeResistance.sym",
         "NonlinearResistance.sym",
+        "ResistrorAnalysis.sym",
         "Switch.sym",
         "SwitchC.sym",
         "SwitchSample.sym",
-        "ResistrorAnalysis.sym"
+        "Transformer.sym",
+        "TransformerIdeal.sym"
     ],
-    "Analog\\CMOSGates": [
+    "CMOSGates": [
         "CAND.sym",
+        "CBuffer.sym",
         "CNAND.sym",
-        "COR.sym",
         "CNOR.sym",
         "CNOT.sym",
-        "CBuffer.sym",
-        "CXOR.sym",
-        "CXNOR.sym"
+        "COR.sym",
+        "CXNOR.sym",
+        "CXOR.sym"
     ],
-    "Analog\\Semiconductor": [
+    "Semiconductor": [
         "Diode.sym",
+        "DiodeBridge.sym",
         "DiodeLaser.sym",
         "DiodeZener.sym",
-        "DiodeBridge.sym",
         "NMOS.sym",
-        "PMOS.sym",
         "NPN.sym",
+        "PMOS.sym",
         "PNP.sym"
     ],
-    "Analog\\Source": [
+    "Source": [
         "DCCurrent.sym",
         "DCVoltage.sym",
         "PulsCurrent.sym",

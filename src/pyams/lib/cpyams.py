@@ -656,8 +656,8 @@ class circuit:
     def getOpertingPoint(self):
         self.x,s=solven(self.x,self.feval,self.option)
         self.dcircuit.feval();
-        self.x,s=solven(self.x,self.feval,self.option)
-        self.dcircuit.feval();
+        #self.x,s=solven(self.x,self.feval,self.option)
+        #self.dcircuit.feval();
 
         return self.x
 

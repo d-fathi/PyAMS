@@ -1,0 +1,1 @@
+D:\project\python3.9\python.exe -m sphinx -b html . _build

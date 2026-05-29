@@ -1,11 +1,13 @@
 
 
+
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electron', {
     openFileDialog: (pageType) => ipcRenderer.invoke('open-file-dialog', pageType),
     readLibraryFile: () => ipcRenderer.invoke('read-library-file'),
     getLibraryFiles: (libraryName,files) => ipcRenderer.invoke('get-library-files', libraryName,files),
+    getLibraryPath: () => ipcRenderer.invoke('get-library-path'),
     creatPythonModels:() => ipcRenderer.invoke('creat-python-models'),
     getExePath: () => ipcRenderer.invoke('get-exe-path'),
     showConfirmationDialog: (message) => ipcRenderer.invoke('show-confirmation-dialog', message),
@@ -14,6 +16,9 @@ contextBridge.exposeInMainWorld('electron', {
     saveAsFile: (filename, content, fileExtension) => ipcRenderer.invoke('save-as-file', filename, content, fileExtension),
     requestCloseIDE: (callback) => ipcRenderer.on('request-close-IDE', (event) => callback()),
     closeWindowIDE: () => ipcRenderer.send('close-window-IDE'),
+    readClipboard: () => ipcRenderer.invoke('read-clipboard'),
+    writeClipboard: (text) => ipcRenderer.invoke('clipboard-write', text),
+    onActive: (callback) => ipcRenderer.on('window-active', () => callback()),
     //Projects management----------------------------------------------------------------------
     createFolderModels: (filename) => ipcRenderer.invoke('create-folder-Models', filename),
     getLibraryFilesFromProject: (projectFile) => ipcRenderer.invoke('get-library-files-from-project', projectFile),

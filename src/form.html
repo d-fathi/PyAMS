@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VS Code Style Tabs</title>
+    <link rel="stylesheet" href="form/tabs-container.css">
+    <link rel="stylesheet" href="form/properties_panel.css">
+    <link rel="stylesheet" href="cad/index.css">
+
+<style>
+  /* حاوية المكتبة */
+#libraryPanel {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* شبكة العناصر */
+#symGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* عنصرين في الصف */
+  gap: 8px;
+  padding: 5px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* كل عنصر في الشبكة */
+.symItem {
+  border: 1px solid #ccc;
+  text-align: center;
+  padding: 5px;
+  background: #f9f9f9;
+  border-radius: 4px;
+  transition: all 0.2s;
+  min-width: 0; /* مهم لمنع overflow */
+}
+
+.symItem:hover {
+  background: #e9e9e9;
+  border-color: #999;
+}
+
+/* الزر داخل العنصر */
+.button_lib {
+  width: 100%;
+  height: auto;
+  padding: 5px;
+  background: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button_lib svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* النص تحت الرمز */
+.symItem p {
+  margin: 5px 0 0 0;
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.symItem p a {
+  text-decoration: none;
+  color: #333;
+}
+
+.symItem p a:hover {
+  color: #0066cc;
+}
+
+
+</style>
+
+
+</head>
+<body>
+    <div class="container">
+
+    <!-- Menu Bar -->
+    <div class="menu-bar space-work" id="menubar"></div>
+
+    <!-- Toolbar -->
+    <div class="toolbar space-work" id="toolbar" style="zoom: 100%"></div>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+
+      <!-- Activity Bar (Left Icons) -->
+      <div class="activity-bar space-work" id="activityBar" ></div>
+          <!-- Sidebar-->
+      <div class="sidebar space-work" id="sidebar" >
+        <div class="panel"  id="propertiesPanel"></div>
+        <div class="panel"  style="display: none;" id="libraryPanel"></div> 
+        <div class="panel"  style="display: none;" id="listElements"></div> 
+      </div>
+      <!-- Vertical Splitter -->
+      <div class="splitter" id="splitter"></div>
+      <!-- Content Area -->
+
+
+        <div class="content" id="content" >
+         <div class="tabs-container" id="tabsContainer"></div>
+         <div class="content-area" id="contentArea" ></div>
+         <div class="dropdown-menu" id="dropdownMenu" ></div>
+       </div>
+    </div>  
+
+        <div class="status-bar">
+            <span class="status-item" id="statusFile">main*</span>
+            <span class="status-item" id="description-bar">Description</span>
+            <div class="status-bar-right">
+                <!--span class="status-item">Ln 12, Col 34</span-->
+                <!--span class="status-item">UTF-8</span-->
+                <span class="status-item" id="statusLang">JavaScript</span>
+                <!--span class="status-item">Spaces: 2</span-->
+            </div>
+        </div>
+    </div>
+
+    <!-- Dropdown Menu OUTSIDE container -->
+    <script src="form/tabs-container.js"></script>
+    <script src="form/sidebar.js"></script>
+    <script src="form/properties_panel.js"></script>
+    <script type="text/javascript" src="form/objectInspector.js"></script>
+    <script type="text/javascript" src="form/modifiedSelect.js"></script>
+
+    <!-- Source js -->
+    <script src="cad/images.js"></script>
+    <script src="cad/index.js"></script>
+    <script src="cad/action.js"></script>
+    <script src="cad/user.js"></script>
+    <script src="cad/files.js"></script>
+
+    <!--grid drawing-->
+
+<script type="text/javascript" src="data/src/utils/information.js"></script>
+<script type="text/javascript" src="data/src/utils/ruler.js"></script>
+<script type="text/javascript" src="data/src/utils/polyline.js"></script>
+<script type="text/javascript" src="data/src/utils/arc.js"></script>
+<script type="text/javascript" src="data/src/utils/pin.js"></script>
+<script type="text/javascript" src="data/src/utils/ioparam.js"></script>
+<script type="text/javascript" src="data/src/utils/part.js"></script>
+<script type="text/javascript" src="data/src/utils/net.js"></script>
+<script type="text/javascript" src="data/src/utils/text.js"></script>
+<script type="text/javascript" src="data/src/utils/body.js"></script>
+<script type="text/javascript" src="data/src/utils/toolButton.js"></script>
+<script type="text/javascript" src="data/src/utils/cursor.js"></script>
+<script type="text/javascript" src="data/src/utils/controle.js"></script>
+<script type="text/javascript" src="data/src/utils/cnode.js"></script>
+<script type="text/javascript" src="data/src/utils/utility.js"></script>
+<script type="text/javascript" src="data/src/utils/measurement.js"></script>
+<script type="text/javascript" src="data/src/utils/svg.js"></script>
+<script type="text/javascript" src="data/src/utils/analysis.js"></script>
+<script type="text/javascript" src="data/src/utils/plots.js"></script>
+<script type="text/javascript" src="data/src/utils/codePy.js"></script>
+<script type="text/javascript" src="data/src/utils/codeHtml.js"></script>
+<script type="text/javascript" src="data/src/utils/codeSpice.js"></script>
+<script type="text/javascript" src="data/src/selectElements.js"></script>
+<script type="text/javascript" src="data/src/designByMouse.js"></script>
+<script type="text/javascript" src="data/src/grid.js"></script>
+<script type="text/javascript" src="data/src/shapes.js"></script>
+<script type="text/javascript" src="data/src/resize.js"></script>
+<script type="text/javascript" src="data/src/drawing.js"></script>
+<script type="text/javascript" src="data/src/ListSymbol.js"></script>
+<script type="text/javascript" src="data/src/ListElements.js"></script>
+
+
+<script type="text/javascript" src="data/ioData.js"></script>
+<script type="text/javascript" src="data/std.js"></script>
+
+
+
+
+
+    <!---source -->
+<script type="text/javascript" src="data/plotly-latest.min.js"></script>
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
+
+<script>
+
+    
+    
+    async function openFilePy(){
+      if(user.fileName!='New file')
+        await window.electron.editFilePy(user.fileName.split('.sym')[0]+'.py');
+      else 
+        window.electron.showAlert('Error','You must save the symbol to show the Python file.');
+    }
+
+    window.electron.requestCloseIDE(() => {
+      closeApp();     
+    });
+
+
+    async function openLibraryManagement() {
+          const result = await window.electron.libraryManagement();
+          if(result){
+            if(drawing.pageType!="sym")
+               updateLibrary();
+          }
+         // ;
+    }
+    
+    setTimeout(getPythonVersion, 10000);
+
+
+const panel_ = document.getElementById('libraryPanel');
+const resizeObserver = new ResizeObserver(entries => {
+  for (const entry of entries) {
+    // Use contentRect for width/height (includes padding, excludes border/margin)
+    const { width, height } = entry.contentRect;
+    const rect = panel_.getBoundingClientRect();
+    console.log(`Panel resized: ${rect.width}px × ${width}px`);
+    
+    // Your logic here
+  }
+});
+
+// Start observing
+resizeObserver.observe(panel_);
+
+
+
+</script>
+
+</body>
+</html>

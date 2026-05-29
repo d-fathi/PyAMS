@@ -6,7 +6,16 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    user-select: none;
+    overflow: hidden;
+    overscroll-behavior: none;
 }
+
+.interactive-line:hover {
+            stroke: #e94560;
+            stroke-width: 6;
+            filter: drop-shadow(0 0 8px rgba(233, 69, 96, 0.6));
+        }
 
 .title-bar {
     background-color: #6c757d;
@@ -181,8 +190,8 @@ body {
 }
 
 .toolbar button img {
-    width: 13px;
-    height: 13px;
+    width: 15px;
+    height: 15px;
 }
 
 .editor {

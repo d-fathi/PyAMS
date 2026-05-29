@@ -18,12 +18,12 @@ sys.path.insert(0, os.path.abspath('.'))
 # -- Project information -----------------------------------------------------
 
 project = 'PyAMS'
-copyright = '(c) 2021-2025, PyAMS'
+copyright = '(c) 2021-2026, PyAMS'
 author = 'd.fathi'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1.9'
-version='PyAMS 0.1.9'
+release = '0.2.0'
+version='PyAMS CAD 0.2.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -72,7 +72,8 @@ html_theme_options = {
     "navigation_depth": 5,
     "collapse_navigation": False,
       "logo_only": True,
-    "display_version": True
+    "display_version": True,
+    
 }
 
 #"navigation_depth": 3,
@@ -88,5 +89,7 @@ html_context = {
     "github_repo": "pyams",
     "github_version": "main", 
     "conf_py_path": "/docs/", 
-    "pypi_project": "https://pypi.org/project/pyams-cad/" 
+    "pypi_project": "https://pypi.org/project/pyams-cad/",
+    "version": version,
+    "release": release,
 }

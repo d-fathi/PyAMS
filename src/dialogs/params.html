@@ -147,7 +147,7 @@ document.querySelectorAll(".tableFixHead").forEach(el =>
 function saveText() {
     let inputs = document.getElementsByTagName("input");
     let result=''
-    dataTemp.forEach((item,index) => {result += `${item.name}=${inputs[index].value.trim()}${item.unit}  `});
+    dataTemp.forEach((item,index) => {result += `${item.name}=${inputs[index].value.trim()}  `});
     window.electron.sendEditedParams(result);
 
            // const newText = document.getElementById("editTextArea").value;

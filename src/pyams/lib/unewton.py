@@ -220,10 +220,18 @@ def jac(x, f, n):
 #-------------------------------------------------------------------------------
 # Solving systems of nonlinear equations by Newton-Raphson method
 #-------------------------------------------------------------------------------
+
+#maxIter=0
+
 def solven(x, y,option):
     max_iter, tol = option.itl, option.error
     n = len(x)
     for i in range(max_iter):
+        '''
+        if(i>maxIter):
+            maxIter=i
+            print("New max iters:",maxIter)
+        '''
         F = y(x)
         if norm(F) < tol:
             return x, True

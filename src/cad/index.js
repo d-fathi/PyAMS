@@ -15,9 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     { "label": "Open", "icon": images.open, "shortcut": "Ctrl+O", "action": "openFile", "description": "Open an existing file" },
                     { "label": "Save", "icon": images.save, "shortcut": "Ctrl+S", "action": "saveFile", "description": "Save the current file" },
                     { "label": "Save As..", "icon": "", "hidden":true,"shortcut": " ", "action": "saveAsFile", "description": "Save as the current file" },
+                    /*{ "label": "separator" },
+                    { "label": "It's a project.", "icon": "", "hidden":true, "checked":'', "shortcut": " ", "action": "itProject", "description": "This file project [yas/No]", "id": "ItProject" },*/
                     { "label": "separator" },
-                    { "label": "It's a project.", "icon": "", "hidden":true, "checked":'', "shortcut": " ", "action": "itProject", "description": "This file project [yas/No]", "id": "ItProject" },
-                    { "label": "separator" },
+                   /* { "label": "Open symbol File", "icon": images.symbol, "shortcut": "Ctrl+N+S", "action": "openSymbol", "description": "Open symbol file" },*/
                     { "label": "New symbol File", "icon": images.symbol, "shortcut": "Ctrl+N+S", "action": "newSymbol", "description": "Create a new symbol" },
                   /*  { "label": "separator" },
                     { 
@@ -256,16 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-
-
-    var drawing=creatPage("two");
-    drawing.getObjectInspector("one2");
-    drawing.newPage("sym");
-
-    displayByPageType();
-
-    
-
 });
 
 
@@ -342,7 +333,7 @@ function showMenu(menu, event) {
 
 
 // Add event listeners for right-clicks
-document.getElementById('two').addEventListener('contextmenu', (e) => {
+document.getElementById('contentArea').addEventListener('contextmenu', (e) => {
     e.preventDefault();
     menu1.style.display = 'none'; // Hide other menu
     //menu2.style.display = 'none';
@@ -362,7 +353,7 @@ document.getElementById('div2').addEventListener('contextmenu', (e) => {
  const target = e.target;
 
 // Check if the target is not in div1 or div2
- if (!document.getElementById('two').contains(target)/* && 
+ if (!document.getElementById('contentArea').contains(target)/* && 
    !document.getElementById('div2').contains(target)*/) {
    menu1.style.display = 'none'; // Hide menu1
    //menu2.style.display = 'none'; // Hide menu2

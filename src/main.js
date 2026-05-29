@@ -1,5 +1,6 @@
 // main.js (Electron Main Process)
-const { app, BrowserWindow, dialog, ipcMain } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain , clipboard } = require('electron');
+
 
 const handleDialogs = require('./handleDialogs');
 const { startEditor } = require('./handleEditor');
@@ -12,6 +13,7 @@ const path = require('path');
 const fs = require('fs');
 const creatApp=false;
 const config = require('./config');
+
 
 
 //Creat PyAMS Interface--------------------------------------------------------------------
@@ -33,12 +35,18 @@ app.whenReady().then(() => {
     }
   });
   mainWindow.maximize();
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile('form.html');
 
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.control && input.key.toLowerCase() === 'r') {
         event.preventDefault();
     }
+  
+  // Notify renderer processes about focus changes
+mainWindow.on('focus', () => {
+       console.log('window active');
+        mainWindow.webContents.send('window-active');
+    });
 });
 
 
@@ -65,6 +73,15 @@ ipcMain.on('close-window-IDE', () => {
   mainWindow.destroy();
  mainWindow = null;
 });
+
+/*
+app.on('focus', () => {
+       console.log('window active');
+        mainWindow.webContents.send('window-active');
+    });*/
+
+
+
 
 
 
@@ -215,7 +232,11 @@ ipcMain.handle('read-library-file', async () => {
   }*/
 });
 
-
+ipcMain.handle('get-library-path', async () => {
+  const libraryPath = path.join(config.folderPath, 'pyams','models');
+  const folderPath = path.dirname(libraryPath);
+  return {libraryPath, folderPath};
+});
 
 
 // Read files based on library name---------------------------------------------------------------
@@ -372,6 +393,18 @@ ipcMain.handle('get-library-files-from-project', async (event, projectFile) => {
    
    return {fileContents}
 });
+
+
+
+//clipboard--------------------------------------------------------------------------------------
+ipcMain.handle('read-clipboard', () => clipboard.readText());
+ipcMain.handle('clipboard-write', (event, text) => {
+  clipboard.writeText(text);
+  return true;
+});
+
+
+
 
 
 

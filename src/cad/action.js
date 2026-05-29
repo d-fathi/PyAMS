@@ -5,31 +5,23 @@ function setAction(value){
    
   switch(value) {
     case "openFile":
-         if(drawing.modified)
-           confirmAction(1);
-         else 
            openFile();
       break;
 
     case "newFile":
-        if(drawing.modified)
-          confirmAction(2);
-        else 
-          newCircuit();
+      addNewTab('dcs');
       break;
 
     case "newSymbol":
+        addNewTab('sym');
+      /*
       if(drawing.modified)
         confirmAction(3);
       else 
-        newSymbol();
+        newSymbol();*/
      break;
 
     case "saveFile":
-
-      if(user.fileName=='New file')
-        saveAsFile();
-      else
         saveFile();
     break;
 
@@ -231,7 +223,7 @@ function enable(){
   else
       addClass([toolbarButtons.cut,menuitems.cut,toolbarButtons.copy,menuitems.copy,popMenu.cut,popMenu.copy]);
 
-  if(!(drawing.copyList.length == 0))
+  if(drawing.copyData)
       removeClass([toolbarButtons.past,menuitems.past,popMenu.past]);
   else
       addClass([toolbarButtons.past,menuitems.past,popMenu.past]);
@@ -256,14 +248,7 @@ function enable(){
       toolbarButtons.vertically,menuitems.vertically,popMenu.vertically,
       toolbarButtons.rotate,menuitems.rotate,popMenu.rotate]);
 
-if (user.fileType=='sym') var title='Symbol Editor'; 
-else var title='Python for Analog and Mixed Signals';
-
-if(drawing.modified)
-  document.title=title+'  ['+user.baseName+'* ]';
-else 
-  document.title =title+'  ['+user.baseName+']';
-  //menuitems.New.innerHTML='';
+  
 
 if(ioDic.selectAnalysis){
   removeClass([toolbarButtons.runAnalysis,menuitems.runAnalysis]);
@@ -273,6 +258,7 @@ if(ioDic.selectAnalysis){
 
 
 //----------------Get information of page--------------------------------//
+
 
 function dataToInterface() {
   
@@ -287,13 +273,14 @@ function dataToInterface() {
   }
 
   function ioupdateData(e) {
+     
       ioDic.x = getMousePosition(e).x;
       ioDic.y = getMousePosition(e).y;
       ioDic.zoom = Math.ceil(drawing.grid.zoom * 100) + '%';
       ioDic.select = (drawing.shapes.lsg.elms.length > 0) || (drawing.resize.setElement != null);
       ioDic.undo = !(drawing.posUndo <= 0);
       ioDic.redo = !(drawing.posUndo >= drawing.data.length - 1);
-      ioDic.past = !(drawing.copyList.length == 0);
+      ioDic.past = drawing.copyData;
       ioDic.endDrawing = !drawing.shapes.design.mouse;
       ioDic.modified = drawing.modified;
       ioDic.undoPos = drawing.getDescUndo();
@@ -302,8 +289,8 @@ function dataToInterface() {
       ioDic.selectShowAnalysis = itSelectShowAnalysis();
       ioDic.showPolarity =drawing.showPolarity;
       ioDic.itProject=drawing.itProject;
-      
       enable();
+
       document.getElementById("description-bar").innerHTML=`
       <div style="width: 70px; float: left; border:#eeeeee solid 0.5px;">x:${ioDic.x }</div>
       <div style="width: 70px; float: left; border:#eeeeee solid 0.5px;">y:${ioDic.y }</div>
@@ -312,6 +299,10 @@ function dataToInterface() {
       <div style="width: 450px; float: left; border:#eeeeee solid 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
       title="Python version: ${ioDic.pythonVersion}">Python version: ${ioDic.pythonVersion}</div>
       `;
+     caption();
+
+          
+
   }
 
   document.getElementById("svg").addEventListener('mousemove', e => {
@@ -334,7 +325,7 @@ function updatResult() {
   ioDic.select = (drawing.shapes.lsg.elms.length > 0) || (drawing.resize.setElement != null);
   ioDic.undo = !(drawing.posUndo <= 0);
   ioDic.redo = !(drawing.posUndo >= drawing.data.length - 1);
-  ioDic.past = !(drawing.copyList.length == 0);
+  ioDic.past = drawing.copyData;;
   ioDic.endDrawing = !drawing.shapes.design.mouse;
   ioDic.modified = drawing.modified;
   ioDic.undoPos = drawing.getDescUndo();
@@ -469,7 +460,7 @@ function displayByPageType(){
   menuitems.net.style.display =displayPage;
   toolbarButtons.probe.style.display =displayPage;
   menuitems.probe.style.display =displayPage;
-  menuitems.itProject.style.display =displayPage;
+  //menuitems.itProject.style.display =displayPage;
 
   toolbarButtons.pin.style.display =displaySym;
   menuitems.pin.style.display =displaySym;
@@ -577,6 +568,11 @@ async function openDialogPythonPath()
  await window.electron.openDialogPythonPath();
  getPythonVersion();
 }
+
+
+window.electron.onActive(() => {
+     //  
+});
 
 
 

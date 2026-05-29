@@ -3,6 +3,14 @@ Release History
 
 .. raw:: html
 
+   <p><b><span style="color:red;">Version 0.2.0</span></b> (29/05/2026)</p>
+
+- In this version 0.2.0: Added new form to open and save circuit designs.
+- Added tabbed interface for different circuit design files.
+- added tabbed interface for libraries and descriptions.
+
+.. raw:: html
+
    <p><b><span style="color:red;">Version 0.1.9</span></b> (13/09/2025)</p>
 
 - In this version 0.1.9: Creat project file with models folder..
