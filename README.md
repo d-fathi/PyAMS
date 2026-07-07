@@ -69,10 +69,6 @@ To create a PyAMS application from the `src` directory:
    npm start
 ````
 
-## Support the Project 💖
-
-If you need more support or assistance with this project, and would like to contribute to the development of the PyAMS library, 
-consider donating through my Ko-fi page: <a href='https://ko-fi.com/pyams/'>https://ko-fi.com/pyams/</a>
 
 
 
