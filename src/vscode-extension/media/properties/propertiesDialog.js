@@ -743,7 +743,10 @@ drawing.getListParameter(code)
             .catch(function (err) {
                 console.error('getListParameter failed:', err);
             });
+
+            break;
         }
+
 
         case 'openEditorListModelsPart': {
             drawing.getListModel(
@@ -763,6 +766,31 @@ drawing.getListParameter(code)
                     console.log('Cancelled');
                 }
             );
+            break;
+        }
+
+        case 'openEditorParamsPart': {
+            var code=getCodePyOfPart(mtable.select);
+            drawing.getListParameter(code).then(function (data) {
+                drawing.getParametersDialog(data,
+                    function (result) {                 
+                        console.log(JSON.stringify(result, null, 2));
+                                                    if(result.models.length>0){
+                                console.log('Models:', result.models[0].setParams);
+                                setParamPart(result.models[0].setParams,mtable.select);
+                            }
+                            
+                           
+                       
+                        
+                    },
+                    function () { console.log('Cancelled'); }
+                );
+            })
+            .catch(function (err) {
+                console.error('getListParameter failed:', err);
+            });
+
             break;
         }
 

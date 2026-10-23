@@ -881,9 +881,11 @@ function partSelect() {
                 collapsed: false,
                 showReset: true,
                 rows: [
-                    { label: "Name", type: "text", value: sym.name, readonly: true },
-                    { label: "Directory", type: "text", value: part.getAttribute("directory"), readonly: true },
-                    { label: "Reference", type: "text", value: part.getAttribute("sref") }
+                    { label: "File.name", type: "text", value: sym.name, readonly: true },
+                    { label: "File.Directory", type: "text", value: part.getAttribute("directory"), readonly: true },
+                    { label: "Reference", type: "text", value: part.getAttribute("sref") },
+                    { label: 'Model.name', type: "Button", value: sym.model.name , setClick:'openEditorListModelsPart' },
+                    { label: 'Model.Parameters', type: "Button", value: 'Modify Parameters', setClick:'openEditorParamsPart' }
                 ]
             }/*,
                         {
@@ -897,12 +899,6 @@ function partSelect() {
     }
 
     var sym=getPartModel(part);
-
-    if(sym && !std){
-        defaultData.sections[0].rows.push({ label: "Device.type", type: "dropdown", value: sym.device.type, options: ['PyAMS'] });
-        defaultData.sections[0].rows.push({ label: "Model.name", type: "text", value: sym.model.name });
-    }
-
     mtable.type = "part";
     mtable.sym=sym;  //data[0]
     propertiesData = JSON.parse(JSON.stringify(defaultData));

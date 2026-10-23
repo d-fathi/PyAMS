@@ -17,44 +17,6 @@ function addCode(elem) {
 }
 
 
-function getParamSym(strListParams) {
-  strListParams = strListParams || "";
-
-
-  var params = document.querySelectorAll('[name="param"]');
-  var lparams = [];
-  for (var i = 0; i < params.length; i++) {
-    lparams.push({
-      name: params[i].getAttribute("paramname"),
-      value: params[i].getAttribute("paramvalue")
-    });
-  }
-
-  var items = [];   
-  var index = {}; 
-  var re = /([^\s=]+)\s*=\s*([^\s]+)/g;
-  var m;
-  while ((m = re.exec(strListParams)) !== null) {
-    index[m[1]] = items.length;
-    items.push({ name: m[1], value: m[2] });
-  }
-
-  for (var j = 0; j < lparams.length; j++) {
-    var p = lparams[j];
-    if (p.name === null || p.name === "") continue;
-
-    if (Object.prototype.hasOwnProperty.call(index, p.name)) {
-      items[index[p.name]].value = p.value;
-    } else {
-      index[p.name] = items.length;
-      items.push({ name: p.name, value: p.value });
-    }
-  }
-
-  return items.map(function (it) {
-    return it.name + "=" + it.value;
-  }).join("  ");
-}
 
 
 
@@ -135,7 +97,158 @@ function formatValue(value, suffix) {
   return parseFloat((value / last[1]).toPrecision(10)) + last[0] + suffix;
 }
 
+//**************Update Part parameters ****************/
+
+function getParamPart(strListParams,part) {
+  strListParams = strListParams || "";
+
+
+  var params = part.querySelectorAll('[name="param"]');
+  var lparams = [];
+  for (var i = 0; i < params.length; i++) {
+    lparams.push({
+      name: params[i].getAttribute("paramname"),
+      value: params[i].getAttribute("paramvalue")
+    });
+  }
+
+  var items = [];   
+  var index = {}; 
+  var re = /([^\s=]+)\s*=\s*([^\s]+)/g;
+  var m;
+  while ((m = re.exec(strListParams)) !== null) {
+    index[m[1]] = items.length;
+    items.push({ name: m[1], value: m[2] });
+  }
+
+  for (var j = 0; j < lparams.length; j++) {
+    var p = lparams[j];
+    if (p.name === null || p.name === "") continue;
+
+    if (Object.prototype.hasOwnProperty.call(index, p.name)) {
+      items[index[p.name]].value = p.value;
+    } else {
+      index[p.name] = items.length;
+      items.push({ name: p.name, value: p.value });
+    }
+  }
+
+  return items.map(function (it) {
+    return it.name + "=" + it.value;
+  }).join("  ");
+}
+
+
+function setParamPart(strListParams,part) {
+  var sym=JSON.parse(part.firstChild.getAttribute("symbol"));
+  sym.model.setParams = strListParams;
+  part.firstChild.setAttribute("symbol", JSON.stringify(sym));
+  var newValues = {};
+  var re = /([^\s=]+)\s*=\s*([^\s]+)/g, m;
+  while ((m = re.exec(strListParams)) !== null) newValues[m[1]] = m[2];
+
+  var params = part.querySelectorAll('[name="param"]');
+  var lparams = [];
+
+  for (var i = 0; i < params.length; i++) {
+    var el = params[i];
+    var name = el.getAttribute("paramname");
+    var old = el.getAttribute("paramvalue");
+
+    if (Object.prototype.hasOwnProperty.call(newValues, name)) {
+      var nv = parseValue(newValues[name]);
+      if (nv) {
+  
+        var suffix = nv.suffix;
+        if (suffix === "") {
+          var ov = parseValue(old);
+          if (ov) suffix = ov.suffix;
+        }
+        old = formatValue(nv.value, suffix);
+        el.setAttribute("paramvalue", old);
+        if(el.getAttribute("show")== "Name and value")
+           el.textContent = name + "=" + old;
+        else
+           el.textContent = old;
+      }
+    }
+    lparams.push({ name: name, value: old });
+  }
+  return lparams;
+}
+
+function getCodePyOfPart(part) {
+  
+  var pins  = part.querySelectorAll('[name="pin"]');
+  var lpins = [];
+  var sym=JSON.parse(part.firstChild.getAttribute("symbol"));
+  var name = sym.model.name;
+  var ref=  sym.reference;
+    
+
+  sym.model.setParams=getParamPart(sym.model.setParams, part);
+
+  for(var i=0; i<pins.length; i++){
+    if(pins[i].childNodes[2].textContent!="")
+        lpins.push('"0"');
+    else
+        lpins.push('"'+pins[i].childNodes[2].textContent+'"');
+  }
+
+ 
+
+  var code=`
+
+from pyams.models import ${name};
+${ref} = ${name}(${lpins.join(",")});
+${ref}.setParams("${sym.model.setParams}");
+`;
+
+return code;
+}
+
+//**************Update symbol parameters  ****************/
+function getParamSym(strListParams) {
+  strListParams = strListParams || "";
+
+
+  var params = document.querySelectorAll('[name="param"]');
+  var lparams = [];
+  for (var i = 0; i < params.length; i++) {
+    lparams.push({
+      name: params[i].getAttribute("paramname"),
+      value: params[i].getAttribute("paramvalue")
+    });
+  }
+
+  var items = [];   
+  var index = {}; 
+  var re = /([^\s=]+)\s*=\s*([^\s]+)/g;
+  var m;
+  while ((m = re.exec(strListParams)) !== null) {
+    index[m[1]] = items.length;
+    items.push({ name: m[1], value: m[2] });
+  }
+
+  for (var j = 0; j < lparams.length; j++) {
+    var p = lparams[j];
+    if (p.name === null || p.name === "") continue;
+
+    if (Object.prototype.hasOwnProperty.call(index, p.name)) {
+      items[index[p.name]].value = p.value;
+    } else {
+      index[p.name] = items.length;
+      items.push({ name: p.name, value: p.value });
+    }
+  }
+
+  return items.map(function (it) {
+    return it.name + "=" + it.value;
+  }).join("  ");
+}
+
 function setParamSym(strListParams) {
+  drawing.symbol.model.setParams = strListParams;
   var newValues = {};
   var re = /([^\s=]+)\s*=\s*([^\s]+)/g, m;
   while ((m = re.exec(strListParams)) !== null) newValues[m[1]] = m[2];
