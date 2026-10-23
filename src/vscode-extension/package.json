@@ -1,0 +1,105 @@
+{
+  "name": "pyams-circuit-simulator",
+  "displayName": "PyAMS - Circuit Simulator",
+  "version": "0.2.1",
+  "publisher": "pyams-vscode",
+  "icon": "image/logo.png",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "main": "./extension.js",
+  "activationEvents": [
+    "onCustomEditor:pyamsEditor.dcsEditor",
+    "onCustomEditor:pyamsEditor.symEditor"
+  ],
+    "keywords": [
+    "pyams",
+    "circuit",
+    "simulator",
+    "electronics",
+    "python",
+    "analog",
+    "digital",
+    "schematic",
+    "eda",
+    "dcs",
+    "DCSCircuit",
+    "sym",
+    "SymbolFile",
+    "waveform",
+    "simulation",
+    "BJT",
+    "MOSFET",
+    "diode",
+    "OP-AMP"
+  ],
+  
+  "categories": [
+    "Other",
+    "Programming Languages",
+    "Visualization",
+    "Education"
+    
+  ],
+  "files": [
+    "LICENSE",
+    "README.md",
+    "FEATURES.md",
+    "CHANGELOG.md",
+    "extension.js",
+    "pyamsEditor.js",
+    "symbolsSync.js",
+    "librarySync.js",
+    "data.json",
+    "image/logo.png",
+    "media/**/*",
+    "symbols/**/*",
+    "pyams/**/*"
+  ],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "pyamsEditor.dcsEditor",
+        "displayName": "DCS Circuit Editor",
+        "selector": [{ "filenamePattern": "*.dcs" }],
+        "priority": "default"
+      },
+      {
+        "viewType": "pyamsEditor.symEditor",
+        "displayName": "SYM Symbol Editor",
+        "selector": [{ "filenamePattern": "*.sym" }],
+        "priority": "default"
+      }
+    ],
+    "languages": [
+      {
+        "id": "dcs",
+        "extensions": [".dcs"],
+        "aliases": ["DCS Circuit", "dcs"],
+        "icon": {
+          "light": "./media/icons/file-cds.svg",
+          "dark": "./media/icons/file-cds.svg"
+        }
+      },
+      {
+        "id": "sym",
+        "extensions": [".sym"],
+        "aliases": ["Symbol File", "sym"],
+        "icon": {
+          "light": "./media/icons/file-sym.svg",
+          "dark": "./media/icons/file-sym.svg"
+        }
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/d-fathi/PyAMS"
+  },
+  "bugs": {
+    "url": "https://github.com/d-fathi/PyAMS/issues"
+  },
+  "homepage": "https://pyams-lib.readthedocs.io/",
+  "youtube": "https://www.youtube.com/@YPyAMS"
+}
