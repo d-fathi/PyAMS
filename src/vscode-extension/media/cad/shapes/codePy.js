@@ -314,32 +314,71 @@ return code;
 }
 
 
+//**************get netlist of circuit ****************/
+function netListPins(part) {
+
+    var pins = getListPins(part);
+    var listPinsName = [];
+
+    for (var i = 0; i < pins.length; i++)
+        if (pins[i].elem.childNodes[1].style.display == "none") {
+            var netId = pins[i].elem.getAttribute('netId');
+            var elemNet = document.getElementById(netId);
+            listPinsName.push(elemNet.getAttribute("ref"));
+        } else
+            listPinsName.push('0');
+    return listPinsName;
+}
+
+
+
+
+function getListParams(part) {
+   var sym=JSON.parse(part.firstChild.getAttribute("symbol")); 
+    return  getParamPart(sym.model.setParams,part) 
+}
+
+
+
+function netList() {
+
+    var parts = document.getElementsByClassName('part');
+    var list = [];
+    for (var i = 0; i < parts.length; i++)
+         {
+            var sym=getPartModel(parts[i]);
+            if(sym.device.type!='std')
+            list.push({
+                part: parts[i],
+                model: sym.model.name,
+                type: sym.device.name,
+                ref: parts[i].getAttribute('sref'),
+                directory: sym.model.dir,
+                pins: netListPins(parts[i]),
+                pinsName: getListPins(parts[i]).map(pin => pin.elem.childNodes[2].textContent),
+                params: getListParams(parts[i])
+            });
+
+        }
+    return list;
+}
 
 
 function generateCodePyofCircuit(){
 
-
     var elemList=netList();
     //get lib path---------------------------------
     
-    let pythonScript = getModelsPath();
-    pythonScript += elemList.map(elem =>`from ${elem.posModel} import ${elem.model};`).join("\n") + "\n";
-    pythonScript += `from pyams.lib import circuit;\n`; 
-
+    let pythonScript ='';
+    pythonScript += elemList.map(elem =>`from pyams.lib import ${elem.model};`).join("\n") + "\n";
+    
     //get Elements---------------------------------------------------------------------
-
     pythonScript += elemList.map(elem => 
         `${elem.ref} = ${elem.model}(${elem.pins.map(pin => `"${pin}"`).join(",")});`
     ).join("\n") + "\n"; 
 
-
     // get paramtres------------------------------------------------------------------
     pythonScript += elemList.map(elem => `${elem.ref}.setParams(" ${elem.params} ");` ).join("\n") + "\n";
-
-    //get circuit---------------------------------------------------------------------
-    pythonScript += 'circuit = circuit();\n';
-    pythonScript += 'circuit.addElements({'+elemList.map(elem => `'${elem.ref}':${elem.ref}` ).join(",") + '})\n';
-
 
     return  pythonScript;
 

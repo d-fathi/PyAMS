@@ -796,9 +796,7 @@ drawing.getListParameter(code)
 
         case 'openNetlistEditor':
             {
-               /* var data=getNetlistSpice();
-                getCircuit();
-                console.log(data);
+                var data=generateCodePyofCircuit();
                 drawing.getSpiceNetlistEditor(
                     data,
                     function (result) {
@@ -807,7 +805,7 @@ drawing.getListParameter(code)
                     function () {
                         console.log('Canceled');
                     }
-                );*/
+                );
             }
             break;
 
