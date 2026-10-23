@@ -23,7 +23,6 @@ function getType(self) {
     case "ellipse":
 	case "codePy":
 	case "codeHTML":
-    case "codeSpice":
         self.type = 1;
         self.length = 4;
         break;
@@ -83,7 +82,6 @@ function setInitPos(self) {
 	   case "oscilloscope":
        case "analysis":
        case "codeHTML":
-       case "codeSpice":
 	   case "codePy":
         self.width = parseInt(self.setElement.getAttribute("width"));
         self.height = parseInt(self.setElement.getAttribute("height"));
@@ -154,7 +152,6 @@ function setPosSize(self) {
       case "image":
       case "analysis":
       case "codeHTML":
-      case "codeSpice":
 	  case "codePy":
         el.setAttribute("width", Math.abs(self.ellps[0].x - self.ellps[2].x));
         el.setAttribute("height", Math.abs(self.ellps[0].y - self.ellps[3].y));

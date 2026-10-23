@@ -31,7 +31,6 @@ function elemNotByDown() {
 	case 'analysis':
 	case 'oscilloscope':
     case 'codeHTML':
-    case 'codeSpice':
 	case 'codePy':
 	      drawing.shapes.addElement(drawing.shapes.design.name);
 	      drawing.shapes.design.start = true;
@@ -213,7 +212,6 @@ function designMouseMouve(self, pos) {
       case 'oscilloscope':
       case 'codeHTML':
       case 'analysis':
-      case 'codeSpice':
 	  case 'codePy':
 	       var x=pos.x;
 		   var y=pos.y;

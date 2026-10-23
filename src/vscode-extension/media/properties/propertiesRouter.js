@@ -65,11 +65,6 @@ function showDescriptionElemSelectInPanel(select) {
 	 	   codeHTMLSelect();
 	 	   break;
 
-			case 'codeSpice':
-				codeSpiceSelect();
-				break;
-
-
 			case "polyline":
                 polylineSelect();
                 break;
@@ -182,10 +177,6 @@ function changeSelect() {
 	case 'codeHTML':
 	 	  modifiedcodeHTML();
 	 	  break;
-
-	case 'codeSpice':
-		   modifiedcodeSpice(pos,e);
-		   break;
 
     case 'text':
 	case '.param':

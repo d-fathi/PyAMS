@@ -600,7 +600,6 @@ webviewPanel.onDidDispose(() => {
         const sh18Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'plots.js'));
         const sh19Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'codePy.js'));
         const sh20Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'codeHtml.js'));
-        const sh21Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'codeSpice.js'));
         const sh22Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'port.js'));
         const sh23Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'vbar.js'));
         const selectElementsJs= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'selectElements.js'));
@@ -674,7 +673,6 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${sh18Js}"></script>
     <script nonce="${nonce}" src="${sh19Js}"></script>
     <script nonce="${nonce}" src="${sh20Js}"></script>
-    <script nonce="${nonce}" src="${sh21Js}"></script>
     <script nonce="${nonce}" src="${sh22Js}"></script>
     <script nonce="${nonce}" src="${sh23Js}"></script>
     <script nonce="${nonce}" src="${propertiesPanelJs}"></script>

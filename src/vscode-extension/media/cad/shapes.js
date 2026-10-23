@@ -26,7 +26,6 @@ function evtDown(self) {
 	    case "oscilloscope":
 	    case "codePy":
         case "codeHTML":
-        case "codeSpice":
       	case "analysis":
       	case "ioparam":
               self.offset.x -= parseInt(self.selectedElement.getAttribute("x"));
@@ -111,7 +110,6 @@ function evtMouve(self) {
 	case "analysis":
         appDscription = false;
     case "codeHTML":
-    case "codeSpice":
 	case "codePy":
         self.selectedElement.setAttribute("x", x);
         self.selectedElement.setAttribute("y", y);
@@ -859,12 +857,7 @@ function fshapes(svg, setDrawing, width, height) {
             }
         }
 
-      var els = document.getElementsByClassName("codeSpice");
-        for (var i = els.length-1; i >=0 ; i--)
-                if (pointInRect(els[i], self.offset)) {
-                      self.setCritElem = els[i];
-                      return true;
-                }
+
 
         if (evtTarget.classList.contains('draggable')) {
 
