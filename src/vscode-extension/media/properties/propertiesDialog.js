@@ -691,7 +691,7 @@ drawing.getListParameter(code)
                     mtable.select.setAttribute('dir', 'library');
                     mtable.select.setAttribute('local', 'true');
                     mtable.select.textContent = result.model;
-                    setModelSpice(result, 'model');
+                   
                     modelSelected();
                 },
                 function () {
@@ -712,7 +712,7 @@ drawing.getListParameter(code)
                     drawing.symbol.model.name = result.model;
                     drawing.symbol.model.dir = 'library';
                     drawing.symbol.model.local = true;
-                    setModelSpice(result, 'symbol');
+                 
                     pageSelect();
                 },
                 function () {
@@ -796,7 +796,7 @@ drawing.getListParameter(code)
 
         case 'openNetlistEditor':
             {
-                var data=getNetlistSpice();
+               /* var data=getNetlistSpice();
                 getCircuit();
                 console.log(data);
                 drawing.getSpiceNetlistEditor(
@@ -807,7 +807,7 @@ drawing.getListParameter(code)
                     function () {
                         console.log('Canceled');
                     }
-                );
+                );*/
             }
             break;
 
@@ -815,13 +815,13 @@ drawing.getListParameter(code)
 
         case 'OPCheck':
             {
-                var spiceCode=getNetlistSpice();
+               /* var spiceCode=getNetlistSpice();
                 spiceCode+='\n\n* Analysis\n\n.op\n\n* Control\n\n.control\nrun\n\nprint all\n\n\n.endc\n\n.end';
                     drawing.runOpCheck(spiceCode).then(result => {
                         console.log('OP check result:', result);
                     }).catch(err => {
                         console.error('OP check failed:', err);
-                    })
+                    })*/
             }
 
 

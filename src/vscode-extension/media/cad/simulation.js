@@ -16,35 +16,7 @@ var libarayPath='';
  // op Simulation
  function opAnalysis(){
 
-   codeSpice= getSourceSpiceForOp();
 
-   drawing.execOp(codeSpice.code).then(result => {
-    console.log('Exit code:', result.exitCode);
-    console.log('Results:', result.results.results);
-    console.log('Raw:', result.rawOutput);
-
-     for(var i=0; i<codeSpice.outputs.length; i++){
-        var elem = codeSpice.outputs[i].elem;
-        var str = elem.textContent.split('=')[0];
-        elem.childNodes[2].textContent=str+'='+result.results.results[i].formatted+codeSpice.outputs[i].unit;
-        structProbe(elem);
-      }
-
-      var list=codeSpice.list;
-        for(var i=0; i<list.length; i++){
-        var elem = list[i].elem;
-        if(!list[i].used){
-        var str = elem.textContent.split('=')[0];
-        elem.childNodes[2].textContent=str+'=0.0 V';
-        structProbe(elem)
-        }
-      }
-    
-    drawing.saveData('Op analysis');
-}).catch(err => {
-   // console.error('Simulation failed:', err);
-   showError('Simulation failed', err);
-});
 
  }
 
@@ -53,21 +25,7 @@ var libarayPath='';
  // analysis simulation
 
 async function runSimulation() {
-  /*  const spice = generateSpiceNetlist();
-    console.log('Generated SPICE netlist:', spice.code);
-    
-    try {
-        const results = await drawing.runAnalysis(spice.code);
-        console.log('Simulation results:', results); 
-        dataPlot(results.results.results,spice);
-        
-        if (results && results.success) {
-            console.log('stdout:', results.stdout);
-            console.log('parsed results:', results.results);
-        }
-    } catch (err) {
-        console.error('Simulation failed:', err);
-    }*/
+
 
 code=`
 from pyams.lib import circuit

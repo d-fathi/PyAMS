@@ -500,22 +500,7 @@ function fshapes(svg, setDrawing, width, height) {
 		      	modifedSizeDivByoscilloscope(newElement);
             break;
 
-        case "codeSpice":
-            self.px = self.pr;
-            var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-            newElement.setAttribute('transform', "translate(10,10)");
-            newElement.setAttribute("x", 10);
-            newElement.setAttribute("y", 10);
-            newElement.setAttribute("title", "codeSpice");
-            newElement.setAttribute("width", 200);
-            newElement.setAttribute("height", 100);
-            newElement.setAttribute("class", "codeSpice");
-            newElement.setAttribute("name", "codeSpice");
-            newElement.setAttribute("rot", "0");
-            addCodeSpice(newElement);
-            svg.appendChild(newElement);
-            modifedSizeCodeSpice(newElement);
-            break;
+
 
         case "codeHTML":
             self.px = self.pr;

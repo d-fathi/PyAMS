@@ -50,7 +50,6 @@ function pageSelect() {
             { label: "File name", type: "text", value: drawing.symbol.name, readonly: true},
             { label: "Reference", type: "text", value: drawing.symbol.reference },  //
             { label: "Device.type", type: "dropdown", value: drawing.symbol.device.type, options: ['PyAMS'] }
-            //{ label: "Device.name", type: "dropdown", value: drawing.symbol.device.name, options: spiceElements }
         );
 
            // defaultData.sections[0].rows.push({ label: "Model.name", type: "text", value: drawing.symbol.model.name, readonly: true });
@@ -552,7 +551,6 @@ function modelModified() {
     if(mtable.select.getAttribute("modelname") !=propertiesData.sections[0].rows[5].value){
         mtable.select.setAttribute("modelname",propertiesData.sections[0].rows[5].value);
         var result={file: mtable.select.getAttribute('modelfile'), model: mtable.select.getAttribute('modelname')};
-         setModelSpice(result, 'model');
     }
 
    // if(controlRefPart(mtable.select))

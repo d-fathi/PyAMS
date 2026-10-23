@@ -163,7 +163,6 @@ function setPosSize(self) {
 		    modifedSizeAnalysis(self.setElement);
 		    modifedSizeCodePy(self.setElement);
 		    modifedSizeCodeHtml(self.setElement);
-            modifedSizeCodeSpice(self.setElement);
 		    findPosProb();
         break;
 
