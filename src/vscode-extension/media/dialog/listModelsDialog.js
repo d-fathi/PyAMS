@@ -229,19 +229,34 @@ function fListModelsDialog(self) {
 }
 #listModelsEditor {
     flex: 1;
+    margin: 0;
     border: none;
     outline: none;
     padding: 10px 12px;
     font-family: 'Consolas', 'Courier New', monospace;
     font-size: 13px;
     line-height: 22px;
-    resize: none;
     background: var(--vscode-editor-background, #fff);
     color: var(--vscode-editor-foreground, #333);
     white-space: pre;
     overflow: auto;
     tab-size: 4;
+    --py-kw: #569cd6; --py-str: #ce9178; --py-com: #6a9955; --py-num: #b5cea8;
+    --py-fn: #dcdcaa; --py-cls: #4ec9b0; --py-bi: #4fc1ff; --py-self: #9cdcfe; --py-dec: #c586c0;
 }
+body.vscode-light #listModelsEditor, body.vscode-high-contrast-light #listModelsEditor {
+    --py-kw: #0000ff; --py-str: #a31515; --py-com: #008000; --py-num: #098658;
+    --py-fn: #795e26; --py-cls: #267f99; --py-bi: #0070c1; --py-self: #001080; --py-dec: #af00db;
+}
+#listModelsEditor .py-kw  { color: var(--py-kw); }
+#listModelsEditor .py-str { color: var(--py-str); }
+#listModelsEditor .py-com { color: var(--py-com); font-style: italic; }
+#listModelsEditor .py-num { color: var(--py-num); }
+#listModelsEditor .py-fn  { color: var(--py-fn); }
+#listModelsEditor .py-cls { color: var(--py-cls); }
+#listModelsEditor .py-bi  { color: var(--py-bi); }
+#listModelsEditor .py-self{ color: var(--py-self); }
+#listModelsEditor .py-dec { color: var(--py-dec); }
 .lmd-buttons-bar {
     display: flex;
     justify-content: flex-end;
@@ -296,20 +311,20 @@ function fListModelsDialog(self) {
                 <button id="listModelsDialogClose" title="Close">×</button>
             </div>
             <div class="lmd-lib-bar">
-                <label>Library File:</label>
+                <label>Model File:</label>
                 <select id="listModelsLibSelect">
-                    <option value="">-- Select a library file --</option>
+                    <option value="">-- Select a model file --</option>
                 </select>
                 <select id="listModelsSelect" title="Model class"></select>
             </div>
             <div class="lmd-tabs">
-                <button class="lmd-tab active" id="lmd-tab-raw">Raw</button>
+                <button class="lmd-tab active" id="lmd-tab-raw">Model description:</button>
             </div>
             <div class="lmd-editor-container">
                 <!-- Raw View (Textarea) -->
                 <div id="lmd-raw-view">
                     <div class="lmd-line-numbers" id="listModelsLineNumbers"></div>
-                    <textarea class="editor-textarea" id="listModelsEditor" spellcheck="false" readonly></textarea>
+                    <pre id="listModelsEditor"></pre>
                 </div>
             </div>
             <div class="lmd-buttons-bar">
@@ -408,12 +423,12 @@ function fListModelsDialog(self) {
                 return;
             }
         }
-        selfDialog.showRaw('# Select a library file to view the model');
+        selfDialog.showRaw('# Select a model file to view its description');
     };
 
     this.populateLibSelect = function() {
         if (!libSelect) return;
-        libSelect.innerHTML = '<option value="">-- Select a library file --</option>';
+        libSelect.innerHTML = '<option value="">-- Select a model file --</option>';
         selfDialog.libFiles.forEach(function(file, index) {
             var opt = document.createElement('option');
             opt.value = index;
@@ -466,7 +481,7 @@ function fListModelsDialog(self) {
             selfDialog.selectedFilePath = '';
             selfDialog.selectedModel = '';
             selfDialog.fillClassSelect([]);
-            selfDialog.showRaw('# Select a library file to view the model');
+            selfDialog.showRaw('# Select a model file to view its description');
             return;
         }
         selfDialog.selectFile(index);
@@ -482,10 +497,46 @@ function fListModelsDialog(self) {
         }
     };
 
-    // Raw page: show the Python source of the selected PyAMS model
+
+    // ---- Python syntax highlighting -------------------------------------------------
+    var PY_KEYWORDS = /^(?:False|None|True|and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|nonlocal|not|or|pass|raise|return|try|while|with|yield)$/;
+    var PY_BUILTINS = /^(?:abs|all|any|bool|dict|enumerate|float|int|isinstance|len|list|map|max|min|pow|print|range|round|set|str|sum|super|tuple|type|zip|exp|log|sqrt|sin|cos|tan|tanh|sinh|cosh|atan|pi|signal|param|voltage|current|model|ddt|idt|time)$/;
+    var PY_TOKEN = /("""[\s\S]*?(?:"""|$)|\'\'\'[\s\S]*?(?:\'\'\'|$))|(#[^\n]*)|((?:[rRbBuUfF]{1,2})?(?:"(?:\\.|[^"\\\n])*"?|\'(?:\\.|[^\'\\\n])*\'?))|(@[A-Za-z_][\w.]*)|(\b(?:0[xX][0-9a-fA-F_]+|\d[\d_]*\.?\d*(?:[eE][+-]?\d+)?j?|\.\d+(?:[eE][+-]?\d+)?)\b)|([A-Za-z_]\w*)/g;
+
+    function escapeHtml(t) {
+        return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    this.highlightPython = function(code) {
+        var out = '', last = 0, prevWord = '', m;
+        PY_TOKEN.lastIndex = 0;
+        while ((m = PY_TOKEN.exec(code)) !== null) {
+            out += escapeHtml(code.slice(last, m.index));
+            var tok = m[0], cls = '';
+            if (m[1] || m[3]) cls = 'py-str';
+            else if (m[2]) cls = 'py-com';
+            else if (m[4]) cls = 'py-dec';
+            else if (m[5]) cls = 'py-num';
+            else if (m[6]) {
+                if (prevWord === 'def') cls = 'py-fn';
+                else if (prevWord === 'class') cls = 'py-cls';
+                else if (PY_KEYWORDS.test(tok)) cls = 'py-kw';
+                else if (tok === 'self' || tok === 'cls') cls = 'py-self';
+                else if (PY_BUILTINS.test(tok)) cls = 'py-bi';
+                else if (/^[A-Z]/.test(tok) && code.charAt(PY_TOKEN.lastIndex) === '(') cls = 'py-cls';
+                prevWord = tok;
+            }
+            if (!m[6]) prevWord = '';
+            out += cls ? '<span class="' + cls + '">' + escapeHtml(tok) + '</span>' : escapeHtml(tok);
+            last = m.index + tok.length;
+        }
+        return out + escapeHtml(code.slice(last));
+    };
+
+    // Model description page: show the Python source of the selected PyAMS model
     this.showRaw = function(text) {
         selfDialog.rawContent = text || '';
-        if (editor) editor.value = selfDialog.rawContent;
+        if (editor) editor.innerHTML = selfDialog.highlightPython(selfDialog.rawContent);
         selfDialog.updateLineNumbers();
     };
 
@@ -496,7 +547,7 @@ function fListModelsDialog(self) {
 
     this.updateLineNumbers = function() {
         if (!editor || !lineNumbers) return;
-        var lines = editor.value.split('\n');
+        var lines = selfDialog.rawContent.split('\n');
         lineNumbers.innerHTML = '';
         lines.forEach(function(_, i) {
             var span = document.createElement('span');
@@ -509,7 +560,7 @@ function fListModelsDialog(self) {
     this.submitResult = function() {
         var chosenModel = selfDialog.selectedModel;
         if (!chosenModel || !selfDialog.selectedFileName) {
-            alert('Please select a library file.');
+            alert('Please select a model file.');
             return null;
         }
         var result = {
