@@ -740,3 +740,43 @@ function toVal(t) {
    return [false]
  
  }
+
+
+//**************Remove stale parameters ****************/
+// "p=100  Va=10V", "p" -> "Va=10V"
+function removeParamFromList(strListParams, name) {
+  var items = [];
+  var re = /([^\s=]+)\s*=\s*([^\s]+)/g, m;
+  while ((m = re.exec(strListParams || "")) !== null) {
+    if (m[1] !== name) items.push(m[1] + "=" + m[2]);
+  }
+  return items.join("  ");
+}
+
+// Like drawing.getListParameter(getCode()), but when the model reports
+// "has no parameter 'x'" (the text 'x' was deleted from the schematic but is still
+// remembered in setParams) 'x' is dropped through removeName(x) and the call is repeated.
+function getListParameterClean(getCode, removeName) {
+  var tries = 0;
+  function run() {
+    return drawing.getListParameter(getCode()).then(function (data) {
+      var m = data && data.error ? /has no parameter '([^']+)'/.exec(String(data.error)) : null;
+      if (m && tries++ < 30) {
+        removeName(m[1]);
+        return run();
+      }
+      return data;
+    });
+  }
+  return run();
+}
+
+function removeParamSym(name) {
+  drawing.symbol.model.setParams = removeParamFromList(drawing.symbol.model.setParams, name);
+}
+
+function removeParamPart(part, name) {
+  var sym = JSON.parse(part.firstChild.getAttribute("symbol"));
+  sym.model.setParams = removeParamFromList(sym.model.setParams, name);
+  part.firstChild.setAttribute("symbol", JSON.stringify(sym));
+}
