@@ -846,35 +846,37 @@ drawing.getListParameter(code)
 
         case 'addOutputY': {
    
-            try {
-                if (!signalDialog) signalDialog = new fSignalDialog();
-                var analy=JSON.parse(mtable.select.getAttribute("description"));
-                const result = getElementListSpice();
-                signalDialog.initData(result, 'Non', analy.type=='AC Analysis');
-                signalDialog.onSubmit = function (result) {
-                    ioSetPosProbe('Y',result.selectedSignal,result.selectedFunction)
-                };
-                signalDialog.show();
-            } catch (error) {
-                console.log('Error', error.message);
-            }
+            var code=generateCodePyofCircuit();
+            drawing.getListParameter(code).then(function (data) {
+                 drawing.getSignalDialog(data,null, false,
+                    function (result) {
+                        ioSetPosProbe('Y',result.selectedSignal,null);
+               // console.log(result.selectedSignal,   // 
+                //            result.selectedKind);    // "voltage" أو "current"
+                },
+                function () { console.log('Cancelled'); }
+            ); })
+            .catch(function (err) {
+                console.error('getListParameter failed:', err);
+            });
             break;
         }
 
         case 'addOutputX': {
    
-            try {
-                if (!signalDialog) signalDialog = new fSignalDialog();
-                var analy=JSON.parse(mtable.select.getAttribute("description"));
-                const result = getElementListSpice();
-                signalDialog.initData(result, 'Non', analy.type=='AC Analysis');
-                signalDialog.onSubmit = function (result) {
-                    ioSetPosProbe('X',result.selectedSignal,result.selectedFunction)
-                };
-                signalDialog.show();
-            } catch (error) {
-                console.log('Error', error.message);
-            }
+            var code=generateCodePyofCircuit();
+            drawing.getListParameter(code).then(function (data) {
+                 drawing.getSignalDialog(data,null, false,
+                    function (result) {
+                        ioSetPosProbe('X',result.selectedSignal,null);
+               // console.log(result.selectedSignal,   // 
+                //            result.selectedKind);    // "voltage" أو "current"
+                },
+                function () { console.log('Cancelled'); }
+            ); })
+            .catch(function (err) {
+                console.error('getListParameter failed:', err);
+            });
             break;
         }
 
@@ -888,8 +890,7 @@ drawing.getListParameter(code)
 function ioSetPosProbe(pos,name,func) {
 
     var nodes=getNetRefs();
-    var probe=parseSignal(name, nodes);
-
+    var probe=name;
     if(mtable.type=='analysis'){
       var analy=JSON.parse(mtable.select.getAttribute("description"));
       if(analy.type=='DC Sweep'){

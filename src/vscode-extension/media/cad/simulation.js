@@ -25,7 +25,7 @@ var libarayPath='';
  // analysis simulation
 
 async function runSimulation() {
-
+/*
 
 code=`
 from pyams.lib import circuit
@@ -64,7 +64,9 @@ oupouts:{
 	color:["#00ff00","#ff0000","#0000ff","#ff00ff"],
 	}
 }
-
+*/
+var code=generateCodePyofCircuit();
+var analysis= getAnalysis();
 const results = await drawing.runPyAMSAnalysis(code, analysis);
 var elem=drawing.resize.setElement.lastChild.firstChild;
 drawing.plotPyAMSResults(elem, results); 

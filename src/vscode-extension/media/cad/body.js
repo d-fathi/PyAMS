@@ -868,7 +868,7 @@ drawing.getListParameter(code)
     .catch(function (err) { console.error('getListParameter failed:', err); });
 
  */
-var code=`
+/*var code=`
 
 
 from pyams.models import BJT
@@ -888,7 +888,7 @@ drawing.getListParameter(code)
     })
     .catch(function (err) {
         console.error('getListParameter failed:', err);
-    });
+    });*/
 /*
 drawing.getListParameter(code)
     .then(function (result) {
@@ -899,7 +899,7 @@ drawing.getListParameter(code)
         console.error('getListParameter failed:', err);
     });
 */
-  	/*    var s = document.querySelectorAll('[name="net"]');
+  	   var s = document.querySelectorAll('[name="net"]');
         for (var i = 0; i < s.length; i++) 
         {
             s[i].style.stroke = "#630811";
@@ -926,5 +926,5 @@ drawing.getListParameter(code)
 
         var s = document.querySelectorAll('[name="rect"]');
         for (var i = 0; i < s.length; i++) 
-            s[i].style.stroke = "#2196f3";*/
+            s[i].style.stroke = "#2196f3";
 }

@@ -370,7 +370,7 @@ function generateCodePyofCircuit(){
     //get lib path---------------------------------
     
     let pythonScript ='';
-    pythonScript += elemList.map(elem =>`from pyams.lib import ${elem.model};`).join("\n") + "\n";
+    pythonScript += elemList.map(elem =>`from pyams.models import ${elem.model};`).join("\n") + "\n";
     
     //get Elements---------------------------------------------------------------------
     pythonScript += elemList.map(elem => 

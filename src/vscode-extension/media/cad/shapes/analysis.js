@@ -279,5 +279,36 @@ function updateAnalysis() {
   }
 }
 
+function getAnalysis() {
+  	var elem=drawing.resize.setElement;
+    var analy=JSON.parse(elem.getAttribute("description"));
+    
+
+      if(analy.type=='DC Sweep'){
+         var dc=analy.dcsweep;
+         var r=dc.yAxe;
+	       var xa=dc.xAxe;
+         var layout=dc.layout;
+         var xNameAnalysis=analy.dcsweep.param
+       } else if(analy.type=='Time Domain') {
+         var tr=analy.time;
+         var analysis={type:analy.type,start:tr.start,step:tr.step,stop:tr.stop,oupouts:{names:[],color:[]},options: {"uic": true}};
+         var r=tr.yAxe;
+         for(var i=0;i<r.length;i++){
+          analysis.oupouts.names.push(r[i].name);
+          analysis.oupouts.color.push(r[i].color);
+         }
+         return analysis;
+      } else if(analy.type=='AC Analysis') {
+         var ac=analy.ac;
+         var r=ac.yAxe;
+         var xa=ac.xAxe;  
+         var layout=ac.layout;
+         var xNameAnalysis='Frequency[Hz]'
+
+       }
+
+}
+
 
 
