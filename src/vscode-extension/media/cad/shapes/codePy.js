@@ -60,7 +60,7 @@ var AUTO_UNITS = [
 ];
 
 
-var SUFFIX_RE = /(Ohm|ohm|\u03A9|\u2126|Hz|H|F|A|V|S|W)$/;
+var SUFFIX_RE = /(Seconds|seconds|Second|second|Sec|sec|Ohm|ohm|\u03A9|\u2126|Hz|H|F|A|V|S|W|s)$/;
 
 function parseValue(v) {
   v = String(v).trim();
@@ -69,6 +69,8 @@ function parseValue(v) {
   if (sm) {
     suffix = sm[1];
     v = v.slice(0, v.length - suffix.length).trim();
+    // seconds: "Sec" / "sec" / "seconds" are all written "s" on the schematic
+    if (/^sec/i.test(suffix)) suffix = "s";
   }
   var r = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*([a-zA-Z\u00B5\u03BC]*)$/.exec(v);
   if (!r) return null;
