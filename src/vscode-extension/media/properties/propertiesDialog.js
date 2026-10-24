@@ -724,6 +724,7 @@ drawing.getListParameter(code)
 
         case 'openEditorParamsSym': {
             var code=getCodePyOfSym();
+            console.log('Code for parameters dialog:', code);
             drawing.getListParameter(code).then(function (data) {
                 drawing.getParametersDialog(data,
                     function (result) {                 

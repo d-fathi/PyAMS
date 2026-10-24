@@ -288,7 +288,12 @@ tr.changed .lpd-reset { visibility: visible; }
         var order = [];
         selfDialog.rows.forEach(function(row) {
             var v = rowValue(row);
-            if (isNaN(v) || !isChanged(row, v)) return;
+            if (isNaN(v)) return;
+            // keep values that differ from the default, and also values that were edited back
+            // to the default, so the schematic text is refreshed (e.g. I0=3A -> I0=0A)
+            var initial = parseValue(fmt(row.param.value), row.unit);
+            var edited = !isNaN(initial) && !sameValue(v, initial);
+            if (!isChanged(row, v) && !edited) return;
             var name = row.model.name;
             if (!byModel[name]) {
                 byModel[name] = { name: name, 'class': row.model['class'], setParams: '', changed: [] };
