@@ -70,6 +70,9 @@ var analysis= getAnalysis();
 const results = await drawing.runPyAMSAnalysis(code, analysis);
 var elem=drawing.resize.setElement.lastChild.firstChild;
 drawing.plotPyAMSResults(elem, results); 
+ modifedSizeAnalysis(drawing.resize.setElement);
+ plotsSaveDataLayoutInDiv();
+ drawing.saveData(analy.type+' analysis');
 }
 
 
