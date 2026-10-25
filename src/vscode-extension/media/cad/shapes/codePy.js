@@ -60,7 +60,7 @@ var AUTO_UNITS = [
 ];
 
 
-var SUFFIX_RE = /(Seconds|seconds|Second|second|Sec|sec|Ohm|ohm|\u03A9|\u2126|Hz|H|F|A|V|S|W|s)$/;
+var SUFFIX_RE = /([A-Za-z]\/[A-Za-z]|Seconds|seconds|Second|second|Sec|sec|Ohm|ohm|\u03A9|\u2126|\u00B0|deg|Hz|H|F|A|V|S|W|s)$/;
 
 function parseValue(v) {
   v = String(v).trim();
@@ -71,6 +71,8 @@ function parseValue(v) {
     v = v.slice(0, v.length - suffix.length).trim();
     // seconds: "Sec" / "sec" / "seconds" are all written "s" on the schematic
     if (/^sec/i.test(suffix)) suffix = "s";
+    // ratio units (V/V, A/A, V/A ...) : the gain is shown as a plain number
+    if (suffix.indexOf("/") >= 0) suffix = "";
   }
   var r = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)\s*([a-zA-Z\u00B5\u03BC]*)$/.exec(v);
   if (!r) return null;

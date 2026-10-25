@@ -768,9 +768,9 @@ self.activeBtnById = function(id){
 
 document.getElementById("btnBus").style.display = "none";
 
-    // --- Future Application Buttons Logic ---'btnAnalysis',
+    // --- Future Application Buttons Logic ---'btnAnalysis',, 'btnHTML'
     const futureButtons = [
-          'btnRunAnalysis','btnCommand', 'btnHTML','btnSubBlock',
+          'btnRunAnalysis','btnCommand','btnSubBlock',
           'btnSendToBack','btnBringForward','btnSendBackward'
     ];
     
