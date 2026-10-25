@@ -1046,13 +1046,13 @@ function analysisSelect() {
 
     } else if(analy.type=='Time Domain') {
         var tr=analy.time
-        if(!tr.uic)
-            tr.uic='true';
+        if(!tr.options) tr.options={};
+        
         defaultData.sections.push({ title: "Time Domain Properties", collapsed: false, showReset: true, rows: [] });
         defaultData.sections[1].rows.push( { label: 'Start', type: "text", value: tr.start });
         defaultData.sections[1].rows.push( { label: 'Step', type: "text", value: tr.step });
         defaultData.sections[1].rows.push( { label: 'Stop', type: "text", value: tr.stop });
-        defaultData.sections[1].rows.push( { label: 'UIC', type: "dropdown", value: tr.uic, options: ['false', 'true'] });
+        defaultData.sections[1].rows.push( { label: 'Options', type: "Button", value: 'Edit', setClick: 'editTimeOptions' });
 
         var r=tr.yAxe;
         var x=tr.xAxe;

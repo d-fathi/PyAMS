@@ -605,6 +605,30 @@ self.getParametersDialog = function(data, onSubmit, onCancel) {
     listParametersDialog.show();
 };
 
+//*************Options dialog (simulation options: reltol, vntol, ... order)*******************//
+// current: options already set, e.g. { uic: true }.
+// Resolves with { options: [ { name, type, default, value, description } ] } for getOptionsDialog.
+self.getOptions = function(current) {
+    current = current || {};
+    return Promise.resolve({
+        options: PYAMS_OPTIONS.map(function(d) {
+            var o = {};
+            for (var k in d) o[k] = d[k];
+            o.value = Object.prototype.hasOwnProperty.call(current, d.name) ? current[d.name] : d['default'];
+            return o;
+        })
+    });
+};
+// onSubmit receives { options: {only the values that differ from their default}, python: "uic=True, lte=0.001" }.
+self.getOptionsDialog = function(data, onSubmit, onCancel) {
+    if (typeof optionsDialog === 'undefined' || !optionsDialog) {
+        optionsDialog = new fOptionsDialog(self);
+    }
+    optionsDialog.setCallbacks(onSubmit, onCancel);
+    optionsDialog.initData(data);
+    optionsDialog.show();
+};
+
 //*************Create properties and symbols panel*******************//
 propertiesPanel = new fpropertiesPanel(self);
 symbolsPanel = new fsymbolsPanel(self);

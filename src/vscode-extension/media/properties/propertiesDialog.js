@@ -881,10 +881,32 @@ drawing.getListParameter(code)
             break;
         }
 
+        case 'editTimeOptions': 
+            var analy=JSON.parse(mtable.select.getAttribute("description"));
+            if(analy.type=='Time Domain') {
+                var tr=analy.time;
+                var options=tr.options;
+                drawing.getOptions(options).then(function (data) {
+                    drawing.getOptionsDialog(data,function (result) {
+                        options = result.options;  
+                        console.log('Updated options:', options); 
+                        tr.options = options;
+                        mtable.select.setAttribute("description", JSON.stringify(analy));
+                    },
+                    function () { console.log('Cancelled'); });
+                });
+          }
+            break;
+    
+
         case 'runAnalysis':
             runSimulation();
             break;  
     }
+
+
+    
+
 }
 
 

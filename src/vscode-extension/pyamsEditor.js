@@ -612,6 +612,7 @@ webviewPanel.onDidDispose(() => {
         const elementDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'elementDialog.js'));
         const listModelsDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'listModelsDialog.js'));
         const listParametersDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'listParametersDialog.js'));
+        const optionsDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'optionsDialog.js'));
         const codeEditorDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'codeEditorDialog.js'));
         const spiceNetlistDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'spiceNetlistDialog.js'));
         const processAnalysisDialogJs = webview.asWebviewUri(vscode.Uri.joinPath(dialogPath, 'processAnalysisDialog.js'));
@@ -685,6 +686,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${elementDialogJs}"></script>
     <script nonce="${nonce}" src="${listModelsDialogJs}"></script>
     <script nonce="${nonce}" src="${listParametersDialogJs}"></script>
+    <script nonce="${nonce}" src="${optionsDialogJs}"></script>
     <script nonce="${nonce}" src="${codeEditorDialogJs}"></script>
     <script nonce="${nonce}" src="${spiceNetlistDialogJs}"></script>
     <script nonce="${nonce}" src="${processAnalysisDialogJs}"></script>
