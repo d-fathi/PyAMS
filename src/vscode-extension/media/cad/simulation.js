@@ -16,8 +16,6 @@ var libarayPath='';
  // op Simulation
  function opAnalysis(){
 
-
-
  }
 
 

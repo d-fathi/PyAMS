@@ -731,37 +731,20 @@ function controlRefSymbol() {
     var result=false;
     if(drawing.pageType=='sym'){
     var s = document.querySelector('[name="ref"]');
-   
-    if(drawing.symbol.reference.length>0)
-    {
-       if(drawing.symbol.reference[0] != Ref[drawing.symbol.device.name]) 
-       {
-        drawing.symbol.reference = Ref[drawing.symbol.device.name] + drawing.symbol.reference.substring(1);
-        result=true;
-       }
-    } else {
-            drawing.symbol.reference = Ref[drawing.symbol.device.name];
-            result=true;
+    s.textContent = drawing.symbol.reference+ '?';
     }
-
-    if(s)      
-        s.textContent = drawing.symbol.reference+ '?';
-  }
-  return result;
+    return true;
 }
 
 function controlPartRef(part) {
 
-   var sym=JSON.parse(part.firstChild.getAttribute("symbol"));
-    var modelname=sym.device.name;
+    var sym=JSON.parse(part.firstChild.getAttribute("symbol"));
     var partRef = part.getAttribute('sref');
   
 
-        if( partRef.length>1)
+        if( partRef.length>=1)
         {
-            if(partRef[0] != Ref[modelname]) 
-              {
-               partRef = Ref[modelname] + partRef.substring(1); 
+ 
                var collection = part.children;
                for (var i = 0; i < collection.length; i++)
                {
@@ -772,7 +755,7 @@ function controlPartRef(part) {
                 }
                 part.setAttribute('sref', partRef);
                return true;
-              }
+              
         } else {
           
             var parts = document.getElementsByClassName('part');
@@ -798,27 +781,15 @@ function controlPartRef(part) {
             return true;
     }
     
-    var collection = part.children;
-               for (var i = 0; i < collection.length; i++)
-               {
-                   console.log(collection[i].getAttribute("name"));
-                   if (collection[i].getAttribute("name") == "ref") {
-                       collection[i].textContent = partRef;
-                   }
-                }
 
-    return false;
 }
 
 function controlRefPart(refElem) {
      
    
      if(drawing.pageType=='sym') {
-   
-
-         if(refElem.textContent[0] != Ref[drawing.symbol.device.name]) 
-           refElem.textContent = Ref[drawing.symbol.device.name] + refElem.textContent.substring(1);
            refElem.textContent = refElem.textContent.replace('?', '');
+           refElem.textContent = refElem.textContent.replace(' ', '');
            drawing.symbol.reference = refElem.textContent;
            refElem.textContent = drawing.symbol.reference + '?';
     
@@ -829,15 +800,8 @@ function controlRefPart(refElem) {
         var sym=JSON.parse(parElem.firstChild.getAttribute("symbol"));
         var modelname=sym.device.name;
 
-        if( ref.length>1)
-        {
-            if(ref[0] != Ref[modelname]) 
-              {
-               ref = Ref[modelname] + ref.substring(1); 
-               refElem.textContent = ref;
-              }
-        } else {
-            ref = Ref[modelname];
+        if( ref.length==0)
+             {
             var parts = document.getElementsByClassName('part');
             var x = sym.reference;
             var n = 1;
