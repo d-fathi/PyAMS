@@ -9,7 +9,14 @@ Usage:  python runAnalysis.py <extension_dir> <code_file> <analysis_json_file>
              of the circuit (the variable name is the element name).
 <analysis>   {"type": "Time Domain", "start": "0s", "step": "0.1us", "stop": "5ms",
               "outputs": {"names": ["Out1", "C1.I"], "color": ["#00ff00", "#ff0000"]},
-              "options": {"uic": true}}                       ("oupouts" is accepted too)
+              "options": {"uic": true, "func": "db & phase", "second_sweep": true},
+              "sweep": {"param": "Rc1.R", "values": "0.1m,5m,20m"},
+              "xAxe": "Out1"}                                 ("oupouts" is accepted too)
+             options: the circuit options (reltol, vntol, abstol, gmin, maxiter, vlimit, uic, adaptive,
+                      lte, lte_abs, max_step, order); the other keys (progress, func, second_sweep, ...)
+                      are not circuit options and are ignored (func is returned to the caller).
+             sweep:   parametric sweep, the analysis is repeated for every value ("0.1m,5m,20m" or a list).
+             xAxe:    a node / "Element.signal" used as the x axis instead of time (Time Domain, DC).
              type: "Time Domain" | "AC" | "DC" (DC sweep when "param": "Element.Param" is given).
              Numbers may carry units / SI prefixes: "0.1us", "5ms", "1k", "2.2V".
 
@@ -24,6 +31,7 @@ import contextlib
 import io
 import json
 import math
+import re
 import sys
 import traceback
 
@@ -42,6 +50,18 @@ def finite(values):
         v = float(v)
         out.append(v if math.isfinite(v) else None)
     return out
+
+
+CIRCUIT_OPTIONS = ('reltol', 'vntol', 'abstol', 'gmin', 'maxiter', 'vlimit', 'uic', 'adaptive',
+                   'lte', 'lte_abs', 'max_step', 'order', 'scale')
+
+
+def split_values(text):
+    """"0.1m,5m,20m" / "[0.1m, 5m]" / ["1k", 2] -> list of strings or numbers."""
+    if isinstance(text, (list, tuple)):
+        return list(text)
+    t = str(text or '').strip().strip('[]()')
+    return [v for v in re.split(r'[\s,;]+', t) if v]
 
 
 def number(text, unit, parse):
@@ -101,19 +121,43 @@ def main(argv):
         cir.addElements(elements)
         if names:
             cir.setOutPuts(*names)
-        options = dict(analysis.get('options') or {})
+        user_opts = dict(analysis.get('options') or {})
+        options = {k: v for k, v in user_opts.items() if k in CIRCUIT_OPTIONS and v is not None}
+        ignored = [k for k in user_opts if k not in CIRCUIT_OPTIONS
+                   and k not in ('progress', 'func', 'second_sweep')]
+        if ignored:
+            emit(event='log', message='Options not used by the circuit: ' + ', '.join(ignored),
+                 level='info')
+        func = user_opts.get('func')
+
+        # x axis taken from a signal instead of time (Time Domain / DC)
+        xaxe = analysis.get('xAxe')
+        xaxe = str(xaxe) if xaxe and str(xaxe) not in ('None', 'Non') else None
+        if xaxe and names and xaxe not in names:
+            cir.setOutPuts(*(names + [xaxe]))
+
+        # parametric sweep: values "0.1m,5m,20m" of the parameter "Element.Param"
+        sweep = analysis.get('sweep') or {}
+        sweep_param = str(sweep.get('param') or '').strip()
+        sweep_texts = split_values(sweep.get('values')) if sweep_param else []
+        n_runs = max(1, len(sweep_texts))
+        state = {'run': 0, 'last': 0.0}
+
+        def progress(fraction, t):
+            if fraction < state['last'] - 0.5:          # a new run of the sweep started
+                state['run'] += 1
+            state['last'] = fraction
+            total = (state['run'] + fraction) / n_runs
+            pct = int(total * 100)
+            if pct != last['pct']:
+                last['pct'] = pct
+                emit(event='progress', fraction=total, t=t)
 
         last = {'pct': -1}
 
-        def progress(fraction, t):
-            pct = int(fraction * 100)
-            if pct != last['pct']:
-                last['pct'] = pct
-                emit(event='progress', fraction=fraction, t=t)
-
         if kind in ('time domain', 'time', 'transient', 'tran'):
             mode = 'tran'
-            options.setdefault('progress', progress)
+            options['progress'] = progress
             cir.analysis(mode='tran',
                          start=number(analysis.get('start', 0), 's', _parse_value),
                          stop=number(analysis['stop'], 's', _parse_value),
@@ -121,7 +165,7 @@ def main(argv):
         elif kind in ('ac', 'ac analysis'):
             mode = 'ac'
             if 'scale' in analysis:
-                options.setdefault('scale', analysis['scale'])
+                options['scale'] = analysis['scale']
             cir.analysis(mode='ac',
                          start=number(analysis['start'], 'Hz', _parse_value),
                          stop=number(analysis['stop'], 'Hz', _parse_value),
@@ -145,6 +189,15 @@ def main(argv):
             emit(event='error', message='Unknown analysis type: %r' % analysis.get('type'))
             return 1
 
+        if sweep_texts:
+            sname, spname = sweep_param.split('.', 1) if '.' in sweep_param else (sweep_param, '')
+            sunit = str(elements[sname]._params[spname].unit).strip() \
+                if sname in elements and spname in elements[sname]._params else ''
+            svalues = [number(v, sunit, _parse_value) for v in sweep_texts]
+            cir.sweep(param=sweep_param, list=svalues)
+            emit(event='log', message='Parametric sweep of %s: %s' % (
+                sweep_param, ', '.join(str(v) for v in sweep_texts)), level='info')
+
         emit(event='log', message='Starting %s analysis...' % mode, level='info')
         results = cir.run()
     except BaseException as exc:
@@ -153,36 +206,57 @@ def main(argv):
 
     # 3. convert the results to JSON ----------------------------------------------------------
     try:
-        if isinstance(results, list):                       # parametric sweep (not used here)
-            results = results[0]
+        runs = results if isinstance(results, list) else [results]
         units = getattr(cir, '_units', {})
+        out_names = list(getattr(cir, '_out_names', []))
+        wanted = [n for n in names if n in out_names] or [n for n in out_names if n != xaxe]
+
         if mode == 'ac':
             xkey, xlabel, xunit = 'freq', 'Frequency', 'Hz'
-        elif 'sweep' in results:
+        elif 'sweep' in runs[0]:
             xkey, xlabel, xunit = 'sweep', analysis.get('param', 'sweep'), ''
-        elif 'time' in results:
+        elif 'time' in runs[0]:
             xkey, xlabel, xunit = 'time', 'Time', 's'
         else:
             xkey, xlabel, xunit = None, 'Index', ''
+        if xaxe and mode != 'ac' and xaxe in out_names:
+            xkey, xlabel, xunit = xaxe, xaxe, units.get(xaxe, '')
+
+        def xvalues(run):
+            if xkey:
+                return finite(np.real(run[xkey]))
+            first = run[wanted[0]] if wanted else []
+            return list(range(len(first)))
+
         series = []
-        for name in getattr(cir, '_out_names', []):
-            col = np.asarray(results[name])
-            item = {'name': name, 'unit': units.get(name, '')}
-            if np.iscomplexobj(col):
-                mag = np.abs(col)
-                item['mag'] = finite(mag)
-                item['db'] = finite(20.0 * np.log10(np.maximum(mag, 1e-300)))
-                item['phase'] = finite(np.degrees(np.angle(col)))
-                item['re'] = finite(col.real)
-                item['im'] = finite(col.imag)
-            else:
-                item['y'] = finite(col)
-            series.append(item)
-        x = finite(results[xkey]) if xkey else list(range(len(series[0].get('y', []))) if series else [])
-        emit(event='log', message='Done: %d point(s), %d output(s).' % (len(x), len(series)),
+        for r, run in enumerate(runs):
+            label = ''
+            if 'param' in run and sweep_texts:
+                label = '%s=%s' % (sweep_param, sweep_texts[r] if r < len(sweep_texts) else run['param'])
+            for idx, name in enumerate(wanted):
+                col = np.asarray(run[name])
+                item = {'name': name, 'unit': units.get(name, ''), 'index': idx, 'run': r}
+                if label:
+                    item['label'] = label
+                if xaxe and mode != 'ac' and len(runs) > 1:
+                    item['x'] = xvalues(run)                 # the x axis differs from run to run
+                if np.iscomplexobj(col):
+                    mag = np.abs(col)
+                    item['mag'] = finite(mag)
+                    item['db'] = finite(20.0 * np.log10(np.maximum(mag, 1e-300)))
+                    item['phase'] = finite(np.degrees(np.angle(col)))
+                    item['re'] = finite(col.real)
+                    item['im'] = finite(col.imag)
+                else:
+                    item['y'] = finite(col)
+                series.append(item)
+        x = xvalues(runs[0])
+        emit(event='log', message='Done: %d point(s), %d output(s)%s.' % (
+            len(x), len(wanted), (', %d sweep run(s)' % len(runs)) if len(runs) > 1 else ''),
              level='success')
         emit(event='result', data={'mode': mode, 'xKey': xkey, 'xLabel': xlabel, 'xUnit': xunit,
-                                   'x': x, 'series': series,
+                                   'x': x, 'series': series, 'func': func,
+                                   'sweep': sweep_param if sweep_texts else None,
                                    'colors': (outs.get('color') if isinstance(outs, dict) else None) or []})
     except BaseException as exc:
         emit(event='error', message='Cannot read the results: %s: %s' % (type(exc).__name__, exc))

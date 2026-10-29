@@ -657,7 +657,7 @@ document.addEventListener('keydown', (e) => {
        'o': 'btnPort', 
        'i': 'btnPin', 
        'k': 'btnReference',
-      'j': 'btnParameter' 
+       'j': 'btnParameter' 
     };
     
     if (isCtrl && isShift && key === ']') {

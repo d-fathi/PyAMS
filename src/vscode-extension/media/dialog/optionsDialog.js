@@ -29,7 +29,9 @@ var PYAMS_OPTIONS = [
     { name: 'lte',      type: 'number', 'default': 1e-4,  description: 'Relative local-error tolerance (with adaptive)' },
     { name: 'lte_abs',  type: 'number', 'default': 1e-6,  description: 'Absolute local-error tolerance in volts (with adaptive)' },
     { name: 'max_step', type: 'optional', 'default': null, defaultText: 'None (20×step)', description: 'Largest internal step (with adaptive); lower it if a pulse is shorter than the step' },
-    { name: 'order',    type: 'order',  'default': 1,     description: '1 = backward Euler (robust), 2 = BDF2 (more accurate, less stable)' }
+    { name: 'order',    type: 'order',  'default': 1,     description: '1 = backward Euler (robust), 2 = BDF2 (more accurate, less stable)' },
+    { name: 'func',     type: 'choice', 'default': 'db & phase',  choices: ['db & phase', 'mag & phase', 'db', 'mag', 'phase'], description: 'AC results are drawn in dB & phase by default' },
+    { name: 'second_sweep', type: 'bool', 'default': false, description: 'Use a second sweep for analysis' }
 ];
 
 function fOptionsDialog(self) {
@@ -75,6 +77,7 @@ function fOptionsDialog(self) {
         switch (d.type) {
             case 'bool':  return v === 'True';
             case 'order': return parseInt(v, 10);
+            case 'choice': return String(v);
             case 'int': {
                 var n = parseNumber(v);
                 return (isNaN(n) || n < 1 || Math.floor(n) !== n) ? undefined : n;
@@ -94,6 +97,7 @@ function fOptionsDialog(self) {
         if (v === true) return 'True';
         if (v === false) return 'False';
         if (v === null) return 'None';
+        if (typeof v === 'string') return "'" + v.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
         return String(v);
     }
 
@@ -226,6 +230,14 @@ tr.changed .opt-reset { visibility: visible; }
                 control = '<select class="opt-input"><option>False</option><option>True</option></select>';
             } else if (d.type === 'order') {
                 control = '<select class="opt-input"><option>1</option><option>2</option></select>';
+            } else if (d.type === 'choice') {
+                var choices = d.choices;
+                if (!choices) {
+                    PYAMS_OPTIONS.forEach(function(o) { if (o.name === d.name) choices = o.choices; });
+                }
+                control = '<select class="opt-input">' + (choices || []).map(function(c) {
+                    return '<option value="' + esc(c) + '">' + esc(c) + '</option>';
+                }).join('') + '</select>';
             } else {
                 control = '<input class="opt-input" spellcheck="false">';
             }
@@ -255,6 +267,7 @@ tr.changed .opt-reset { visibility: visible; }
         var d = row.def;
         if (d.type === 'bool')          row.input.value = v ? 'True' : 'False';
         else if (d.type === 'order')    row.input.value = String(v === 2 ? 2 : 1);
+        else if (d.type === 'choice')   row.input.value = String(v);
         else if (d.type === 'optional') row.input.value = (v === null || v === undefined) ? '' : String(v);
         else                            row.input.value = String(v);
         if (d.type === 'optional') row.input.placeholder = 'None';

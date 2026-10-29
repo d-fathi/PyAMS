@@ -467,47 +467,67 @@ self.runPyAMSAnalysis = function(code, analysis, options) {
 
 // Build the Plotly traces / layout of a runPyAMSAnalysis() result.
 // Outputs with the same unit share one plot (volts together, amperes together ...), plots are
-// stacked and share the x axis. AC results are drawn in dB by default (options.func: 'db'|'mag'|'phase').
+// stacked and share the x axis. A parametric sweep draws one curve per value (different dashes).
+// AC results: options.func (default results.func or 'db & phase') = 'db' | 'mag' | 'phase' | 'db & phase' | 'mag & phase'.
 self.makePyAMSPlot = function(results, options) {
     options = options || {};
     var series = (results && results.series) || [];
     var isAC = results && results.mode === 'ac';
-    var func = options.func || 'db';
+    var func = String(options.func || results.func || 'db & phase');
+    var parts = func.split('&').map(function(t) { return t.trim(); }).filter(function(t) { return t; });
+    if (parts.length === 0) parts = ['db', 'phase'];
     var base = (typeof setLayout_ === 'function') ? setLayout_() : {
-        margin: { l: 35, r: 25, b: 80, t: 35 }, font: { color: '#333333', size: 11, family: 'Arial' },
-        paper_bgcolor: '#ffffff', plot_bgcolor: '#f8f8f8'
+        font: { color: '#333333', size: 11, family: 'Arial' },
+        paper_bgcolor: '#ffffff', plot_bgcolor: '#f8f8f8', showlegend: true
     };
     var palette = ['#1f77b4', '#d62728', '#2ca02c', '#ff7f0e', '#9467bd', '#8c564b', '#e377c2', '#17becf'];
+    var dashes = ['solid', 'dash', 'dot', 'dashdot', 'longdash', 'longdashdot'];
+
+    // the curves to draw: one per (series, view); a view is the signal itself, or dB / magnitude / phase (AC)
+    var views = [];
+    series.forEach(function(sr, i) {
+        var list = isAC ? parts : ['y'];
+        list.forEach(function(v, k) {
+            var y, unit;
+            if (!isAC) { y = sr.y; unit = sr.unit || ''; }
+            else if (v === 'phase') { y = sr.phase; unit = '°'; }
+            else if (v === 'mag') { y = sr.mag; unit = sr.unit || ''; }
+            else { y = sr.db; unit = 'dB'; }
+            views.push({ sr: sr, i: i, y: y, unit: unit, first: k === 0 });
+        });
+    });
 
     // one row per unit
     var units = [];
-    var rowOf = [];
-    series.forEach(function(sr) {
-        var u = isAC ? (func === 'db' ? 'dB' : (func === 'phase' ? '°' : sr.unit)) : (sr.unit || '');
-        var k = units.indexOf(u);
-        if (k < 0) { units.push(u); k = units.length - 1; }
-        rowOf.push(k + 1);
+    views.forEach(function(v) {
+        var k = units.indexOf(v.unit);
+        if (k < 0) { units.push(v.unit); k = units.length - 1; }
+        v.row = k + 1;
     });
     if (units.length === 0) units.push('');
 
-    var data = series.map(function(sr, i) {
-        var y = isAC ? (func === 'phase' ? sr.phase : (func === 'mag' ? sr.mag : sr.db)) : sr.y;
-        var row = rowOf[i];
-        var color = (results.colors && results.colors[i]) || palette[i % palette.length];
+    var data = views.map(function(v) {
+        var sr = v.sr;
+        var idx = (sr.index !== undefined) ? sr.index : v.i;
+        var color = (results.colors && results.colors[idx]) || palette[idx % palette.length];
+        var run = sr.run || 0;
         return {
             type: 'scatter',
             mode: 'lines',
-            name: sr.name + (units[row - 1] ? ' [' + units[row - 1] + ']' : ''),
-            x: results.x,
-            y: y,
-            line: { color: color, width: 1.5 },
-            xaxis: 'x' + (row > 1 ? row : ''),
-            yaxis: 'y' + (row > 1 ? row : '')
+            name: sr.name + (sr.label ? '  ' + sr.label : '') + (v.unit ? ' [' + v.unit + ']' : ''),
+            legendgroup: sr.name + '|' + (sr.label || ''),
+            showlegend: !isAC || v.first,
+            x: sr.x || results.x,
+            y: v.y,
+            line: { color: color, width: 1.5, dash: dashes[run % dashes.length] },
+            xaxis: 'x' + (v.row > 1 ? v.row : ''),
+            yaxis: 'y' + (v.row > 1 ? v.row : '')
         };
     });
 
     var layout = Object.assign({}, base);
-    layout.margin = Object.assign({}, base.margin, { l: 70, t: 35 });
+    delete layout.grid;                       // the rows are placed with explicit axis domains below
+    layout.margin = { l: 70, r: 25, t: 35, b: 70 };
     layout.showlegend = true;
     var n = units.length;
     var gap = n > 1 ? 0.06 : 0;

@@ -984,21 +984,9 @@ function colorOutput(n,e){
 
 function removeOutput(n){
 	var analy=JSON.parse(mtable.select.getAttribute("description"));
-    if(analy.type=='DC Sweep'){
-      var dc=analy.dcsweep;
-      var r=dc.yAxe;
-	  var x=dc.xAxe;
+    var r=analy.yAxe;
+    var x=analy.xAxe;  
 
-    } else if(analy.type=='Time Domain') {
-        var tr=analy.time
-        var r=tr.yAxe;
-        var x=tr.xAxe;
-
-    } else if(analy.type=='AC Analysis') {
-        var ac=analy.ac;
-        var r=ac.yAxe;
-        var x=ac.xAxe;  
-    }
 
 	if(n==-1)
 	{
@@ -1018,6 +1006,11 @@ function removeOutput(n){
 function analysisSelect() {
 
         var analy=JSON.parse(mtable.select.getAttribute("description"));
+        var sweep=analy.sweep;
+        var r=analy.yAxe;
+	    var x=analy.xAxe;
+
+      
 
 
     //Analysis Properties-----------------------------------------------------------------------------------------------------
@@ -1028,45 +1021,43 @@ function analysisSelect() {
               collapsed: false,
               showReset: true,
                 rows: [ { label: 'Type', type: "dropdown", value: analy.type, options: ['DC Sweep', 'Time Domain','AC Analysis'] },
-                        { label: 'Simulation', type: "Button", value: 'Run ▶', setClick: 'runAnalysis' }] 
+                       { label: 'Options', type: "Button", value: 'Edit', setClick: 'editTimeOptions' },
+                       { label: 'Simulation', type: "Button", value: 'Run ▶', setClick: 'runAnalysis' }] 
             }
         ]
     };
 
     if(analy.type=='DC Sweep'){ 
-      var dc=analy.dcsweep;
+      
+     var dc=analy.dcsweep;
+
       defaultData.sections.push({ title: "DC Sweep Properties", collapsed: false, showReset: true, rows: [] });
       defaultData.sections[1].rows.push( { label: 'Paramater', type: "Button", value: dc.param, setClick: 'dcPramAnalysis' });
       defaultData.sections[1].rows.push( { label: 'Start', type: "text", value: dc.start });
       defaultData.sections[1].rows.push( { label: 'Step', type: "text", value: dc.step });
       defaultData.sections[1].rows.push( { label: 'Stop', type: "text", value: dc.stop });
 
-      var r=dc.yAxe;
-	  var x=dc.xAxe;
+
 
     } else if(analy.type=='Time Domain') {
         var tr=analy.time
-        if(!tr.options) tr.options={};
+       
         
         defaultData.sections.push({ title: "Time Domain Properties", collapsed: false, showReset: true, rows: [] });
         defaultData.sections[1].rows.push( { label: 'Start', type: "text", value: tr.start });
         defaultData.sections[1].rows.push( { label: 'Step', type: "text", value: tr.step });
         defaultData.sections[1].rows.push( { label: 'Stop', type: "text", value: tr.stop });
-        defaultData.sections[1].rows.push( { label: 'Options', type: "Button", value: 'Edit', setClick: 'editTimeOptions' });
 
-        var r=tr.yAxe;
-        var x=tr.xAxe;
 
     } else if(analy.type=='AC Analysis') {
         var ac=analy.ac;
+     
         defaultData.sections.push({ title: "AC Analysis Properties", collapsed: false, showReset: true, rows: [] });
         defaultData.sections[1].rows.push( { label: 'Start', type: "text", value: ac.start });
         defaultData.sections[1].rows.push( { label: 'Stop', type: "text", value: ac.stop });
-        defaultData.sections[1].rows.push( { label: 'Points', type: "text", value: ac.points });
-        defaultData.sections[1].rows.push( { label: 'Sweep', type: "dropdown", value: ac.sweep, options: ['linear', 'decade', 'octave'] });
+        defaultData.sections[1].rows.push( { label: 'Points', type: "text", value: ac.step });
+        defaultData.sections[1].rows.push( { label: 'Scale', type: "dropdown", value: ac.scale, options: ['lin', 'dec', 'oct'] });
 
-        var r=ac.yAxe;
-        var x=ac.xAxe;
 
     }
 
@@ -1076,29 +1067,28 @@ function analysisSelect() {
 
 	
     // Y axe property-----------------------------------------------------------------------------------
-    defaultData.sections.push({ title: "Y axe outputs", collapsed: false, showReset: true, rows: [] });
+     defaultData.sections.push({ title: "Y axe outputs", collapsed: false, showReset: true, rows: [] });
     for(var i=0;i<r.length;i++){
-        if(r[i].func)
-            var func='  :' +r[i].func;
-        else
-            var func='';
-        defaultData.sections[2].rows.push( { label: r[i].name +  func, type: "axeproperty", value: r[i].color, color: r[i].color, delete: false, setChange: 'colorOutput('+i+',this)', setClick: 'removeOutput('+i+')' });
+        defaultData.sections[2].rows.push( { label: r[i].name , type: "axeproperty", value: r[i].color, color: r[i].color, delete: false, setChange: 'colorOutput('+i+',this)', setClick: 'removeOutput('+i+')' });
     }
     defaultData.sections[2].rows.push({ label: 'Add output', type: "Button", value: 'Add', setClick: 'addOutputY' });
+
+
+
     
     // X axe prpperty-----------------------------------------------------------------------------------
     defaultData.sections.push({ title: "X axe output", collapsed: false, showReset: true, rows: [] });
-     if(x.func)
-            var func='  :' +x.func;
-     else
-            var func='';
-    if(x.used)defaultData.sections[3].rows.push({ label: x.name+ func, type: "axeproperty", value: x.color, color: x.color, setChange: 'colorOutput(-1,this)' , setClick: 'removeOutput(-1)' });
+
+    if(x.used)defaultData.sections[3].rows.push({ label: x.name, type: "axeproperty", value: x.color, color: x.color, setChange: 'colorOutput(-1,this)' , setClick: 'removeOutput(-1)' });
     defaultData.sections[3].rows.push({ label: 'Add X axe', type: "Button", value: x.used?'Modify':'Add', setClick: 'addOutputX' });
-/*
-    // Layout property-----------------------------------------------------------------------------------
-    defaultData.sections.push({ title: "Layout property", collapsed: false, showReset: true, rows: [] });
-    defaultData.sections[4].rows.push({ label: 'Layout', type: "Button", value: 'Modify', setClick: 'modifiedLayout()' });
-*/
+
+    //Second sweep property------------------------------------------------------------------------
+   if(analy.options.second_sweep && analy.options.second_sweep==true){
+    defaultData.sections.push({ title: "Second sweep", collapsed: false, showReset: true, rows: [] });
+    defaultData.sections[4].rows.push( { label: 'Parameter', type: "Button", value: sweep.param, setClick: 'sweepAnalysis' });
+    defaultData.sections[4].rows.push( { label: 'Values', type: "text", value: sweep.values});
+   }
+
 
     mtable.type = "analysis";
     propertiesData = JSON.parse(JSON.stringify(defaultData));
@@ -1123,41 +1113,28 @@ function modifiedAnalysis() {
         } else if(analy.type=='AC Analysis'){
             analy.ac.start=propertiesData.sections[1].rows[0].value;
             analy.ac.stop=propertiesData.sections[1].rows[1].value;
-            analy.ac.points=propertiesData.sections[1].rows[2].value;
-            analy.ac.sweep=propertiesData.sections[1].rows[3].value;
-            analy.ac.type = {
-                linear: 'lin',
-                decade: 'dec',
-                octave: 'oct'   
-            }[propertiesData.sections[1].rows[3].value] || 'lin';
+            analy.ac.step=propertiesData.sections[1].rows[2].value;
+            analy.ac.scale=propertiesData.sections[1].rows[3].value;
+
         } else if(analy.type=='Time Domain'){
             analy.time.start=propertiesData.sections[1].rows[0].value;
             analy.time.step=propertiesData.sections[1].rows[1].value;
             analy.time.stop=propertiesData.sections[1].rows[2].value;
-            analy.time.uic=propertiesData.sections[1].rows[3].value;
         }
 
-
-    if(analy.type=='DC Sweep'){
-      var dc=analy.dcsweep;
-      var r=dc.yAxe;
-	  var x=dc.xAxe;
-
-    } else if(analy.type=='Time Domain') {
-        var tr=analy.time
-        var r=tr.yAxe;
-        var x=tr.xAxe;
-
-    } else if(analy.type=='AC Analysis') {
-        var ac=analy.ac;
-        var r=ac.yAxe;
-        var x=ac.xAxe;  
-    }
+        if(analy.options.second_sweep && analy.options.second_sweep==true)
+            analy.sweep.values=propertiesData.sections[4].rows[1].value;
 
 
-        for(var i=0;i<r.length;i++){
+
+
+      var r=analy.yAxe;
+	  var x=analy.xAxe;
+ 
+
+      for(var i=0;i<r.length;i++){
          r[i].color=propertiesData.sections[2].rows[i].color;
-    }
+      }
 
  mtable.select.setAttribute("description", JSON.stringify(analy));
             

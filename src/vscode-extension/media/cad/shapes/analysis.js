@@ -86,20 +86,16 @@ function setLayout_() {
 
 
 function addAnalysis(elem){
-  var analy={type:'DC Sweep',title:'',dcsweep:{param:'Non',unit:'',start:'0',stop:'0',step:'0'},time:{start:'0s',stop:'0s',step:'0s'},ac:{start: '1', stop: '1000', points: '100', sweep: 'decade' , type: 'de'}}
- 
-  analy.dcsweep.yAxe=[];
-  analy.time.yAxe=[];
-  analy.ac.yAxe=[];
+  var analy={type:'DC Sweep',title:'',dcsweep:{param:'Non',unit:'',start:'0',stop:'0',step:'0'},
+  time:{start:'0s',stop:'0s',step:'0s'},
+  ac:{start: '1', stop: '1000', step: '100', scale: 'dec' , type: 'de'}}
 
-  analy.dcsweep.xAxe={name:'None',unit:'',type:'',color:"#000000", used:false};
-  analy.time.xAxe={name:'None',unit:'',type:'',color:"#000000", used:false};
-  analy.ac.xAxe={name:'None',unit:'',type:'',color:"#000000", used:false};
 
-  analy.dcsweep.layout=setLayout_();
-  analy.time.layout=setLayout_();
-  analy.ac.layout=setLayout_();
-  
+  analy.yAxe=[];
+  analy.xAxe={name:'None',unit:'',type:'',color:"#000000", used:false};
+  analy.layout=setLayout_();
+  analy.options={};
+  analy.sweep={ param:'', values:'[]'};
 
 
   analy.dcsweep.modified=false;
@@ -120,29 +116,31 @@ function getAnalysis() {
 
       if(analy.type=='DC Sweep'){
          var dc=analy.dcsweep;
-         var r=dc.yAxe;
-	       var xa=dc.xAxe;
-         var layout=dc.layout;
-         var xNameAnalysis=analy.dcsweep.param
+         var analysis={type:"dc",param:dc.param,start:dc.start,stop:dc.stop,step:dc.step,oupouts:{names:[],color:[]},options: analy.options};
        } else if(analy.type=='Time Domain') {
          var tr=analy.time;
-         var analysis={type:analy.type,start:tr.start,step:tr.step,stop:tr.stop,oupouts:{names:[],color:[]},options: {"uic": true}};
-         var r=tr.yAxe;
-         for(var i=0;i<r.length;i++){
+         var analysis={type:analy.type,start:tr.start,step:tr.step,stop:tr.stop,oupouts:{names:[],color:[]},options:  analy.options};
+      } else if(analy.type=='AC Analysis') {
+        var ac=analy.ac;
+        var analysis={type:"ac",start:ac.start,stop:ac.stop,step:ac.step,scale:ac.scale,oupouts:{names:[],color:[]},options:  analy.options};
+      }
+
+      var r=analy.yAxe;
+      for(var i=0;i<r.length;i++){
           analysis.oupouts.names.push(r[i].name);
           analysis.oupouts.color.push(r[i].color);
-         }
-         return analysis;
-      } else if(analy.type=='AC Analysis') {
-         var ac=analy.ac;
-         var r=ac.yAxe;
-         var xa=ac.xAxe;  
-         var layout=ac.layout;
-         var xNameAnalysis='Frequency[Hz]'
-
        }
 
+      if(analy.xAxe.used && ((analy.type=='DC Sweep')||(analy.type=='Time Domain')))
+          analysis.xAxe=analy.xAxe.name;
+      if(analy.options.second_sweep && analy.options.second_sweep==true){
+          analysis.sweep={param:analy.sweep.param, values:analy.sweep.values};
+        }
+
+      return analysis;
 }
+
+
 
 
 

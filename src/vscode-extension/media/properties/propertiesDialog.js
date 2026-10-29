@@ -826,22 +826,44 @@ drawing.getListParameter(code)
 
         case 'dcPramAnalysis': {
 
-           /* try {
-                if (!elementDialog) elementDialog = new fElementDialog();
-                const result = getEleForDCAnalys();
-                var analy=JSON.parse(mtable.select.getAttribute("description"));
-                elementDialog.initData(result,analy.dcsweep.param, false);
-                elementDialog.onSubmit = function (result) {
-                    analy.dcsweep.param=result;
-                    analy.dcsweep.unit='V';
-                    mtable.select.setAttribute("description", JSON.stringify(analy));
-                    mtable.typeUsedDC=null;
-                    analysisSelect();
-                };
-                elementDialog.show();
-            } catch (error) {
-                console.log('Error', error.message);
-            }*/
+               var code=generateCodePyofCircuit();
+               var analy=JSON.parse(mtable.select.getAttribute("description"));
+                drawing.getListParameter(code).then(function (data) {
+                    drawing.getElementDialog(data, analy.dcsweep.param,
+                        function (selected, info) {
+                analy.dcsweep.param=selected; 
+                mtable.select.setAttribute("description", JSON.stringify(analy));
+                mtable.typeUsedDC=null;
+                analysisSelect();
+                console.log(info);       // {element, class, param, value, default, unit, description}
+            },
+            function () { console.log('Cancelled'); }
+        );
+    })
+    .catch(function (err) { console.error('getListParameter failed:', err); });
+            break;
+        }
+
+
+        case 'sweepAnalysis': {
+
+               var code=generateCodePyofCircuit();
+               var analy=JSON.parse(mtable.select.getAttribute("description"));
+               var sweep=analy.sweep;
+
+
+                drawing.getListParameter(code).then(function (data) {
+                    drawing.getElementDialog(data, sweep.param,
+                        function (selected, info) {
+                analy.sweep.param=selected; 
+                mtable.select.setAttribute("description", JSON.stringify(analy));
+                analysisSelect();
+                console.log(info);       // {element, class, param, value, default, unit, description}
+            },
+            function () { console.log('Cancelled'); }
+        );
+    })
+    .catch(function (err) { console.error('getListParameter failed:', err); });
             break;
         }
 
@@ -882,20 +904,19 @@ drawing.getListParameter(code)
         }
 
         case 'editTimeOptions': 
+
             var analy=JSON.parse(mtable.select.getAttribute("description"));
-            if(analy.type=='Time Domain') {
-                var tr=analy.time;
-                var options=tr.options;
+            var options=analy.options;
                 drawing.getOptions(options).then(function (data) {
                     drawing.getOptionsDialog(data,function (result) {
                         options = result.options;  
                         console.log('Updated options:', options); 
-                        tr.options = options;
+                        analy.options = options;
                         mtable.select.setAttribute("description", JSON.stringify(analy));
+                        analysisSelect();
                     },
                     function () { console.log('Cancelled'); });
                 });
-          }
             break;
     
 
@@ -912,31 +933,18 @@ drawing.getListParameter(code)
 
 function ioSetPosProbe(pos,name,func) {
 
-    var nodes=getNetRefs();
-    var probe=name;
+
     if(mtable.type=='analysis'){
       var analy=JSON.parse(mtable.select.getAttribute("description"));
-      if(analy.type=='DC Sweep'){
-         var dc=analy.dcsweep;
-         var r=dc.yAxe;
-	       var x=dc.xAxe;
-       } else if(analy.type=='Time Domain') {
-         var tr=analy.time
-         var r=tr.yAxe;
-         var x=tr.xAxe;
-      } else if(analy.type=='AC Analysis') {
-         var ac=analy.ac;
-         var r=ac.yAxe;
-         var x=ac.xAxe;  
-       }
-
-    }
+      var r=analy.yAxe;
+	  var x=analy.xAxe;
+    } else return;
 
 
     if(pos=='Y')
     {
-      var output={name:name,unit:probe.unit,type:probe.type,color:'#000000',pos:1};
-      if(func &&  (analy.type=='AC Analysis')) output.func=func;
+      var output={name:name,color:'#000000'};
+     
       r.push(output);
       mtable.select.setAttribute("description", JSON.stringify(analy));
       mtable.typeUsedYOutput=null;
@@ -947,11 +955,7 @@ function ioSetPosProbe(pos,name,func) {
     if(pos=='X')
     {
        x.name=name;
-       x.unit=probe.unit;
-       x.type=probe.type;
        x.used=true;
-
-      if(func &&  (analy.type=='AC Analysis')) x.func=func;
 
       mtable.select.setAttribute("description", JSON.stringify(analy));
       mtable.typeUsedXOutput=null;

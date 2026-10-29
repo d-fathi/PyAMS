@@ -63,13 +63,27 @@ oupouts:{
 	}
 }
 */
-var code=generateCodePyofCircuit();
-var analysis= getAnalysis();
-const results = await drawing.runPyAMSAnalysis(code, analysis);
-var elem=drawing.resize.setElement.lastChild.firstChild;
-drawing.plotPyAMSResults(elem, results); 
- modifedSizeAnalysis(drawing.resize.setElement);
- plotsSaveDataLayoutInDiv();
- drawing.saveData(analy.type+' analysis');
-}
+    var elemAnalysis = drawing.resize.setElement;          // the selected analysis block
+    var analy = JSON.parse(elemAnalysis.getAttribute("description"));
 
+    try {
+        // 1. circuit code (elements + parameters) and the analysis settings
+        //    (type, start/step/stop, outputs, options, second sweep "0.1m,5m,20m", x axis)
+        var code = generateCodePyofCircuit();
+        var analysis = getAnalysis();
+
+        // 2. run the circuit in the Python process (progress dialog)
+        const results = await drawing.runPyAMSAnalysis(code, analysis);
+
+        // 3. show the results with Plotly
+        var elem = elemAnalysis.lastChild.firstChild;
+        drawing.plotPyAMSResults(elem, results, { func: analysis.options && analysis.options.func });
+        modifedSizeAnalysis(elemAnalysis);
+        plotsSaveDataLayoutInDiv();
+        drawing.saveData(analy.type + ' analysis');
+    } catch (err) {
+        if (err === 'Analysis cancelled') return;          // the user closed the dialog
+        console.error('Simulation failed:', err);
+        showError('Simulation failed', String(err && err.message ? err.message : err));
+    }
+}
