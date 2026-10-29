@@ -6,6 +6,9 @@ from .CCVS import CCVS
 from .CCCS import CCCS
 from .Capacitor import Capacitor
 from .Inductor import Inductor
+from .CapacitorIc import CapacitorIc
+from .InductorIc import InductorIc
+from .NonlinearResistance import NonlinearResistance
 from .Transformer import Transformer
 from .SinVoltage import SinVoltage
 from .DCVoltage import DCVoltage
@@ -18,6 +21,10 @@ from .VCCS import VCCS
 from .CCVS import CCVS
 from .CCCS import CCCS
 from .SinCurrent import SinCurrent
+from .ExpVoltage import ExpVoltage
+from .ExpCurrent import ExpCurrent
+from .PWLVoltage import PWLVoltage
+from .PWLCurrent import PWLCurrent
 from .TrapezoidCurrent import TrapezoidCurrent
 from .TransmissionLine import TransmissionLine
 from .TransmissionLine import TransmissionLine
@@ -40,7 +47,7 @@ from .OpAmp import OpAmp
 from .Comparator import Comparator
 from .Timer555 import Timer555
 
-__all__ = ["Resistor", "Conductor", "VCVS", "VCCS", "CCVS", "CCCS", "Capacitor", "Inductor", "Transformer", "SinVoltage",
-           "DCVoltage", "ACVoltage", "ACCurrent", "TrapezoidVoltage", "DCCurrent", "VCVS", "VCCS", "CCVS", "CCCS", "SinCurrent",
+__all__ = ["Resistor", "Conductor", "VCVS", "VCCS", "CCVS", "CCCS", "Capacitor", "Inductor", "CapacitorIc", "InductorIc", "NonlinearResistance", "Transformer", "SinVoltage",
+           "DCVoltage", "ACVoltage", "ACCurrent", "TrapezoidVoltage", "DCCurrent", "VCVS", "VCCS", "CCVS", "CCCS", "SinCurrent", "ExpVoltage", "ExpCurrent", "PWLVoltage", "PWLCurrent",
            "TrapezoidCurrent", "TransmissionLine", "VCVS", "VCCS", "CCVS", "CCCS", "Diode", "Diac", "ZenerDiode", "TunnelDiode", "Thyristor", "UJT", "BJT", "MOSFET", "MOSFET4",
            "JFET", "IGBT", "OpAmp", "Comparator", "Timer555"]

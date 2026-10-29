@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        DCVoltage (constant voltage source)
-# Created:     17/10/2026
+# Updated:     17/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 
 from pyams.lib import signal, param, model

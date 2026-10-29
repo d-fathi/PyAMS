@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        VCCS (voltage-controlled current source, SPICE "G")
-# Created:     20/10/2026
+# Updated:     20/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 
 from pyams.lib import signal, param, model

@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        MOSFET4 (4-terminal MOSFET with body effect, level 1)
-# Created:     20/10/2026
+# Updated:     20/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 
 from math import exp, sqrt

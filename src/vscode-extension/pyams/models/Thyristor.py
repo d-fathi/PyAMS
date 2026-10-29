@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        Thyristor (SCR, silicon controlled rectifier)
-# Created:     18/10/2026
+# Updated:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 
 from math import exp

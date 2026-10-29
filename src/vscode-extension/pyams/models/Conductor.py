@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        Conductor (wire / track with geometry, temperature and self-heating)
-# Created:     21/10/2026
+# Updated:     21/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 
 from pyams.lib import model, signal, param

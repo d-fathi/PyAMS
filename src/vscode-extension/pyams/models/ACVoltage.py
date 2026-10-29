@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        ACVoltage (voltage source with an AC small-signal stimulus)
-# Created:     19/10/2026
+# Updated:     19/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 
 import cmath
