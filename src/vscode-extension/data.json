@@ -2,7 +2,8 @@
     "dirs": [
         "Basic",
         "Source",
-        "Semiconductor"
+        "Semiconductor",
+        "Amplifier"
     ],
     "Basic": [
         "Resistor.sym",
@@ -63,5 +64,8 @@
         "PWL Voltage.sym",
         "AC Voltage.sym",
         "AC Current.sym"
+    ],
+    "Amplifier": [
+        "OpAmp.sym"
     ]
 }
