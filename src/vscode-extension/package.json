@@ -1,8 +1,8 @@
 {
-  "name": "pyams-circuit-simulator",
-  "displayName": "PyAMS - Circuit Simulator",
-  "version": "0.2.1",
-  "publisher": "pyams-vscode",
+  "name": "PyAMS",
+  "displayName": "PyAMS - Python for Analog and Mixed Signals",
+  "version": "0.3.0",
+  "publisher": "PyAMS",
   "icon": "image/logo.png",
   "engines": {
     "vscode": "^1.74.0"
@@ -20,6 +20,7 @@
     "electronics",
     "python",
     "analog",
+    "verilog",
     "digital",
     "schematic",
     "eda",
@@ -100,6 +101,6 @@
   "bugs": {
     "url": "https://github.com/d-fathi/PyAMS/issues"
   },
-  "homepage": "https://pyams-lib.readthedocs.io/",
+  "homepage": "https://pyams.sf.net/",
   "youtube": "https://www.youtube.com/@YPyAMS"
 }

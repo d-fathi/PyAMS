@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- License: PD. Made by puppylinux: https://github.com/puppylinux-woof-CE/puppy_icon_theme -->
+
+<svg
+   width="800px"
+   height="800px"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="file-cds.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.01875"
+     inkscape:cx="400.4908"
+     inkscape:cy="400"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <path
+     style="fill:#ffffff;stroke:none;"
+     d="m 65,3 0,19 19,0 z"
+     id="path1" />
+  <path
+     style="fill:#ebebda;stroke:#777777;stroke-width:2"
+     d="m 64.386504,3 v 19 h 19 v 74 h -72 V 3 h 53 l 19,19"
+     id="path2" />
+  <g
+     id="g6"
+     transform="matrix(0.30521474,0,0,0.32094341,13.261504,20.176272)"
+     style="fill:#6c6753">
+    <g
+       id="g5"
+       style="fill:#6c6753">
+      <g
+         id="g4"
+         style="fill:#6c6753">
+        <path
+           d="m 200,122 c -11.869,0 -21.725,8.668 -23.639,20 H 160 c -13.234,0 -24,10.76 -24,23.986 V 210 h 8 V 165.986 C 144,157.172 151.178,150 160,150 h 16.361 c 1.913,11.332 11.77,20 23.639,20 13.234,0 24,-10.766 24,-24 0,-13.234 -10.766,-24 -24,-24 z m 0,40 c -8.822,0 -16,-7.178 -16,-16 0,-8.822 7.178,-16 16,-16 8.822,0 16,7.178 16,16 0,8.822 -7.178,16 -16,16 z"
+           id="path1-0"
+           style="fill:#6c6753" />
+        <path
+           d="M 92,62 H 76 C 76,48.766 65.234,38 52,38 38.766,38 28,48.766 28,62 28,75.234 38.766,86 52,86 62.426,86 71.295,79.307 74.6,70 H 92 c 8.822,0 16,7.188 16,16.024 V 210 h 8 V 86.024 C 116,72.777 105.234,62 92,62 Z M 52,78 c -8.822,0 -16,-7.178 -16,-16 0,-8.822 7.178,-16 16,-16 8.822,0 16,7.178 16,16 0,8.822 -7.178,16 -16,16 z"
+           id="path2-9"
+           style="fill:#6c6753" />
+        <path
+           d="M 64,122 H 47.639 C 45.725,110.668 35.869,102 24,102 10.766,102 0,112.766 0,126 c 0,13.234 10.766,24 24,24 11.869,0 21.725,-8.668 23.639,-20 H 64 c 8.822,0 16,7.184 16,16.014 V 210 h 8 V 146.014 C 88,132.774 77.234,122 64,122 Z m -40,20 c -8.822,0 -16,-7.178 -16,-16 0,-8.822 7.178,-16 16,-16 8.822,0 16,7.178 16,16 0,8.822 -7.178,16 -16,16 z"
+           id="path3"
+           style="fill:#6c6753" />
+        <path
+           d="m 163.461,94 h 12.9 c 1.913,11.332 11.77,20 23.639,20 13.234,0 24,-10.766 24,-24 0,-13.234 -10.766,-24 -24,-24 -11.869,0 -21.725,8.668 -23.639,20 h -12.9 c -6.297,0 -11.42,-5.125 -11.42,-11.426 V 14 h -8 v 60.574 c 0,10.711 8.711,19.426 19.42,19.426 z M 200,74 c 8.822,0 16,7.178 16,16 0,8.822 -7.178,16 -16,16 -8.822,0 -16,-7.178 -16,-16 0,-8.822 7.178,-16 16,-16 z"
+           id="path4"
+           style="fill:#6c6753" />
+      </g>
+    </g>
+  </g>
+</svg>

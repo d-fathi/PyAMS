@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- License: PD. Made by puppylinux: https://github.com/puppylinux-woof-CE/puppy_icon_theme -->
+
+<svg
+   width="800px"
+   height="800px"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="file-sym.svg"
+   inkscape:version="1.4.2 (f4327f4, 2025-05-13)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.01875"
+     inkscape:cx="400.4908"
+     inkscape:cy="400"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <path
+     style="fill:#ffffff;stroke:none;"
+     d="m 65,3 0,19 19,0 z"
+     id="path1" />
+  <path
+     style="fill:#EBEBDA;stroke:#777777;stroke-width:2;"
+     d="m 65,3 0,19 19,0 0,74 -72,0 0,-93 53,0 19,19"
+     id="path2" />
+  <path
+     d="m 68.797744,68.871236 v 0 A 2.7358473,2.9911884 0 0 1 66.136341,66.592235 L 60.292422,42.031933 54.485726,66.592235 a 2.7730698,3.0318849 0 0 1 -2.698625,2.279001 v 0 A 2.7730698,3.0318849 0 0 1 49.069865,66.592235 L 43.263168,42.031933 37.475083,66.592235 a 2.8102922,3.0725813 0 0 1 -5.415861,0 L 26.252526,42.031933 23.740013,52.653704 h -5.992809 a 1.8611207,2.0348221 0 0 1 0,-4.069644 h 3.108072 l 2.698625,-11.374655 a 2.7544586,3.0115367 0 0 1 2.698625,-2.279001 v 0 a 2.7358473,2.9911884 0 0 1 2.661402,2.279001 l 5.806697,24.560301 5.806696,-24.560301 a 2.7730698,3.0318849 0 0 1 2.698625,-2.279001 v 0 a 2.7730698,3.0318849 0 0 1 2.717236,2.279001 l 5.806696,24.560301 5.806697,-24.560301 a 2.791681,3.0522331 0 0 1 5.39725,0 l 5.806696,24.560301 2.512513,-10.62177 h 6.030031 a 1.8611207,2.0348221 0 0 1 0,4.069643 h -3.108072 l -2.698625,11.374656 a 2.7544586,3.0115367 0 0 1 -2.698624,2.279001 z"
+     class="clr-i-outline clr-i-outline-path-1"
+     id="path1-4"
+     style="stroke-width:1.94604;fill:#6c6753" />
+</svg>

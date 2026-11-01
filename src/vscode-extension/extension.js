@@ -4,7 +4,6 @@ const PyAMSEditorProvider = require('./pyamsEditor');
 function activate(context) {
     console.log('PyAMS Editor is now active!');
     
-    // تسجيل Custom Editor لملفات .sym
     context.subscriptions.push(
         PyAMSEditorProvider.register(context, 'pyamsEditor.symEditor', 'sym')
     );
@@ -20,7 +19,6 @@ function activate(context) {
             if (PyAMSEditorProvider.activeWebview) {
                 PyAMSEditorProvider.activeWebview.postMessage({ type: 'execCopy' });
             } else {
-                // إذا لم يكن Custom Editor نشطاً، نفذ الأمر الافتراضي
                 await vscode.commands.executeCommand('default:editor.action.clipboardCopyAction');
             }
         })

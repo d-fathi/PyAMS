@@ -1,0 +1,133 @@
+{
+  "name": "pyams-software",
+  "productName": "PyAMS",
+  "version": "0.3.0",
+  "description": "PyAMS - Python for Analog and Mixed Signals: schematic capture, symbol design and circuit simulation",
+  "author": {
+    "name": "PyAMS",
+    "email": "dspice.softw@gmail.com"
+  },
+  "homepage": "https://pyams.sf.net/",
+  "license": "MIT",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux",
+    "pack": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "net.sf.pyams.software",
+    "productName": "PyAMS",
+    "copyright": "Copyright © PyAMS 2026",
+    "asar": true,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "renderer/**/*",
+      "media/**/*",
+      "build/icon.png",
+      "build/icon.ico",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/pyams",
+        "to": "pyams",
+        "filter": [
+          "**/*",
+          "!**/__pycache__/**"
+        ]
+      },
+      {
+        "from": "resources/symbols",
+        "to": "symbols"
+      },
+      {
+        "from": "resources/demo",
+        "to": "demo"
+      },
+      {
+        "from": "resources/data.json",
+        "to": "data.json"
+      },
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      },
+      {
+        "from": "LICENSE",
+        "to": "LICENSE"
+      }
+    ],
+    "fileAssociations": [
+      {
+        "ext": "dcs",
+        "name": "PyAMS Circuit",
+        "description": "PyAMS DCS Circuit",
+        "icon": "build/icon.ico",
+        "role": "Editor"
+      },
+      {
+        "ext": "sym",
+        "name": "PyAMS Symbol",
+        "description": "PyAMS Symbol File",
+        "icon": "build/icon.ico",
+        "role": "Editor"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "PyAMS-${version}-Setup-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "PyAMS-${version}-Portable-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PyAMS"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "category": "Development",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "artifactName": "PyAMS-${version}-${arch}.${ext}",
+      "mimeTypes": [
+        "application/x-pyams-dcs",
+        "application/x-pyams-sym"
+      ]
+    }
+  }
+}

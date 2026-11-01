@@ -1,10 +1,30 @@
-# PyAMS: Designing and Simulating Analog and Digital Circuits
+# Welcome to the PyAMS documentation
 
-PyAMS (Python for Analog and Mixed Signals) is a professional, cross-platform circuit design and simulation environment built for VS Code. It provides a powerful graphical schematic designer and delivers precise waveform simulation results powered by the robust **ngspice** engine.
+[![PyPI version](https://img.shields.io/pypi/v/pyams-lib.svg)](https://pypi.org/project/pyams-lib/)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/pyams-lib.svg)](https://pypi.org/project/pyams-lib/)
+[![License](https://img.shields.io/github/license/d-fathi/pyams_lib.svg)](https://github.com/d-fathi/pyams_lib/blob/main/LICENSE)
+
+## What is PyAMS?
+
+**PyAMS** (*Python for Analog and Mixed Signals*) is a Python library for modeling and simulating analog and mixed-signal electronic circuits. It provides:
+
+- The ability to create **custom models** of electronic components.
+- **Simulation** of circuits in different modes of operation: DC, transient (TR) and AC.
+- **Visualization** of the results with `matplotlib` in Python, or with `Plotly` in the CAD system.
+- Compatibility with **Python 3+ and PyPy**, on Linux, Windows and macOS.
+- **Circuit design** (schematic capture, symbol design and simulation) in a CAD environment, using either:
+  1. **VS Code**, with the *PyAMS extension*.
+  2. The **PyAMS software**: https://pyams.sf.net
+
 
 ## What’s New 
 
-**v0.1.6 (Current)**
+**v0.3.0 (Current)** 
+
+1. *PyAMS extension* tow **VS Code**.
+2. Update **PyAMS software**.
+3. Update pyams library.
+4. update pyams models
 
 ### Added
 - **Message Dialog System:** Introduced a comprehensive message dialog system supporting error, warning, info, and success notifications for better user feedback.
@@ -14,15 +34,13 @@ PyAMS (Python for Analog and Mixed Signals) is a professional, cross-platform ci
 - **Documentation Enhancements:** Updated simulation documentation, including increased image width for better visibility, and general documentation refinements.
 - **Repository Metadata:** Updated README.md and clarified repository usage guidelines (e.g., source code usage).
 
-## Screenshots
-<img src="https://github.com/GPyAMS/Docs/blob/main/docs/images/Ohm_law.gif?raw=true" alt="PyAMS VSCode Interface" width="800">
 
 
 ## Key Features
 - **Graphical Schematic Designer:** Intuitive interface for drawing and designing circuit schematics.
-- **Advanced Simulation Engine:** Powered by ngspice for accurate analog and mixed-signal circuit simulations (DC, AC, Transient).
+- **Advanced Simulation Engine:** Powered by **pyams.lib** for accurate analog and mixed-signal circuit simulations (DC, AC, Transient).
 - **Interactive Waveform Viewer:** Visualize and analyze simulation results with an interactive graph viewer, featuring PNG export capabilities.
-- **Extensive Component Library:** Includes a wide range of SPICE models (BJT, MOSFET, JFET, Diodes, OP-AMPs, and more).
+- **Extensive Component Library:** Includes a wide range of **pyams.models**  (BJT, MOSFET, JFET, Diodes, OP-AMPs, and more).
 - **Cross-Platform:** Built with ElectronJS, offering a seamless experience on Windows and Linux.
 
 ## Installation
@@ -41,10 +59,10 @@ PyAMS (Python for Analog and Mixed Signals) is a professional, cross-platform ci
 - VS Code 1.70.0 or higher
 
 ## Document
-- https://pyams.readthedocs.io
+- https://pyams-lib.readthedocs.io
 
 ## License
 MIT License - See LICENSE file for details
 
 ## Support
-For issues and feature requests, please visit: https://github.com/GPyAMS/PyAMS/issues
+For issues and feature requests, please visit: https://github.com/d-fathi/PyAMS/issues

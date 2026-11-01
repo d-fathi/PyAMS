@@ -48,10 +48,10 @@ setup(
     ],
     project_urls={
         "Website": "https://pyams.sf.net",
-        "Source": "https://github.com/d-fathi/pyams_lib",
+        "Source": "https://github.com/d-fathi/pyams",
         "Documentation": "https://pyams-lib.readthedocs.io/",
-        "Bug Tracker": "https://github.com/d-fathi/pyams_lib/issues",
-        "Support": "https://github.com/d-fathi/pyams_lib/discussions",
+        "Bug Tracker": "https://github.com/d-fathi/pyams/issues",
+        "Support": "https://github.com/d-fathi/pyams/discussions",
         "Donate": "https://ko-fi.com/pyams",
     },
 )

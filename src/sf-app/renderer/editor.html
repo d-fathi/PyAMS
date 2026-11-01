@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; script-src 'self' 'unsafe-eval'; connect-src 'self' blob: data:;">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyAMS</title>
+    <link href="../media/css/HTMLcode.css" rel="stylesheet">
+    <link href="editor.css" rel="stylesheet">
+</head>
+<body>
+    <div id="content"></div>
+    <div id="statusbar">
+        <span id="sbFile"></span>
+        <span id="sbToast"></span>
+        <span class="sb-spacer"></span>
+        <span id="sbPos" title="Cursor position (grid)"></span>
+        <span id="sbZoom" title="Zoom"></span>
+    </div>
+
+    <!-- Bridge replacing the VS Code webview API (must load first) -->
+    <script src="host-shim.js"></script>
+
+    <!-- PyAMS CAD editor (same files, same order as the VS Code extension) -->
+    <script src="../media/cad/shapes/information.js"></script>
+    <script src="../media/cad/shapes/polyline.js"></script>
+    <script src="../media/cad/shapes/arc.js"></script>
+    <script src="../media/cad/shapes/pin.js"></script>
+    <script src="../media/cad/shapes/ioparam.js"></script>
+    <script src="../media/cad/shapes/part.js"></script>
+    <script src="../media/cad/shapes/net.js"></script>
+    <script src="../media/cad/shapes/text.js"></script>
+    <script src="../media/cad/shapes/body.js"></script>
+    <script src="../media/cad/shapes/toolButton.js"></script>
+    <script src="../media/cad/shapes/cursor.js"></script>
+    <script src="../media/cad/shapes/controle.js"></script>
+    <script src="../media/cad/shapes/cnode.js"></script>
+    <script src="../media/cad/shapes/utility.js"></script>
+    <script src="../media/cad/shapes/measurement.js"></script>
+    <script src="../media/cad/shapes/svg.js"></script>
+    <script src="../media/cad/shapes/analysis.js"></script>
+    <script src="../media/cad/shapes/plots.js"></script>
+    <script src="../media/cad/shapes/codePy.js"></script>
+    <script src="../media/cad/shapes/codeHtml.js"></script>
+    <script src="../media/cad/shapes/port.js"></script>
+    <script src="../media/cad/shapes/vbar.js"></script>
+    <script src="../media/properties/propertiesDialog.js"></script>
+    <script src="../media/cad/selectElements.js"></script>
+    <script src="../media/properties/propertiesBuilder.js"></script>
+    <script src="../media/properties/propertiesRouter.js"></script>
+    <script src="../media/dialog/symbolsPanel.js"></script>
+    <script src="../media/cad/importCircuit.js"></script>
+    <script src="../media/dialog/signalDialog.js"></script>
+    <script src="../media/dialog/elementDialog.js"></script>
+    <script src="../media/dialog/listModelsDialog.js"></script>
+    <script src="../media/dialog/listParametersDialog.js"></script>
+    <script src="../media/dialog/optionsDialog.js"></script>
+    <script src="../media/dialog/codeEditorDialog.js"></script>
+    <script src="../media/dialog/spiceNetlistDialog.js"></script>
+    <script src="../media/dialog/processAnalysisDialog.js"></script>
+    <script src="../media/dialog/messageDialog.js"></script>
+    <script src="../media/dialog/opAnalysisDialog.js"></script>
+    <script src="../media/dialog/nodeSelectorDialog.js"></script>
+    <script src="../media/cad/ruler.js"></script>
+    <script src="../media/cad/grid.js"></script>
+    <script src="../media/cad/body.js"></script>
+    <script src="../media/cad/designe.js"></script>
+    <script src="../media/cad/shapes.js"></script>
+    <script src="../media/cad/resize.js"></script>
+    <script src="../media/cad/listSymbol.js"></script>
+    <script src="../media/cad/listElements.js"></script>
+    <script src="../media/cad/simulation.js"></script>
+    <script src="../media/cad/drawing.js"></script>
+    <script src="../media/cad/std.js"></script>
+    <script src="../media/pack/plotly-latest.min.js"></script>
+
+    <script src="editor-main.js"></script>
+</body>
+</html>

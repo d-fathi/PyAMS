@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' data:; script-src 'self';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyAMS</title>
+    <link rel="stylesheet" href="start.css">
+</head>
+<body>
+    <main class="page">
+        <aside class="brand">
+            <img src="logo.png" alt="PyAMS logo" class="logo">
+            <h1>PyAMS</h1>
+            <p class="tagline">Python for Analog and Mixed Signals</p>
+            <p class="version" id="version"></p>
+            <div class="links">
+                <button class="link" data-action="docs">Documentation</button>
+                <button class="link" data-action="website">pyams.sf.net</button>
+            </div>
+        </aside>
+
+        <section class="content">
+            <h2>Start</h2>
+            <div class="actions">
+                <button class="card" data-action="new-circuit">
+                    <span class="card-title">New Circuit</span>
+                    <span class="card-desc">Draw a schematic and simulate it (.dcs)</span>
+                    <kbd>Ctrl+N</kbd>
+                </button>
+                <button class="card" data-action="new-symbol">
+                    <span class="card-title">New Symbol</span>
+                    <span class="card-desc">Design a symbol for an element (.sym)</span>
+                    <kbd>Ctrl+Shift+N</kbd>
+                </button>
+                <button class="card" data-action="open">
+                    <span class="card-title">Open File…</span>
+                    <span class="card-desc">Open a circuit or a symbol</span>
+                    <kbd>Ctrl+O</kbd>
+                </button>
+            </div>
+
+            <div class="columns">
+                <div>
+                    <h2>Recent</h2>
+                    <ul class="list" id="recent"></ul>
+                </div>
+                <div>
+                    <h2>Examples</h2>
+                    <ul class="list" id="examples"></ul>
+                </div>
+            </div>
+            <p class="hint">Tip: drag a .dcs or .sym file onto this window to open it.</p>
+        </section>
+    </main>
+    <script src="start.js"></script>
+</body>
+</html>

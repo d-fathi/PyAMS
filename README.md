@@ -3,7 +3,7 @@
 PyAMS: Python for Analog and Mixed Signals
 
 <h1 align="center">
-    <a href="https://pyams.sourceforge.io/"><img src="https://pyams.sourceforge.io/logo.png" width="175px" alt="PyAMS"></a>
+    <a href="https://pyams.sourceforge.io/"><img src="images/logo.png" width="180px" alt="PyAMS"></a>
 </h1>
 
 ---
@@ -11,14 +11,14 @@ PyAMS: Python for Analog and Mixed Signals
 <p align="center">
  
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.2.0-blue" alt="V 0.2.0">
+    <img src="https://img.shields.io/badge/Version-0.3.0-blue" alt="V 0.3.0">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
   </a>
     
   <a href="https://github.com/d-fathi/PyAMS/blob/main/LICENSE">
-      <img src="https://img.shields.io/badge/GPLv3-blue" alt="GPLv3">
+      <img src="https://img.shields.io/badge/MIT-blue" alt="MIT">
   </a>
 </p>
 
@@ -27,47 +27,48 @@ PyAMS: Python for Analog and Mixed Signals
 What is PyAMS?
 **************
 
-PyAMS is a software used to simplify simulate electronic circuit and  modeling analog and digital elements  using pyams_lib
-The objectives of PyAMS is:
 
-*	Drawing circuit by schematic;
-*	Creating new symbols for models;
-*	Creating new PyAMS models of electrical elements by using pyams_lib;
-*	Simulating the circuit in the selected mode of operation;
-*	Presenting simulation results in a dedicated waveform editor or probe;
-*   PyAMS used Python3+ or PyPy and works on  Windows , Linux (future), and OSX(future).
-*   **Licensed under:** PyAMS is free to use. GPLv3.
+**PyAMS** (*Python for Analog and Mixed Signals*) is an open-source computer-aided design (CAD) system for Python-based circuit simulation. It is built on the `pyams_lib` library, which simplifies the **simulation of electronic circuits** and the **modeling of analog elements**, and it adds a graphical environment with custom-designed symbols.
 
+## Two ways to use PyAMS
 
-## Web Site of Software
+There are two ways to use PyAMS:
 
-* **Hom page** <a href="https://pyams.sf.net">https://pyams.sf.net</a>.
-* **PyAMS’s documentation**  <a href="https://pyams.sf.net/doc">https://pyams.sf.net/doc</a>.
+- As a **Python library** (`pyams-lib`), installed with pip.
+- Inside the **CAD system** (the PyAMS application or the VS Code extension).
 
-## Installation of Software
+| Feature | Python library | CAD system |
+| :--- | :--- | :--- |
+| **What it is** | The `pyams-lib` package, used from your own Python scripts | The PyAMS application, or the PyAMS extension for VS Code |
+| **Install** | `pip install pyams-lib` | Download from https://pyams.sf.net, or install the extension in VS Code |
+| **You work with** | Python code: models, circuit, analysis | Schematics, symbols, and a waveform viewer |
+| **Results** | NumPy arrays, `matplotlib` plots | Interactive Plotly waveforms |
+| **The library** | Installed by pip | Already included (only `numpy` and `matplotlib` are needed) |
 
-* **Download:** <a href="https://sourceforge.net/projects/pyams/">https://sourceforge.net/projects/pyams/</a>.
+Both use the same `pyams` library and the same models, so a model written for one works in the other. See the `installation` documentation for details.
 
-## Screenshots of schematic and data display areas
+## Key features
 
-<h1 align="center">
-    <img src="https://pyams.sourceforge.io/images/C.png" width="900px" alt="PyAMS">
-</h1>
+- **Free and open source**, distributed under the MIT license.
+- **Analyses:**
+  1. **DC analysis:** steady-state operating point and DC sweeps.
+  2. **Transient (time-domain) analysis:** behavior of the circuit over time.
+  3. **AC (frequency-domain) analysis:** small-signal frequency response (magnitude and phase).
+- **Interactive visualization** of the results with a Plotly-based waveform viewer, or with `matplotlib` when working directly in Python.
+- **Behavioral modeling:** write your own analog elements as Python classes and use them in custom circuit designs.
+- **Easy to use:** a simple interface for engineers, researchers, and students, with robust simulation of analog and mixed-signal systems.
 
+## Related projects
 
+- **Documentation:** https://pyams-lib.readthedocs.io/
+- **Source code:** https://github.com/d-fathi/pyams
+- **Package on PyPI:** https://pypi.org/project/pyams-lib/
+- **Circuit design with a graphical (CAD) front-end:** https://pyams.sf.net/
 
-## Note
+## License
 
-To create a PyAMS application from the `src` directory:
+PyAMS is free software distributed under the **MIT** license.
 
-1. Download and install **Node.js** from the official website: [https://nodejs.org/](https://nodejs.org/)
-2. Download **Python** (or **PyPy**) and add it to the `PyAMS\python` directory.
-3. Navigate to the `src` directory and run the following commands:
-
-```sh
-   npm install
-   npm start
-````
 
 
 
