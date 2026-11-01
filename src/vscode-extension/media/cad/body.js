@@ -572,6 +572,7 @@ document.getElementById('btnText').addEventListener('click',  () =>{self.activeB
 document.getElementById('btnPin').addEventListener('click',  () =>{self.activeBtnById('btnPin'); addShape('pin'); });
 document.getElementById('btnReference').addEventListener('click',  () =>{self.activeBtnById('btnReference'); addShape('ref'); });
 document.getElementById('btnParameter').addEventListener('click',  () =>{self.activeBtnById('btnParameter'); addShape('param'); });
+document.getElementById('btnHTML').addEventListener('click',  () =>{self.activeBtnById('btnHTML'); addShape('codeHTML'); });
 document.getElementById('btnModel').addEventListener('click',  () =>{self.activeBtnById('btnModel'); addShape('modelSpice'); });
 document.getElementById('btnAnalysis').addEventListener('click',  () =>{self.activeBtnById('btnAnalysis'); addShape("analysis"); });
 document.getElementById('btnRunAV').addEventListener('click',  () =>{ opAnalysis(); });
@@ -719,6 +720,7 @@ document.addEventListener('keydown', (e) => {
     if (key === 'd') { if(drawing.pageType == 'dcs') return; addShape('modelSpice');  self.activeBtnSelect();}
     if (key === 'z') { if(drawing.pageType == 'sym') return;  addShape('probe');}
     if (key === 'w') { if(drawing.pageType == 'sym') return;  addShape('net');} 
+    if (key === 'm') { if(drawing.pageType == 'sym') return;  addShape('codeHTML');} 
     if ((key === 'escape') || (key === 'end') || (key === 'v')) { 
       self.activeBtnSelect();       
       self.shapes.design.mouse = false;
