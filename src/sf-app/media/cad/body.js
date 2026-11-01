@@ -54,10 +54,15 @@ width: fit-content;
 }
 .toolbar-btn svg { width: 16px; height: 16px; pointer-events: none; }
 #setgrid { display: grid; width: 100%; height: 100%; grid-template-columns: 20px 1fr; grid-template-rows: 20px 1fr; }
-#areaA { background-color: Silver; }
-#areaB { background-color: Silver; }
-#areaC { background-color: Silver; }
-#areaGlobal { align: center; outline: none; position: relative; width: 100%; height: 100%; overflow-y: scroll; user-select: none; scrollbar-width: thin; }
+#areaA { background-color: #eee0bd; }
+#areaB { background-color: #eee0bd; }
+#areaC { background-color: #eee0bd; }
+/* Drawing area: colours taken from the PyAMS logo (cream background, brown-tinted grid) */
+:root { --draw-bg: #f5e7c3; --grid-minor: #e6d3a6; --grid-major: #cdb283; }
+#svg { background-color: var(--draw-bg); }
+#smallGrid { stroke: var(--grid-minor); stroke-width: 0.7; }
+#grid { stroke: var(--grid-major); stroke-width: 1; }
+#areaGlobal { background-color: var(--draw-bg); align: center; outline: none; position: relative; width: 100%; height: 100%; overflow-y: scroll; user-select: none; scrollbar-width: thin; }
 .setFont { font-family: verdana; font-size: 12px; }
 .toolbar-btn {
   --icon-color: #e2e8f0;
