@@ -74,6 +74,24 @@ function modifedSizeCodeHtml(element) {
 
 
 
+// Math formulas (KaTeX): $ ... $ or \( ... \) inside a line, $$ ... $$ or \[ ... \] on its own line.
+// Used for the note on the drawing, the enlarged view and the preview of the HTML editor.
+function renderMath(el) {
+  if (!el || typeof renderMathInElement !== 'function') return;
+  try {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '$$',  right: '$$',  display: true  },
+        { left: '\\[', right: '\\]', display: true  },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '$',   right: '$',   display: false }
+      ],
+      throwOnError: false,       // a wrong formula is shown in red instead of breaking the page
+      output: 'html'             // no hidden MathML copy: keeps the saved file smaller
+    });
+  } catch (e) { console.warn('KaTeX:', e); }
+}
+
 function updateHtmlCode(){
   var s=document.getElementsByName('htmlCode');
   var i=0;
@@ -101,6 +119,7 @@ function updateHtmlCode(){
     `;
     
     
+   renderMath(s[i]);
    modifedSizeCodeHtml(s[i].parentNode.parentNode);
    i++;
  }
@@ -162,6 +181,7 @@ function goHome(btn) {
   ov.querySelector('#chViewerClose').addEventListener('click', closeHtmlViewer);
   document.addEventListener('keydown', htmlViewerKey, true);
   document.body.appendChild(ov);
+  renderMath(ov.querySelector('#chViewerBody'));
 }
 
 function modifyAction(){

@@ -620,6 +620,9 @@ function fCodeEditorDialog(self) {
         { label: 'I',       title: 'Italic',         wrap: ['<em>', '</em>'] },
         { label: 'Link',    title: 'Link',           wrap: ['<a href="https://">', '</a>'] },
         { label: 'HR',      title: 'Separator line', html: '<hr>' },
+        { label: '$x$',    title: 'Math formula inside a line  ( $ ... $ )', wrap: ['$', '$'] },
+        { label: '$$x$$',  title: 'Math formula on its own line  ( $$ ... $$ )', html: '$$ % $$' },
+        { label: 'x/y',    title: 'Fraction \\frac{a}{b}', wrap: ['\\frac{', '}{}'] },
         { label: 'Card',    title: 'Card',           html: '<div class="ch-card">\n    <h2>%</h2>\n    <p></p>\n</div>' },
         { label: 'Formula', title: 'Formula box',    html: '<div class="ch-formula">%</div>' },
         { label: '2 cols',  title: 'Two columns (blue / red)',
@@ -641,7 +644,7 @@ function fCodeEditorDialog(self) {
         } else {
             var body = sn.html.replace(/\n/g, '\n' + indent);
             var at = body.indexOf('%');
-            text = body.replace('%', sel);
+            text = body.replace('%', function() { return sel; });
             caret = start + at + sel.length;
         }
         codeEditor.focus();
@@ -670,6 +673,7 @@ function fCodeEditorDialog(self) {
         if (!pv || !codeEditor || selfDialog.language !== 'html') return;
         // scripts are never run in the preview
         pv.innerHTML = codeEditor.value.replace(/<script[\s\S]*?<\/script>/gi, '');
+        if (typeof renderMath === 'function') renderMath(pv);
     };
     this.schedulePreview = function() {
         clearTimeout(previewTimer);

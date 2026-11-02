@@ -13,7 +13,7 @@
 
     &lt;h2&gt;Cutoff Frequency&lt;/h2&gt;
     &lt;div class=&quot;ch-formula&quot;&gt;
-        fc = 1 / (2&amp;pi;RC) = 1 / (2&amp;pi; &amp;times; 1000 &amp;times; 1&amp;times;10&amp;minus;6) &amp;approx; &lt;strong&gt;159 Hz&lt;/strong&gt;
+        $f_c = \dfrac{1}{2\pi R C} = \dfrac{1}{2\pi \times 1000 \times 1\times 10^{-6}} \approx \mathbf{159\ Hz}$
     &lt;/div&gt;
 
     &lt;h2&gt;Simulation Results&lt;/h2&gt;

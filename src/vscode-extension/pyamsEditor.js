@@ -623,6 +623,10 @@ webviewPanel.onDidDispose(() => {
         const stdJs= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'std.js'));
         const plotlyJs =webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'pack','plotly-latest.min.js'));
         const htmlCodeCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'css', 'HTMLcode.css'));
+        // KaTeX: math formulas in the HTML note (codeHTML) and in its editor
+        const katexCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'pack', 'katex', 'katex.min.css'));
+        const katexJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'pack', 'katex', 'katex.min.js'));
+        const katexAutoJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'pack', 'katex', 'auto-render.min.js'));
     
         // Define the library path for ngspice
         const libraryPath = path.join(this.context.extensionPath, 'library');
@@ -638,6 +642,7 @@ webviewPanel.onDidDispose(() => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PyAMS Editor</title>
     <link href="${htmlCodeCss}" rel="stylesheet">
+    <link href="${katexCss}" rel="stylesheet">
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: verdana; }
         #content { width: 100%; height: 100%; position: relative; }
@@ -705,6 +710,8 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${drawingJs}"></script>
     <script nonce="${nonce}" src="${stdJs}"></script>
     <script nonce="${nonce}" src="${plotlyJs}"></script>
+    <script nonce="${nonce}" src="${katexJs}"></script>
+    <script nonce="${nonce}" src="${katexAutoJs}"></script>
     
 
 
