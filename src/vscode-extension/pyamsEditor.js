@@ -3,8 +3,6 @@ const SymbolsSync = require('./symbolsSync');
 const LibrarySync = require('./librarySync');
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
-const os = require('os');
 
 class PyAMSEditorProvider {
     constructor(context, viewType, fileType) {
@@ -200,150 +198,6 @@ case 'stopPyAMSOp':
     break;
 
 //*****************Analysis Start **************************/   
-case 'startSimulation':
-    try {
-        const spiceCode = message.code;
-        const tempDir = os.tmpdir();
-        const circuitFile = path.join(tempDir, `circuit_${Date.now()}.cir`);
-        const resultsFile = path.join(tempDir, 'results.txt');
-        
-        // Detect analysis type
-        const analysisType = detectAnalysisType(spiceCode);
-        
-        // Write circuit file
-        fs.writeFileSync(circuitFile, spiceCode, 'utf-8');
-        
-        // Kill previous process if exists
-        if (this.ngspiceProcess) {
-            console.log("Stopping previous ngspice process...");
-            this.ngspiceProcess.kill();
-            this.ngspiceProcess = null;
-        }
-        
-        const ngspicePath = path.join(this.context.extensionPath, 'ngspice', 'bin', 'ngspice_con.exe');
-        
-        this.ngspiceProcess = spawn(ngspicePath, ['-b', circuitFile], {
-            cwd: tempDir,
-            env: { ...process.env, PATH: path.dirname(ngspicePath) + path.delimiter + process.env.PATH }
-        });
-        
-        let stdout = '';
-        let stderr = '';
-        let progressInterval = null;
-        let progress = 0;
-        const startTime = Date.now();
-        
-        // Send initial progress
-        webviewPanel.webview.postMessage({
-            type: 'simulationProgress',
-            progress: 0
-        });
-        
-        webviewPanel.webview.postMessage({
-            type: 'simulationLog',
-            message: 'Starting ngspice simulation...',
-            logType: 'info'
-        });
-        
-        // Simulate progress updates
-        progressInterval = setInterval(() => {
-            if (progress < 90) {
-                progress += Math.random() * 5;
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const minutes = Math.floor(elapsed / 60);
-                const seconds = elapsed % 60;
-                
-                webviewPanel.webview.postMessage({
-                    type: 'simulationProgress',
-                    progress: Math.min(90, progress),
-                    elapsedTime: minutes + ':' + (seconds < 10 ? '0' : '') + seconds
-                });
-            }
-        }, 500);
-        
-        this.ngspiceProcess.stdout.on('data', (data) => {
-            stdout += data.toString();
-        });
-        
-        this.ngspiceProcess.stderr.on('data', (data) => {
-            stderr += data.toString();
-        });
-        
-        this.ngspiceProcess.on('close', (code) => {
-            clearInterval(progressInterval);
-            
-            // Read results file if exists
-            let resultsContent = '';
-            try {
-                if (fs.existsSync(resultsFile)) {
-                    resultsContent = fs.readFileSync(resultsFile, 'utf-8');
-                }
-            } catch (err) {}
-            
-            // Cleanup temp files
-            try {
-                fs.unlinkSync(circuitFile);
-                if (fs.existsSync(resultsFile)) fs.unlinkSync(resultsFile);
-            } catch (err) {}
-            
-            // Parse results
-            const results = parseSpiceResults(stdout, stderr, resultsContent, analysisType);
-            
-            this.solveData = {
-                success: code === 0,
-                exitCode: code,
-                stdout: stdout,
-                stderr: stderr,
-                results: results,
-                rawOutput: stdout + '\n' + stderr
-            };
-            
-            // Send completion
-            webviewPanel.webview.postMessage({
-                type: 'simulationProgress',
-                progress: 100,
-                elapsedTime: 'Done'
-            });
-            
-            webviewPanel.webview.postMessage({
-                type: 'simulationComplete',
-                data: {
-                    stdout: stdout,
-                    stderr: stderr,
-                    results: results
-                }
-            });
-            
-            this.ngspiceProcess = null;
-        });
-        
-        this.ngspiceProcess.on('error', (error) => {
-            clearInterval(progressInterval);
-            
-            try { fs.unlinkSync(circuitFile); } catch (err) {}
-            
-            this.solveData = {
-                success: false,
-                error: error.message,
-                message: 'Failed to start ngspice. Please check the path: ' + ngspicePath
-            };
-            
-            webviewPanel.webview.postMessage({
-                type: 'simulationError',
-                error: error.message
-            });
-            
-            this.ngspiceProcess = null;
-        });
-        
-    } catch (error) {
-        webviewPanel.webview.postMessage({
-            type: 'simulationError',
-            error: error.message
-        });
-    }
-    break;
-
 case 'startPyAMSAnalysis': {
     // Run a PyAMS circuit analysis in a Python process and stream its progress to the dialog
     if (this.pyamsRun) { this.pyamsRun.kill(); this.pyamsRun = null; }
@@ -371,37 +225,7 @@ case 'stopPyAMSAnalysis':
     }
     break;
 
-case 'stopSimulation':
-    if (this.ngspiceProcess) {
-        console.log("Stopping ngspice process...");
-        this.ngspiceProcess.kill();
-        this.ngspiceProcess = null;
-        
-        webviewPanel.webview.postMessage({
-            type: 'simulationProgress',
-            progress: 0,
-            elapsedTime: 'Stopped'
-        });
-        
-        webviewPanel.webview.postMessage({
-            type: 'simulationLog',
-            message: 'Simulation stopped by user',
-            logType: 'warn'
-        });
-    }
-    break;
-
-
-case 'getSimulationResults':
-    webviewPanel.webview.postMessage({
-        type: 'simulationResults',
-        data: this.solveData || null
-    });
-    break;
-
-
-
- //****************Analysis End ******************************//
+//****************Analysis End ******************************//
     
     
     
@@ -575,7 +399,6 @@ webviewPanel.onDidDispose(() => {
         const katexJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'pack', 'katex', 'katex.min.js'));
         const katexAutoJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'pack', 'katex', 'auto-render.min.js'));
     
-        // Define the library path for ngspice
         const libraryPath = path.join(this.context.extensionPath, 'library');
         const extensionPath = this.context.extensionPath;
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -711,10 +534,6 @@ webviewPanel.onDidDispose(() => {
         drawing._listParameterResolve = null;
         drawing._listParameterReject = null;
     }
-} else if (msg.type === 'simulationResults') {
-    if (typeof drawing !== 'undefined' && drawing.handleSimulationResults) {
-        drawing.handleSimulationResults(msg.data);
-    }
 }
 // Execute copy, cut, and paste commands
             // If a text field (input/textarea/contenteditable) has focus, act on its text, not on the circuit
@@ -786,186 +605,6 @@ function getNonce() {
     return text;
 }
 
-function formatValue(value) {
-    const absVal = Math.abs(value);
-    if (absVal === 0) return '0';
-    if (absVal >= 1e9) return (value / 1e9).toFixed(3) + ' G';
-    if (absVal >= 1e6) return (value / 1e6).toFixed(3) + ' M';
-    if (absVal >= 1e3) return (value / 1e3).toFixed(3) + ' k';
-    if (absVal >= 1) return value.toFixed(6).replace(/0+$/, '').replace(/\.$/, '');
-    if (absVal >= 1e-3) return (value * 1e3).toFixed(3) + ' m';
-    if (absVal >= 1e-6) return (value * 1e6).toFixed(3) + ' µ';
-    if (absVal >= 1e-9) return (value * 1e9).toFixed(3) + ' n';
-    if (absVal >= 1e-12) return (value * 1e12).toFixed(3) + ' p';
-    return value.toExponential(3);
-}
-
-
-// Helper: Detect analysis type
-function detectAnalysisType(code) {
-    if (/\.tran\s+/i.test(code)) return 'tran';
-    if (/\.op\s*$/im.test(code)) return 'op';
-    if (/\.dc\s+/i.test(code)) return 'dc';
-    if (/\.ac\s+/i.test(code)) return 'ac';
-    return 'op';
-}
-
-// Enhanced parseSpiceResults with analysis type
-function parseSpiceResults(stdout, stderr, resultsContent, analysisType) {
-    const results = {
-        results: [],
-        errors: [],
-        warnings: [],
-        type: analysisType || 'op'
-    };
-
-    const combinedOutput = stdout + '\n' + stderr;
-    const lines = combinedOutput.split('\n');
-
-    // Extract errors and warnings
-    for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-        if (trimmed.toLowerCase().includes('error') || trimmed.toLowerCase().includes('fatal')) {
-            results.errors.push(trimmed);
-        }
-        if (trimmed.toLowerCase().includes('warning')) {
-            results.warnings.push(trimmed);
-        }
-    }
-
-    // Parse results.txt if exists
-    if (resultsContent && resultsContent.trim()) {
-        const cleanContent = resultsContent.replace(/\f/g, '\n');
-        const contentLines = cleanContent.split('\n');
-
-        const hasTableHeader = contentLines.some(l => 
-            l.includes('Index') && (
-                l.includes('time') || 
-                l.includes('v-sweep') || 
-                l.includes('frequency') ||
-                l.includes('freq')
-            )
-        );
-
-        if (hasTableHeader) {
-            parseTableData(contentLines, results);
-        } else {
-            parseOpData(contentLines, results);
-        }
-        return results;
-    }
-
-    // Fallback: parse stdout
-    parseStdoutData(combinedOutput, results);
-    return results;
-}
-
-function parseTableData(contentLines, results) {
-    let varNames = [];
-    let xAxisName = 'x';
-    let dataRows = [];
-    let inDataSection = false;
-
-    for (let i = 0; i < contentLines.length; i++) {
-        const line = contentLines[i].trim();
-        if (!line) continue;
-
-        if (line.includes('---') || line.includes('Analysis') || line.includes('Index')) {
-            if (line.includes('Index')) {
-                const parts = line.split(/\s+/).filter(p => p && p !== 'Index');
-                if (parts.length > 0) {
-                    xAxisName = parts[0];
-                    varNames = parts.slice(1);
-                }
-            }
-            inDataSection = true;
-            continue;
-        }
-
-        if (inDataSection) {
-            const parts = line.split(/\s+/).filter(p => p);
-            if (parts.length >= 3 && !isNaN(parseFloat(parts[0]))) {
-                dataRows.push(parts);
-            }
-        }
-    }
-
-    for (let colIdx = 0; colIdx < varNames.length; colIdx++) {
-        const list = [];
-        for (const row of dataRows) {
-            const x = parseFloat(row[1]);
-            const value = parseFloat(row[colIdx + 2]);
-            if (!isNaN(x) && !isNaN(value)) {
-                list.push([x, value]);
-            }
-        }
-        if (list.length > 0) {
-            results.results.push({
-                name: varNames[colIdx],
-                data: list
-            });
-        }
-    }
-}
-
-function parseOpData(contentLines, results) {
-    for (const line of contentLines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-
-        const match = trimmed.match(/^([a-z]\([a-z0-9_]+\))\s*=\s*([+-]?\d+\.?\d*[eE]?[+-]?\d*)/i);
-        if (match) {
-            const name = match[1];
-            const value = parseFloat(match[2]);
-            results.results.push({
-                name: name,
-                value: value,
-                formatted: formatValue(value)
-            });
-        }
-    }
-}
-
-function parseStdoutData(allText, results) {
-    // v(node) = value
-    const vPattern = /v\(([a-z0-9_]+)\)\s*=\s*([+-]?\d+\.?\d*[eE]?[+-]?\d*)/gi;
-    let match;
-    while ((match = vPattern.exec(allText)) !== null) {
-        const name = match[1].trim();
-        const value = parseFloat(match[2]);
-        const exists = results.results.find(r => r.name === `v(${name})`);
-        if (!exists) {
-            results.results.push({ name: `v(${name})`, value: value, formatted: formatValue(value) });
-        }
-    }
-
-    // Node Voltage table
-    const nodeTablePattern = /Node\s+Voltage[\s\S]*?----\s*\n\s*----\s*-------\n([\s\S]*?)(?=\n\s*Source|$)/i;
-    const nodeTableMatch = allText.match(nodeTablePattern);
-    if (nodeTableMatch) {
-        const tableLines = nodeTableMatch[1].split('\n');
-        for (const line of tableLines) {
-            const trimmed = line.trim();
-            if (!trimmed || trimmed.includes('----')) continue;
-            const nodeMatch = trimmed.match(/^([a-z][a-z0-9_]*)\s+([+-]?\d+\.\d+[eE][+-]?\d+)/i);
-            if (nodeMatch) {
-                const name = nodeMatch[1].trim();
-                const value = parseFloat(nodeMatch[2]);
-                const exists = results.results.find(r => r.name === `v(${name})`);
-                if (!exists) {
-                    results.results.push({ name: `v(${name})`, value: value, formatted: formatValue(value) });
-                }
-            }
-        }
-    }
-
-    // Add GND
-    const hasVoltages = results.results.some(r => r.name.startsWith('v('));
-    if (hasVoltages && !results.results.find(r => r.name === 'v(0)')) {
-        results.results.unshift({ name: 'v(0)', value: 0, formatted: '0' });
-    }
-}
 
 module.exports = PyAMSEditorProvider;
 

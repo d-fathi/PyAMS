@@ -376,49 +376,6 @@ self.runOpCheck = function(data) {
     });
 };
 
-// *************Run Analysis with Dialog*******************************//
-self.runAnalysis = function(spiceCode) {
-    return new Promise((resolve, reject) => {
-        // Store resolvers for later
-        self._simulationResolve = resolve;
-        self._simulationReject = reject;
-        self._simulationSpiceCode = spiceCode;
-        
-        if (typeof processAnalysisDialog === 'undefined' || !processAnalysisDialog) {
-            processAnalysisDialog = new fProcessAnalysisDialog(self);
-        }
-        
-        processAnalysisDialog.setCallbacks(
-            function(result) {  // onSubmit (OK clicked)
-                // Request results from extension
-                if (typeof vscode !== 'undefined') {
-                    vscode.postMessage({ type: 'getSimulationResults' });
-                } else {
-                    // Fallback if no vscode
-                    resolve(result);
-                }
-            },
-            function() {  // onCancel
-                self._simulationResolve = null;
-                self._simulationReject = null;
-                reject('Analysis cancelled');
-            }
-        );
-        
-        processAnalysisDialog.initData(spiceCode);
-        processAnalysisDialog.show();
-    });
-};
-
-// Handle simulation results from extension
-self.handleSimulationResults = function(data) {
-    if (self._simulationResolve) {
-        self._simulationResolve(data);
-        self._simulationResolve = null;
-        self._simulationReject = null;
-    }
-};
-
 //*************Run a PyAMS analysis (Python process) with the process dialog*******************************//
 // code:     PyAMS code creating the elements (every model instance is an element of the circuit)
 // analysis: { type:'Time Domain', start:'0.0s', step:'0.1us', stop:'5ms',

@@ -6,7 +6,7 @@ Created:     16/09/2026
 Copyright:   (c) PyAMS 2026
 Licence:     free
 #---------------------------------------------------------------------------------------------------
-Description: Dialog for ngspice simulation process with progress tracking
+Description: Dialog for the PyAMS analysis process (Python) with progress tracking
 */
 
 //------------------Class for Process Analysis Dialog--------------------------------//
@@ -23,8 +23,7 @@ function fProcessAnalysisDialog(self) {
     selfDialog.elapsedTimer = null;
     selfDialog.progress = 0;
 
-    // 'spice' (ngspice, default) or 'pyams' (Python process, see initPyAMS)
-    selfDialog.mode = 'spice';
+    // PyAMS analysis (Python process, see initPyAMS)
     selfDialog.pyamsCode = '';
     selfDialog.pyamsAnalysis = null;
     selfDialog.pyamsResults = null;
@@ -475,21 +474,11 @@ function fProcessAnalysisDialog(self) {
     };
 
     // Simulation control
-   // Initialize with SPICE code
-   this.initData = function(spiceCode) {
-       selfDialog.mode = 'spice';
-       selfDialog.spiceCode = spiceCode || '';
-       selfDialog.pyamsResults = null;
-       selfDialog.autoStart = false;
-       selfDialog.resetDialog();
-    };
-
    // Initialize with PyAMS code + analysis description, e.g.
    //   analysis = { type:'Time Domain', start:'0s', step:'0.1us', stop:'5ms',
    //                outputs:{ names:['Out1','C1.I'], color:['#00ff00','#ff0000'] } }
    // options.autoStart: start the analysis as soon as the dialog opens.
    this.initPyAMS = function(code, analysis, options) {
-       selfDialog.mode = 'pyams';
        selfDialog.pyamsCode = code || '';
        selfDialog.pyamsAnalysis = analysis || {};
        selfDialog.pyamsResults = null;
@@ -502,9 +491,7 @@ function fProcessAnalysisDialog(self) {
        selfDialog.resetDialog();          // (resets isRunning, so set it afterwards)
        selfDialog.isRunning = true;
        selfDialog.setStatus('running');
-       selfDialog.appendLog(selfDialog.mode === 'pyams'
-           ? 'Starting PyAMS analysis process...'
-           : 'Starting ngspice simulation process...', 'info');
+       selfDialog.appendLog('Starting PyAMS analysis process...', 'info');
        selfDialog.startElapsedTimer();
     
        if (startBtn) startBtn.disabled = true;
@@ -513,18 +500,11 @@ function fProcessAnalysisDialog(self) {
     
        // Send message to extension to start simulation with code
        if (typeof vscode !== 'undefined') {
-           if (selfDialog.mode === 'pyams') {
-               vscode.postMessage({
-                 type: 'startPyAMSAnalysis',
-                 code: selfDialog.pyamsCode,
-                 analysis: selfDialog.pyamsAnalysis
-              });
-           } else {
-               vscode.postMessage({
-                 type: 'startSimulation',
-                 code: selfDialog.spiceCode
-              });
-           }
+           vscode.postMessage({
+             type: 'startPyAMSAnalysis',
+             code: selfDialog.pyamsCode,
+             analysis: selfDialog.pyamsAnalysis
+          });
        }
     };
 
@@ -539,7 +519,7 @@ function fProcessAnalysisDialog(self) {
         
         // Send message to extension to stop simulation
         if (typeof vscode !== 'undefined') {
-            vscode.postMessage({ type: selfDialog.mode === 'pyams' ? 'stopPyAMSAnalysis' : 'stopSimulation' });
+            vscode.postMessage({ type: 'stopPyAMSAnalysis' });
         }
     };
 
@@ -578,7 +558,7 @@ function fProcessAnalysisDialog(self) {
         var result = {
             success: true,
             progress: selfDialog.progress,
-            data: selfDialog.mode === 'pyams' ? selfDialog.pyamsResults : undefined
+            data: selfDialog.pyamsResults
         };
         var submitCallback = selfDialog.onSubmit;
         selfDialog.hide();
@@ -610,29 +590,17 @@ function fProcessAnalysisDialog(self) {
                 selfDialog.appendLog(msg.message, msg.logType || 'info');
                 break;
 
-            case 'simulationComplete':
-                selfDialog.completeSimulation(msg.data);
-                break;
-
-            case 'simulationError':
-                selfDialog.errorSimulation(msg.error);
-                break;
-
             case 'pyamsAnalysisComplete':
-                if (selfDialog.mode !== 'pyams' || !selfDialog.isRunning) break;
+                if (!selfDialog.isRunning) break;
                 selfDialog.pyamsResults = msg.data;
                 selfDialog.completeSimulation(null);
                 break;
 
             case 'pyamsAnalysisError':
-                if (selfDialog.mode !== 'pyams' || !selfDialog.isRunning) break;
+                if (!selfDialog.isRunning) break;
                 selfDialog.errorSimulation(msg.error + (msg.line ? '  (line ' + msg.line + ')' : ''));
                 break;
 
-            case 'simulationComplete':
-               selfDialog.completeSimulation(msg.data);
-               selfDialog.simulationResults = msg.data;
-                break;
         }
     };
 
