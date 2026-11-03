@@ -140,6 +140,16 @@
     color: var(--vscode-textLink-foreground, #2980b9);
 }
 
+/* Success column (green) */
+.ch-col.green {
+    background-color: rgba(46, 160, 67, 0.12);
+    border-left: 4px solid #2ea043;
+}
+
+.ch-col.green h3 {
+    color: #2ea043;
+}
+
 /* Error column (red) - uses VS Code error validation colors */
 .ch-col.red {
     background-color: var(--vscode-inputValidation-errorBackground, #fdf2f2);

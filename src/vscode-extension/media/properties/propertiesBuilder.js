@@ -63,7 +63,7 @@ function pageSelect() {
                 collapsed: false,
                 showReset: true,
                 rows: [
-                    { label: "Netliste", type: "Button", value: 'show' , setClick:'openNetlistEditor' },
+                    { label: "PyAMS Circuit", type: "Button", value: 'show' , setClick:'openPyAMSCircuitEditor' },
                     { label: "OP Check", type: "Button", value: 'show' , setClick:'OPCheck' }
                 ]
             })

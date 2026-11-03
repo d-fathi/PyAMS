@@ -364,18 +364,18 @@ self.getCodeEditor = function(code, language, onSubmit, onCancel) {
     codeEditorDialog.show();
 };
 
-// ************* Get SPICE Netlist Editor Dialog (self=this) *******************************//
-self.getSpiceNetlistEditor = function(netlist, onSubmit, onCancel) {
-    if (typeof spiceNetlistDialog === 'undefined' || !spiceNetlistDialog) {
-        spiceNetlistDialog = new fSpiceNetlistDialog(self);
+// ************* Get PyAMS Circuit Editor Dialog (self=this) *******************************//
+self.getPyAMSCircuitEditor = function(data, onSubmit, onCancel) {
+    if (typeof pyamsCircuitDialog === 'undefined' || !pyamsCircuitDialog) {
+        pyamsCircuitDialog = new fpyamsCircuitDialog(self);
     }
-    spiceNetlistDialog.setCallbacks(onSubmit, onCancel);
-    spiceNetlistDialog.initData(netlist);
-    spiceNetlistDialog.show();
+    pyamsCircuitDialog.setCallbacks(onSubmit, onCancel);
+    pyamsCircuitDialog.initData(data);
+    pyamsCircuitDialog.show();
 };
 
-//****************check circuit **********************************************************//
-self.runOpCheck = function(spiceCode) {
+//****************check circuit by pyams.lib**********************************************************//
+self.runOpCheck = function(data) {
     return new Promise((resolve, reject) => {
         if (typeof opAnalysisDialog === 'undefined' || !opAnalysisDialog) {
             opAnalysisDialog = new fOpAnalysisDialog(self);
@@ -390,7 +390,7 @@ self.runOpCheck = function(spiceCode) {
             }
         );
 
-        opAnalysisDialog.initData(spiceCode);
+        opAnalysisDialog.initData(data);
         opAnalysisDialog.show();
     });
 };

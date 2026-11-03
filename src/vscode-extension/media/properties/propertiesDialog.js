@@ -795,10 +795,10 @@ drawing.getListParameter(code)
             break;
         }
 
-        case 'openNetlistEditor':
+        case 'openPyAMSCircuitEditor':
             {
                 var data=generateCodePyofCircuit();
-                drawing.getSpiceNetlistEditor(
+                drawing.getPyAMSCircuitEditor(
                     data,
                     function (result) {
                         console.log(result);
@@ -814,13 +814,12 @@ drawing.getListParameter(code)
 
         case 'OPCheck':
             {
-               /* var spiceCode=getNetlistSpice();
-                spiceCode+='\n\n* Analysis\n\n.op\n\n* Control\n\n.control\nrun\n\nprint all\n\n\n.endc\n\n.end';
-                    drawing.runOpCheck(spiceCode).then(result => {
+                var data=generateCodePyofCircuit();
+                    drawing.runOpCheck(data).then(result => {
                         console.log('OP check result:', result);
                     }).catch(err => {
                         console.error('OP check failed:', err);
-                    })*/
+                    })
             }
 
 
