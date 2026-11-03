@@ -821,7 +821,7 @@ drawing.getListParameter(code)
                         console.error('OP check failed:', err);
                     })
             }
-
+            break;
 
         case 'dcPramAnalysis': {
 

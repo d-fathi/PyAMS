@@ -325,25 +325,6 @@ self.redSymFilesFromWorkSpace = function() {
     });
 };
         
-//************execute SPICE code and return the result to the caller*************
-
-self.execOp = function(spiceCode) {
-    return new Promise((resolve, reject) => {
-        self._execOpResolve = resolve;
-        self._execOpReject = reject;
-        
-        if (typeof vscode !== 'undefined') {
-            vscode.postMessage({
-                type: 'execOp',
-                code: spiceCode
-            });
-        } else {
-            reject('vscode API not available');
-        }
-    });
-};
-
-
 // *************Get List Models Dialog*******************************//
  self.getListModel = function(previousResult, onSubmit, onCancel) {
              if (typeof listModelsDialog === 'undefined' || !listModelsDialog) {

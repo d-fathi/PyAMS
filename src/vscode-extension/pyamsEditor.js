@@ -186,73 +186,20 @@ case 'getListParameter': {
     break;
 }
 
-case 'execOp':
-    try {
-        const spiceCode = message.code;
-        const tempDir = os.tmpdir();
-        const circuitFile = path.join(tempDir, `circuit_${Date.now()}.cir`);
-        
-        // write the spice code to a temporary file
-        fs.writeFileSync(circuitFile, spiceCode, 'utf-8');
-        
-        let ngspicePath = path.join(this.context.extensionPath, 'ngspice', 'bin', 'ngspice_con.exe');
-        
-        const ngspiceProcess = spawn(ngspicePath, ['-b', circuitFile], {
-            cwd: tempDir,
-            env: { ...process.env, PATH: path.dirname(ngspicePath) + path.delimiter + process.env.PATH }
-        });
-        
-        let stdout = '';
-        let stderr = '';
-        
-        ngspiceProcess.stdout.on('data', (data) => {
-            stdout += data.toString();
-        });
-        
-        ngspiceProcess.stderr.on('data', (data) => {
-            stderr += data.toString();
-        });
-        
-        ngspiceProcess.on('close', (code) => {
-            // delete the temporary circuit file after execution
-            try { fs.unlinkSync(circuitFile); } catch (err) {}
-            
-            const results = parseSpiceResults_(stdout, stderr);
-            
-            webviewPanel.webview.postMessage({
-                type: 'execOpResult',
-                success: true,
-                data: {
-                    success: code === 0,
-                    exitCode: code,
-                    stdout: stdout,
-                    stderr: stderr,
-                    results: results,
-                    rawOutput: stdout + '\n' + stderr
-                }
-            });
-        });
-        
-        ngspiceProcess.on('error', (error) => {
-            try { fs.unlinkSync(circuitFile); } catch (err) {}
-            
-            webviewPanel.webview.postMessage({
-                type: 'execOpResult',
-                success: false,
-                error: 'Failed to start ngspice: ' + error.message
-            });
-        });
-        
-    } catch (error) {
-        webviewPanel.webview.postMessage({
-            type: 'execOpResult',
-            success: false,
-            error: error.message
-        });
-    }
+case 'startPyAMSOp': {
+    // DC operating point with PyAMS: run the circuit code in Python and stream events to the OP dialog
+    if (this.pyamsOpRun) { this.pyamsOpRun.kill(); this.pyamsOpRun = null; }
+    this.pyamsOpRun = LibrarySync.startPyAMSAnalysis(
+        this.context.extensionPath, message.code, { type: 'op' },
+        (ev) => webviewPanel.webview.postMessage({ type: 'pyamsOpEvent', event: ev }));
     break;
-                
- //*****************Analysis Start **************************/   
+}
+
+case 'stopPyAMSOp':
+    if (this.pyamsOpRun) { this.pyamsOpRun.kill(); this.pyamsOpRun = null; }
+    break;
+
+//*****************Analysis Start **************************/   
 case 'startSimulation':
     try {
         const spiceCode = message.code;
@@ -758,16 +705,6 @@ webviewPanel.onDidDispose(() => {
         drawing._workspaceSymResolve(msg.contents);
         drawing._workspaceSymResolve = null;
     }
-} else if (msg.type === 'execOpResult') {
-    if (typeof drawing !== 'undefined' && drawing._execOpResolve) {
-        if (msg.success) {
-            drawing._execOpResolve(msg.data);
-        } else {
-            drawing._execOpReject(msg.error);
-        }
-        drawing._execOpResolve = null;
-        drawing._execOpReject = null;
-    }
 } else if (msg.type === 'listParameterResult') {
     if (typeof drawing !== 'undefined' && drawing._listParameterResolve) {
         drawing._listParameterResolve(msg.data);
@@ -847,67 +784,6 @@ function getNonce() {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
     return text;
-}
-
-function parseSpiceResults_(stdout, stderr) {
-    const results = {
-        results: [],
-        errors: [],
-        warnings: []
-    };
-
-    const combinedOutput = stdout + '\n' + stderr;
-    const lines = combinedOutput.split('\n');
-
-    for (const line of lines) {
-        const trimmed = line.trim();
-        if (!trimmed) continue;
-
-        if (trimmed.toLowerCase().includes('error') || trimmed.toLowerCase().includes('fatal')) {
-            results.errors.push(trimmed);
-        }
-        if (trimmed.toLowerCase().includes('warning')) {
-            results.warnings.push(trimmed);
-        }
-    }
-
-    const allText = combinedOutput;
-
-    // v(node) = value  أو  i(component) = value
-    const viPattern = /([vi])\(([a-z0-9_]+)\)\s*=\s*([+-]?\d+\.?\d*[eE]?[+-]?\d*)/gi;
-    let match;
-    while ((match = viPattern.exec(allText)) !== null) {
-        const type = match[1].toLowerCase();
-        const name = match[2].trim();
-        const value = parseFloat(match[3]);
-        results.results.push({
-            name: `${type}(${name})`,
-            value: value,
-            formatted: formatValue(value)
-        });
-    }
-
-    // جدول: node_name   value
-    const tablePattern = /^\s*([a-z][a-z0-9_]*)\s+([+-]?\d+\.\d+[eE][+-]?\d+)\s*$/gim;
-    while ((match = tablePattern.exec(allText)) !== null) {
-        const name = match[1].trim();
-        const value = parseFloat(match[2]);
-        if (!results.results.find(r => r.name === name)) {
-            results.results.push({ name, value, formatted: formatValue(value) });
-        }
-    }
-
-    // print output
-    const printPattern = /^\s*([a-z][a-z0-9_]*)\s*=\s*([+-]?\d+\.?\d*[eE]?[+-]?\d*)\s*$/gim;
-    while ((match = printPattern.exec(allText)) !== null) {
-        const name = match[1].trim();
-        const value = parseFloat(match[2]);
-        if (!results.results.find(r => r.name === name)) {
-            results.results.push({ name, value, formatted: formatValue(value) });
-        }
-    }
-
-    return results;
 }
 
 function formatValue(value) {
