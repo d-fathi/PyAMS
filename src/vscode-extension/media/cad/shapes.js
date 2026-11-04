@@ -583,9 +583,19 @@ function fshapes(svg, setDrawing, width, height) {
             newElement.textContent = getTextContentByType(element);
             if(element=='param')
             {
-                newElement.setAttribute("paramname", "p");
-                newElement.setAttribute("paramvalue", "100");
+                // bind chosen by the toolbar button: param (setParams) | init (constructor argument) | method (El.name(value))
+                var bindNew = (typeof pendingParamBind !== 'undefined' && pendingParamBind) ? pendingParamBind : 'param';
+                pendingParamBind = 'param';
+                // initial state of the element: see PARAM_DEFAULTS in codePy.js
+                var dflt = PARAM_DEFAULTS[bindNew] || PARAM_DEFAULTS.param;
+                newElement.setAttribute("paramname", dflt.name);
+                newElement.setAttribute("paramvalue", dflt.value);
                 newElement.setAttribute("show", "Name and value");
+                if (bindNew !== 'param') {
+                    newElement.setAttribute("bind", bindNew);   // 'param' is the default: no attribute
+                    newElement.style.fill = dflt.color;
+                    newElement.textContent = paramDisplayText(newElement);
+                }
             }
 
             if(element=='modelSpice')
