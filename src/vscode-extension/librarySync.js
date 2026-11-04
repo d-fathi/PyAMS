@@ -111,9 +111,10 @@ static projectPythonPaths(extensionPath) {
         }
     };
     LibrarySync.workspaceFolders().forEach((f) => walk(f.path, 0));
-    const ext = path.resolve(extensionPath);
-    // the extension's own python folders are not project models
-    return found.filter((d) => { const r = path.relative(ext, d); return r.startsWith('..') || path.isAbsolute(r); });
+    // only the extension's own python package (pyams/) is not a project model folder;
+    // a project may well live inside the extension folder (e.g. its demo folder)
+    const own = path.resolve(extensionPath, 'pyams');
+    return found.filter((d) => { const r = path.relative(own, d); return r.startsWith('..') || path.isAbsolute(r); });
 }
 
 static envForRun(extensionPath) {
