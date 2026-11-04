@@ -101,6 +101,17 @@ function formatValue(value, suffix) {
   return parseFloat((value / last[1]).toPrecision(10)) + last[0] + suffix;
 }
 
+//**************Import line of a model ****************/
+// library model (pyams/models):      from pyams.models import Resistor;
+// project model (dir == 'project'):  from MyResistor import MyResistor;   (file = Project/sub/MyResistor.py)
+function pyImportLine(model, dir, file) {
+  if (dir === 'project' && file) {
+    var stem = String(file).split('/').pop().replace(/\.py$/i, '');
+    return 'from ' + stem + ' import ' + model + ';';
+  }
+  return 'from pyams.models import ' + model + ';';
+}
+
 //**************Parameter binding (param / init / method) ****************/
 // A text element name="param" has an attribute  bind  telling where its value goes in the Python code:
 //   param  (default) -> in  El.setParams("name=value ...")
@@ -298,7 +309,7 @@ function getCodePyOfPart(part) {
 
  
 
-  var code="\nfrom pyams.models import "+name+";\n"+pyElementCode(ref, name, lpins, sym.model.setParams, getBoundParams(part));
+  var code="\n"+pyImportLine(name, sym.model.dir, sym.model.file)+"\n"+pyElementCode(ref, name, lpins, sym.model.setParams, getBoundParams(part));
 
 return code;
 }
@@ -401,7 +412,7 @@ function getCodePyOfSym() {
 
  
 
-  var code="\nfrom pyams.models import "+name+";\n"+pyElementCode(ref, name, lpins, drawing.symbol.model.setParams, getBoundParams(document));
+  var code="\n"+pyImportLine(name, drawing.symbol.model.dir, drawing.symbol.model.file)+"\n"+pyElementCode(ref, name, lpins, drawing.symbol.model.setParams, getBoundParams(document));
 
 return code;
 }
@@ -447,6 +458,7 @@ function netList() {
                 type: sym.device.name,
                 ref: parts[i].getAttribute('sref'),
                 directory: sym.model.dir,
+                file: sym.model.file,
                 pins: netListPins(parts[i]),
                 pinsName: getListPins(parts[i]).map(pin => pin.elem.childNodes[2].textContent),
                 params: getListParams(parts[i]),
@@ -464,7 +476,13 @@ function generateCodePyofCircuit(){
     //get lib path---------------------------------
     
     let pythonScript ='';
-    pythonScript += elemList.map(elem =>`from pyams.models import ${elem.model};`).join("\n") + "\n";
+    // one import per model (a model used by several elements is imported once)
+    var imports = [];
+    elemList.forEach(elem => {
+        var line = pyImportLine(elem.model, elem.directory, elem.file);
+        if (imports.indexOf(line) < 0) imports.push(line);
+    });
+    pythonScript += imports.join("\n") + "\n";
     
     //get Elements---------------------------------------------------------------------
     pythonScript += elemList.map(elem => 

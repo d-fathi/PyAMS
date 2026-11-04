@@ -563,9 +563,12 @@ body.vscode-light #listModelsEditor, body.vscode-high-contrast-light #listModels
             alert('Please select a model file.');
             return null;
         }
+        // origin: 'library' (pyams/models) or 'project' (a .py file of the opened project)
+        var chosen = selfDialog.libFiles[selfDialog.previousFileIndex] || {};
         var result = {
             file: selfDialog.selectedFileName,
-            model: chosenModel
+            model: chosenModel,
+            origin: chosen.origin === 'project' ? 'project' : 'library'
         };
         var submitCallback = selfDialog.onSubmit;
         selfDialog.hide();

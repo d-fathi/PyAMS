@@ -835,7 +835,7 @@ function getPartModel(part) {
         for (var i = 0; i < collection.length; i++){
                    if (collection[i].getAttribute("name") == "modelSpice") {
                        var c = collection[i];
-                       symbol.model={name:c.getAttribute('modelname'),file:c.getAttribute('modelfile'),dir:"library",local:true};
+                       symbol.model={name:c.getAttribute('modelname'),file:c.getAttribute('modelfile'),dir:(c.getAttribute('dir')==='project' ? "project" : "library"),local:true};
                        break;
                    }
          }
@@ -855,6 +855,7 @@ function  setPartModel(part, sym) {
                        var c = collection[i];
                        c.setAttribute('modelname', sym.model.name);
                        c.setAttribute('modelfile', sym.model.file);
+                       c.setAttribute('dir', sym.model.dir === 'project' ? 'project' : 'library');
                        c.textContent = sym.model.name;
                        break;
                    }

@@ -85,6 +85,44 @@ static runPython(args, options = {}) {
  * @param {string} extensionPath - The extension root path
  * @returns {Promise<{files: Array, error?: string}>}
  */
+static workspaceFolders() {
+    let folders = [];
+    try { folders = require('vscode').workspace.workspaceFolders || []; } catch (e) { return []; }
+    return folders.map((f) => ({
+        label: folders.length > 1 ? 'Project[' + f.name + ']' : 'Project',
+        path: f.uri.fsPath
+    }));
+}
+
+/**
+ * Folders of the opened project that hold .py files (the project's own models): they are put on
+ * PYTHONPATH when a circuit is run, so that `from MyResistor import MyResistor` works.
+ */
+static projectPythonPaths(extensionPath) {
+    const skip = new Set(['__pycache__', 'node_modules', '.git', '.vscode', '.venv', 'venv', 'site-packages']);
+    const found = [];
+    const walk = (dir, depth) => {
+        if (depth > 8) return;
+        let entries;
+        try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
+        if (entries.some((e) => e.isFile() && e.name.toLowerCase().endsWith('.py'))) found.push(dir);
+        for (const e of entries) {
+            if (e.isDirectory() && !skip.has(e.name) && !e.name.startsWith('.')) walk(path.join(dir, e.name), depth + 1);
+        }
+    };
+    LibrarySync.workspaceFolders().forEach((f) => walk(f.path, 0));
+    const ext = path.resolve(extensionPath);
+    // the extension's own python folders are not project models
+    return found.filter((d) => { const r = path.relative(ext, d); return r.startsWith('..') || path.isAbsolute(r); });
+}
+
+static envForRun(extensionPath) {
+    const extra = LibrarySync.projectPythonPaths(extensionPath);
+    const env = { ...process.env, PYTHONIOENCODING: 'utf-8' };
+    if (extra.length) env.PYTHONPATH = extra.concat(process.env.PYTHONPATH ? [process.env.PYTHONPATH] : []).join(path.delimiter);
+    return env;
+}
+
 static async scanPyamsModels(extensionPath) {
     const modelsDir = path.join(extensionPath, 'pyams', 'models');
     const script = path.join(extensionPath, 'pyams', 'scanModels.py');
@@ -96,8 +134,12 @@ static async scanPyamsModels(extensionPath) {
         return { files: [], error: 'Script not found: ' + script };
     }
 
+    // the models of the opened project (folders and sub folders) come after the library ones
+    const args = ['-I', script, modelsDir];
+    LibrarySync.workspaceFolders().forEach((f) => args.push(f.label, f.path));
+
     // -I: isolated mode, the script only parses files and never imports them
-    const run = await LibrarySync.runPython(['-I', script, modelsDir]);
+    const run = await LibrarySync.runPython(args);
     if (run.error && !run.stdout) return { files: [], error: run.error };
     try {
         const data = JSON.parse(run.stdout);
@@ -129,7 +171,7 @@ static async listParameters(extensionPath, code) {
         fs.writeFileSync(tmpFile, String(code || ''), 'utf8');
         const run = await LibrarySync.runPython([script, extensionPath, tmpFile], {
             cwd: os.tmpdir(),
-            env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+            env: LibrarySync.envForRun(extensionPath),
             timeout: 60000
         });
         if (run.error && !run.stdout) return { models: [], error: run.error };
@@ -189,7 +231,7 @@ static startPyAMSAnalysis(extensionPath, code, analysis, onEvent) {
             fs.writeFileSync(analysisFile, JSON.stringify(analysis || {}), 'utf8');
             const run = await LibrarySync.runPython([script, extensionPath, codeFile, analysisFile], {
                 cwd: os.tmpdir(),
-                env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+                env: LibrarySync.envForRun(extensionPath),
                 timeout: 30 * 60 * 1000,
                 onSpawn: (c) => { child = c; },
                 onStdout

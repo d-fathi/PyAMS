@@ -50,7 +50,7 @@ function fpyamsCircuitDialog(self) {
     // ============================================================================================
     this.formatCode = function (raw) {
         var lines = String(raw == null ? '' : raw).split(/\r?\n/);
-        var models = [], elements = [], params = [], other = [];
+        var models = [], otherImports = [], elements = [], params = [], other = [];
 
         lines.forEach(function (line) {
             var s = line.trim().replace(/;+\s*$/, '');
@@ -65,6 +65,9 @@ function fpyamsCircuitDialog(self) {
                 return;
             }
 
+            m = /^from\s+(?!pyams\.models\b)([\w.]+)\s+import\s+(.+)$/.exec(s);
+            if (m) { if (otherImports.indexOf(s) < 0) otherImports.push(s); return; }   // a model of the project
+
             m = /^([A-Za-z_]\w*)\.setParams\(\s*(["'])([\s\S]*)\2\s*\)$/.exec(s);
             if (m) {
                 var text = m[3].replace(/\s+/g, ' ').trim();
@@ -77,9 +80,10 @@ function fpyamsCircuitDialog(self) {
         });
 
         var out = [];
-        if (models.length) {
+        if (models.length || otherImports.length) {
             out.push('# Models used by the circuit');
-            out.push('from pyams.models import ' + models.join(', '));
+            if (models.length) out.push('from pyams.models import ' + models.join(', '));
+            out = out.concat(otherImports);
             out.push('');
         }
         if (elements.length) {

@@ -688,7 +688,7 @@ drawing.getListParameter(code)
                 function (result) {
                     mtable.select.setAttribute('modelfile', result.file);
                     mtable.select.setAttribute('modelname', result.model);
-                    mtable.select.setAttribute('dir', 'library');
+                    mtable.select.setAttribute('dir', result.origin === 'project' ? 'project' : 'library');
                     mtable.select.setAttribute('local', 'true');
                     mtable.select.textContent = result.model;
                    
@@ -710,7 +710,7 @@ drawing.getListParameter(code)
                 function (result) {
                     drawing.symbol.model.file = result.file;
                     drawing.symbol.model.name = result.model;
-                    drawing.symbol.model.dir = 'library';
+                    drawing.symbol.model.dir = result.origin === 'project' ? 'project' : 'library';
                     drawing.symbol.model.local = true;
                  
                     pageSelect();
@@ -758,7 +758,7 @@ drawing.getListParameter(code)
                 function (result) {
                     mtable.sym.model.file = result.file;
                     mtable.sym.model.name = result.model;
-                    mtable.sym.model.dir = 'library';
+                    mtable.sym.model.dir = result.origin === 'project' ? 'project' : 'library';
                     mtable.sym.model.local = true;
                     setPartModel(mtable.select, mtable.sym);
                     partSelect();

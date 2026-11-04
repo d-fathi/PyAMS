@@ -65,24 +65,49 @@ def scan_file(path, root):
     return entry
 
 
-def scan_dir(root):
+IGNORED_DIRS = {'__pycache__', 'node_modules', '.git', '.vscode', '.venv', 'venv', 'site-packages'}
+
+
+def _inside(path, folder):
+    rel = os.path.relpath(path, folder)
+    return rel == '.' or not (rel.startswith('..') or os.path.isabs(rel))
+
+
+def scan_dir(root, label=None, skip=None):
+    """Model files of a folder tree.  label=None: the PyAMS library (name = file name).
+    label='Project': a project folder: relativePath is 'Project/sub/File.py', origin 'project'."""
     files = []
     for folder, dirs, names in os.walk(root):
-        dirs[:] = sorted(d for d in dirs if d != '__pycache__')
+        dirs[:] = sorted(d for d in dirs
+                         if d not in IGNORED_DIRS and (label is None or not d.startswith('.'))
+                         and not (skip and _inside(os.path.join(folder, d), skip)))
         for name in sorted(names):
             if name.endswith('.py') and name != '__init__.py':
                 entry = scan_file(os.path.join(folder, name), root)
                 if entry['classes'] or entry['error']:
+                    if label is not None:
+                        rel = os.path.relpath(entry['fullPath'], root).replace(os.sep, '/')
+                        entry['relativePath'] = label + '/' + rel
+                        entry['name'] = entry['relativePath']
+                        entry['origin'] = 'project'
+                        entry['module'] = os.path.splitext(os.path.basename(entry['fullPath']))[0]
+                    else:
+                        entry['origin'] = 'library'
                     files.append(entry)
     return {'files': files}
 
 
 def main(argv):
-    if len(argv) != 2 or not os.path.isdir(argv[1]):
+    """scanModels.py <models_dir> [<label> <project_dir> ...]"""
+    if len(argv) < 2 or not os.path.isdir(argv[1]) or (len(argv) - 2) % 2:
         json.dump({'files': [], 'error': 'models directory not found'}, sys.stdout)
         return 1
-    out = json.dumps(scan_dir(os.path.abspath(argv[1])), ensure_ascii=True)
-    sys.stdout.write(out)
+    models = os.path.abspath(argv[1])
+    result = scan_dir(models)
+    for i in range(2, len(argv), 2):
+        if os.path.isdir(argv[i + 1]):
+            result['files'] += scan_dir(os.path.abspath(argv[i + 1]), argv[i], skip=models)['files']
+    sys.stdout.write(json.dumps(result, ensure_ascii=True))
     return 0
 
 
