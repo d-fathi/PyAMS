@@ -242,7 +242,8 @@ case 'stopPyAMSAnalysis':
   
     const extPath = this.context.extensionPath;
     const symbolsDir = path.join(extPath, 'symbols');
-    const targetDir = path.join(symbolsDir, message.dir);
+    // a list entry of the opened project points to its own folder, the others to the extension's symbols
+    const targetDir = SymbolsSync.workspaceDirs.get(message.dir) || path.join(symbolsDir, message.dir);
     
     const contents = [];
     if (message.files && Array.isArray(message.files)) {
