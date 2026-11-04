@@ -1,8 +1,12 @@
 const vscode = require('vscode');
 const PyAMSEditorProvider = require('./pyamsEditor');
+const PythonSupport = require('./pythonSupport');
 
 function activate(context) {
     console.log('PyAMS Editor is now active!');
+
+    // `from pyams.lib import ...` is recognised in the Python files of the project
+    PythonSupport.register(context);
     
     context.subscriptions.push(
         PyAMSEditorProvider.register(context, 'pyamsEditor.symEditor', 'sym')

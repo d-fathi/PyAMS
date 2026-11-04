@@ -11,7 +11,9 @@
   "main": "./extension.js",
   "activationEvents": [
     "onCustomEditor:pyamsEditor.dcsEditor",
-    "onCustomEditor:pyamsEditor.symEditor"
+    "onCustomEditor:pyamsEditor.symEditor",
+    "workspaceContains:**/*.dcs",
+    "workspaceContains:**/*.sym"
   ],
     "keywords": [
     "pyams",
@@ -59,6 +61,10 @@
     "pyams/**/*"
   ],
   "contributes": {
+    "commands": [
+      { "command": "pyams.enablePythonSupport", "title": "PyAMS: Recognise pyams.lib in the project's Python files" },
+      { "command": "pyams.disablePythonSupport", "title": "PyAMS: Stop recognising pyams.lib in the project's Python files" }
+    ],
     "customEditors": [
       {
         "viewType": "pyamsEditor.dcsEditor",
