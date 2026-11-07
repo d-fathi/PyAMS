@@ -14,26 +14,38 @@
 - Compatibility with **Python 3+ and PyPy**, on Linux, Windows and macOS.
 - **Circuit design** (schematic capture, symbol design and simulation) in a CAD environment, using either:
   1. **VS Code**, with the *PyAMS extension*.
-  2. The **PyAMS software**: https://pyams.sf.net
+  2. The **PyAMS software**: [pyams.sf.net](https://pyams.sf.net)
 
 
 ## What’s New 
 
-**v0.3.0 (Current)** 
+**v0.3.1 (Current)** 
 
-1. *PyAMS extension* tow **VS Code**.
-2. Update **PyAMS software**.
-3. Update pyams library.
-4. update pyams models
+1. Updated PyAMS extension for VS Code.
+1. Updated **PyAMS software** ([pyams.sf.net](https://pyams.sf.net)).
+2. Updated **PyAMS library**.
+3. Updated **PyAMS models**.
+4. **Documentation Enhancements:** Updated the official documentation ([Read the Docs](https://pyams-lib.readthedocs.io/en/latest/)).
 
 ### Added
-- **Message Dialog System:** Introduced a comprehensive message dialog system supporting error, warning, info, and success notifications for better user feedback.
-- **OP Simulation Error Handling:** Added a dedicated error dialog specifically for Operating Point (OP) simulation failures to provide clearer troubleshooting information.
+- Added new demo circuits: half-wave rectifier, common-emitter amplifier, inverting amplifier, DIAC Relaxation Oscillator, and RLC Band-Pass Filter.
+- Added support for rendering math formulas in HTML notes using KaTeX (fully functional offline under webview CSP).
+- Added project `.sym` files to the symbols panel list (appended after library models, named "Project" or "Project/sub...").
+- Added automatic inclusion of project folders containing `.py` files to `PYTHONPATH` when running a circuit.
 
 ### Changed
-- **Documentation Enhancements:** Updated simulation documentation, including increased image width for better visibility, and general documentation refinements.
-- **Repository Metadata:** Updated README.md and clarified repository usage guidelines (e.g., source code usage).
+- **Major Architecture Change:** All analyses now run exclusively through the native PyAMS engine.
+- "PyAMS Circuit" across the user interface.
+- Updated DC operating point analysis to use native PyAMS methods (`startPyAMSOp`/`stopPyAMSOp`), removing legacy `parseSpiceResults_` and `execOp` functions.
+- Updated drawing area and grid colors to align with the new PyAMS logo.
+- Improved the HTML editor and optimized HTML notes to display as thumbnails with Home zoom.
+- Standardized time unit labels on schematics (e.g., "Sec", "sec", "seconds" are now uniformly displayed as "s").
 
+
+### Fixed
+- Fixed an issue where project models were not found when the project directory was located inside the extension folder.
+- Fixed symbol linking in the "Select Model" dialog to correctly preserve the origin of chosen project models and generate accurate import statements (e.g., `from MyResistor import MyResistor`).
+- Fixed a missing `break` statement in `OPCheck` within the properties dialog.
 
 
 ## Key Features
@@ -48,8 +60,8 @@
 ### PyAMS software (desktop application, Electron)
 1. Install **Python 3** with `numpy` and `matplotlib` (`pip install numpy matplotlib`).
 2. Install PyAMS with `PyAMS-<version>-Setup-x64.exe` (or run the portable `.exe`, or the Linux `AppImage` / `.deb`).
-3. Start **PyAMS**. If Python is not found automatically, choose it in **Tools > Set Python Path...**
-   (**Tools > Check Python Environment** shows what is detected).
+3. Start **PyAMS**. If Python is not found automatically, click the Python indicator in the status bar
+   (or **Tools > Set Python Path...**). **Tools > Check Python Environment** shows what is detected.
 
 Build it yourself: see [BUILD.md](BUILD.md).
 
@@ -58,7 +70,9 @@ The same CAD system is also available as a VS Code extension (Extensions > searc
 
 ## Usage
 1. Start PyAMS: the start page offers **New Circuit**, **New Symbol**, **Open File...**, recent files and examples.
-2. Add components from the library and draw the schematic.
+   Every file opens in its own tab.
+2. Add components from the library and draw the schematic. The folder of the open file is the *project*:
+   its `.sym` symbols (list "Project") and its Python models (`.py`) are available automatically.
 3. Run the simulation and view the waveform results.
 4. Save with **Ctrl+S**. Circuits are `.dcs` files and symbols are `.sym` files.
 

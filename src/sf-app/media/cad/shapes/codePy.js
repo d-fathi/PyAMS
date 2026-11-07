@@ -101,6 +101,112 @@ function formatValue(value, suffix) {
   return parseFloat((value / last[1]).toPrecision(10)) + last[0] + suffix;
 }
 
+//**************Import line of a model ****************/
+// library model (pyams/models):      from pyams.models import Resistor;
+// project model (dir == 'project'):  from MyResistor import MyResistor;   (file = Project/sub/MyResistor.py)
+function pyImportLine(model, dir, file) {
+  if (dir === 'project' && file) {
+    var stem = String(file).split('/').pop().replace(/\.py$/i, '');
+    return 'from ' + stem + ' import ' + model + ';';
+  }
+  return 'from pyams.models import ' + model + ';';
+}
+
+//**************Parameter binding (param / init / method) ****************/
+// A text element name="param" has an attribute  bind  telling where its value goes in the Python code:
+//   param  (default) -> in  El.setParams("name=value ...")
+//   init             -> as a keyword argument of the constructor:  Model("a","b", name=value)
+//   method           -> as a call  El.name(value)   (Name = method name, Value = the arguments exactly as typed, e.g. setPoints("0 0, 1m 5"))
+var pendingParamBind = 'param';   // set by the Init / Method buttons before addShape('param')
+var PARAM_BIND_COLORS = { param: '#11a229', init: '#1565c0', method: '#d9730d' };
+
+// Initial state (default) of a new parameter element, one entry per toolbar button.
+// Edit the values here: shapes.js reads this table when the element is created.
+var PARAM_DEFAULTS = {
+
+  // [P=1] button -> goes into El.setParams("P=1")
+  param: {
+    name:  'P',            // parameter name of the model: rename it (R, C, Vdc ...)
+    value: '1',            // value as text, units allowed (1K, 10u, 5V)
+    color: '#11a229'       // green
+  },
+
+  // [n=1] button -> constructor argument:  Model("a","b", n=1)
+  // Use it for values that must be given when the element is created (they cannot change later)
+  init: {
+    name:  'n',            // keyword argument name of __init__: rename it (sections ...)
+    value: '1',            // python value: 20, 0.5, True, "0", [1, 2] ... (text is quoted automatically)
+    color: '#1565c0'       // blue
+  },
+
+  // [f()] button -> method call:  El.f()
+  method: {
+    name:  'f',            // the method name itself: rename it (setPoints ...)
+    value: '',             // the arguments exactly as typed, as in Python: "0 0, 1m 5"  (empty = no argument)
+    color: '#d9730d'       // orange
+  }
+};
+
+function paramBind(el) {
+  var b = el.getAttribute("bind");
+  return (b === "init" || b === "method") ? b : "param";
+}
+
+// python literal of a value: numbers, True/False/None, quoted text and [..] (..) {..} stay as they are
+function pyLiteral(v) {
+  v = String(v === null || v === undefined ? "" : v).trim();
+  if (/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(v)) return v;
+  if (/^(True|False|None)$/.test(v)) return v;
+  if (/^(["']).*\1$/s.test(v)) return v;
+  if (/^[\[\(\{].*[\]\)\}]$/s.test(v)) return v;
+  return '"' + v.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+}
+
+// the method value is always a string (parsed with units by the library): "0 0, 1m 5"
+function pyString(v) {
+  v = String(v === null || v === undefined ? "" : v).trim();
+  if (/^(["']).*\1$/s.test(v)) return v;
+  return '"' + v.replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+}
+
+// for a method parameter the Name is the function name itself (setPoints)
+function methodNameOfParam(name) {
+  return String(name || "").trim();
+}
+
+// text shown on the schematic for a param element:  name=value   |   setPoints("0 0, 1m 5")  (method)   |   value only
+function paramDisplayText(el) {
+  var name = el.getAttribute("paramname") || "";
+  var val = el.getAttribute("paramvalue") || "";
+  if (el.getAttribute("show") !== "Name and value") return val;
+  if (paramBind(el) === "method") return methodNameOfParam(name) + "(" + val + ")";
+  return name + "=" + val;
+}
+
+// {init:[ 'sections=20' ], methods:[ 'setPoints("0 0, 1m 5")' ]} of a part (or of the symbol if container=document)
+function getBoundParams(container) {
+  var res = { init: [], methods: [] };
+  var els = (container || document).querySelectorAll('[name="param"]');
+  for (var i = 0; i < els.length; i++) {
+    var b = paramBind(els[i]);
+    var name = els[i].getAttribute("paramname");
+    if (b === "param" || !name) continue;
+    var val = els[i].getAttribute("paramvalue");
+    if (b === "init") res.init.push(name + "=" + pyLiteral(val));
+    else res.methods.push(methodNameOfParam(name) + "(" + String(val === null || val === undefined ? "" : val).trim() + ")");
+  }
+  return res;
+}
+
+// full Python text of one element
+function pyElementCode(ref, model, pins, setParams, bound) {
+  var args = pins.concat(bound.init).join(",");
+  var t = ref + " = " + model + "(" + args + ");\n";
+  t += ref + '.setParams("' + setParams + '");\n';
+  bound.methods.forEach(function (m) { t += ref + "." + m + ";\n"; });
+  return t;
+}
+
 //**************Update Part parameters ****************/
 
 function getParamPart(strListParams,part) {
@@ -110,6 +216,7 @@ function getParamPart(strListParams,part) {
   var params = part.querySelectorAll('[name="param"]');
   var lparams = [];
   for (var i = 0; i < params.length; i++) {
+    if (paramBind(params[i]) !== "param") continue;
     lparams.push({
       name: params[i].getAttribute("paramname"),
       value: params[i].getAttribute("paramvalue")
@@ -156,6 +263,7 @@ function setParamPart(strListParams,part) {
 
   for (var i = 0; i < params.length; i++) {
     var el = params[i];
+    if (paramBind(el) !== "param") continue;
     var name = el.getAttribute("paramname");
     var old = el.getAttribute("paramvalue");
 
@@ -201,12 +309,7 @@ function getCodePyOfPart(part) {
 
  
 
-  var code=`
-
-from pyams.models import ${name};
-${ref} = ${name}(${lpins.join(",")});
-${ref}.setParams("${sym.model.setParams}");
-`;
+  var code="\n"+pyImportLine(name, sym.model.dir, sym.model.file)+"\n"+pyElementCode(ref, name, lpins, sym.model.setParams, getBoundParams(part));
 
 return code;
 }
@@ -219,6 +322,7 @@ function getParamSym(strListParams) {
   var params = document.querySelectorAll('[name="param"]');
   var lparams = [];
   for (var i = 0; i < params.length; i++) {
+    if (paramBind(params[i]) !== "param") continue;
     lparams.push({
       name: params[i].getAttribute("paramname"),
       value: params[i].getAttribute("paramvalue")
@@ -262,6 +366,7 @@ function setParamSym(strListParams) {
 
   for (var i = 0; i < params.length; i++) {
     var el = params[i];
+    if (paramBind(el) !== "param") continue;
     var name = el.getAttribute("paramname");
     var old = el.getAttribute("paramvalue");
 
@@ -307,12 +412,7 @@ function getCodePyOfSym() {
 
  
 
-  var code=`
-
-from pyams.models import ${name};
-${ref} = ${name}(${lpins.join(",")});
-${ref}.setParams("${drawing.symbol.model.setParams}");
-`;
+  var code="\n"+pyImportLine(name, drawing.symbol.model.dir, drawing.symbol.model.file)+"\n"+pyElementCode(ref, name, lpins, drawing.symbol.model.setParams, getBoundParams(document));
 
 return code;
 }
@@ -358,9 +458,11 @@ function netList() {
                 type: sym.device.name,
                 ref: parts[i].getAttribute('sref'),
                 directory: sym.model.dir,
+                file: sym.model.file,
                 pins: netListPins(parts[i]),
                 pinsName: getListPins(parts[i]).map(pin => pin.elem.childNodes[2].textContent),
-                params: getListParams(parts[i])
+                params: getListParams(parts[i]),
+                bound: getBoundParams(parts[i])
             });
 
         }
@@ -374,15 +476,26 @@ function generateCodePyofCircuit(){
     //get lib path---------------------------------
     
     let pythonScript ='';
-    pythonScript += elemList.map(elem =>`from pyams.models import ${elem.model};`).join("\n") + "\n";
+    // one import per model (a model used by several elements is imported once)
+    var imports = [];
+    elemList.forEach(elem => {
+        var line = pyImportLine(elem.model, elem.directory, elem.file);
+        if (imports.indexOf(line) < 0) imports.push(line);
+    });
+    pythonScript += imports.join("\n") + "\n";
     
     //get Elements---------------------------------------------------------------------
     pythonScript += elemList.map(elem => 
-        `${elem.ref} = ${elem.model}(${elem.pins.map(pin => `"${pin}"`).join(",")});`
+        `${elem.ref} = ${elem.model}(${elem.pins.map(pin => `"${pin}"`).concat(elem.bound.init).join(",")});`
     ).join("\n") + "\n"; 
 
     // get paramtres------------------------------------------------------------------
     pythonScript += elemList.map(elem => `${elem.ref}.setParams(" ${elem.params} ");` ).join("\n") + "\n";
+
+    // get methods (setPoints ...)-------------------------------------------------------
+    var calls = [];
+    elemList.forEach(elem => elem.bound.methods.forEach(m => calls.push(`${elem.ref}.${m};`)));
+    if (calls.length) pythonScript += calls.join("\n") + "\n";
 
     return  pythonScript;
 

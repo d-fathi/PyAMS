@@ -325,25 +325,6 @@ self.redSymFilesFromWorkSpace = function() {
     });
 };
         
-//************execute SPICE code and return the result to the caller*************
-
-self.execOp = function(spiceCode) {
-    return new Promise((resolve, reject) => {
-        self._execOpResolve = resolve;
-        self._execOpReject = reject;
-        
-        if (typeof vscode !== 'undefined') {
-            vscode.postMessage({
-                type: 'execOp',
-                code: spiceCode
-            });
-        } else {
-            reject('vscode API not available');
-        }
-    });
-};
-
-
 // *************Get List Models Dialog*******************************//
  self.getListModel = function(previousResult, onSubmit, onCancel) {
              if (typeof listModelsDialog === 'undefined' || !listModelsDialog) {
@@ -364,18 +345,18 @@ self.getCodeEditor = function(code, language, onSubmit, onCancel) {
     codeEditorDialog.show();
 };
 
-// ************* Get SPICE Netlist Editor Dialog (self=this) *******************************//
-self.getSpiceNetlistEditor = function(netlist, onSubmit, onCancel) {
-    if (typeof spiceNetlistDialog === 'undefined' || !spiceNetlistDialog) {
-        spiceNetlistDialog = new fSpiceNetlistDialog(self);
+// ************* Get PyAMS Circuit Editor Dialog (self=this) *******************************//
+self.getPyAMSCircuitEditor = function(data, onSubmit, onCancel) {
+    if (typeof pyamsCircuitDialog === 'undefined' || !pyamsCircuitDialog) {
+        pyamsCircuitDialog = new fpyamsCircuitDialog(self);
     }
-    spiceNetlistDialog.setCallbacks(onSubmit, onCancel);
-    spiceNetlistDialog.initData(netlist);
-    spiceNetlistDialog.show();
+    pyamsCircuitDialog.setCallbacks(onSubmit, onCancel);
+    pyamsCircuitDialog.initData(data);
+    pyamsCircuitDialog.show();
 };
 
-//****************check circuit **********************************************************//
-self.runOpCheck = function(spiceCode) {
+//****************check circuit by pyams.lib**********************************************************//
+self.runOpCheck = function(data) {
     return new Promise((resolve, reject) => {
         if (typeof opAnalysisDialog === 'undefined' || !opAnalysisDialog) {
             opAnalysisDialog = new fOpAnalysisDialog(self);
@@ -390,52 +371,9 @@ self.runOpCheck = function(spiceCode) {
             }
         );
 
-        opAnalysisDialog.initData(spiceCode);
+        opAnalysisDialog.initData(data);
         opAnalysisDialog.show();
     });
-};
-
-// *************Run Analysis with Dialog*******************************//
-self.runAnalysis = function(spiceCode) {
-    return new Promise((resolve, reject) => {
-        // Store resolvers for later
-        self._simulationResolve = resolve;
-        self._simulationReject = reject;
-        self._simulationSpiceCode = spiceCode;
-        
-        if (typeof processAnalysisDialog === 'undefined' || !processAnalysisDialog) {
-            processAnalysisDialog = new fProcessAnalysisDialog(self);
-        }
-        
-        processAnalysisDialog.setCallbacks(
-            function(result) {  // onSubmit (OK clicked)
-                // Request results from extension
-                if (typeof vscode !== 'undefined') {
-                    vscode.postMessage({ type: 'getSimulationResults' });
-                } else {
-                    // Fallback if no vscode
-                    resolve(result);
-                }
-            },
-            function() {  // onCancel
-                self._simulationResolve = null;
-                self._simulationReject = null;
-                reject('Analysis cancelled');
-            }
-        );
-        
-        processAnalysisDialog.initData(spiceCode);
-        processAnalysisDialog.show();
-    });
-};
-
-// Handle simulation results from extension
-self.handleSimulationResults = function(data) {
-    if (self._simulationResolve) {
-        self._simulationResolve(data);
-        self._simulationResolve = null;
-        self._simulationReject = null;
-    }
 };
 
 //*************Run a PyAMS analysis (Python process) with the process dialog*******************************//

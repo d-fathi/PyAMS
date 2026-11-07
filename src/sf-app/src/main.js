@@ -9,15 +9,13 @@
  * simple per-document undo/redo history instead of the VS Code text document.
  */
 
-const { app, BrowserWindow, Menu, dialog, ipcMain, shell, clipboard, nativeImage } = require('electron');
+const { app, BrowserWindow, WebContentsView, Menu, dialog, ipcMain, shell, clipboard, nativeImage } = require('electron');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
-const { spawn } = require('child_process');
 
 const SymbolsSync = require('./symbolsSync');
 const LibrarySync = require('./librarySync');
-const spice = require('./spiceParser');
+const Workspace = require('./workspace');
 const Settings = require('./settings');
 
 // ---------------------------------------------------------------------------------------------
@@ -40,7 +38,6 @@ const MAX_HISTORY = 200;
 
 let settings = null;
 const docs = new Map();          // webContents.id -> Doc
-let startWindow = null;
 let isQuitting = false;
 const pendingOpen = [];          // files requested before the app was ready
 
@@ -83,11 +80,12 @@ class Doc {
         this.history = [content || ''];
         this.index = 0;
         this.savedIndex = filePath ? 0 : -1;   // an untitled document is never "clean" until saved
-        this.win = null;
-        this.forceClose = false;
-        this.ngspiceProcess = null;
+        this.view = null;
+        this.tab = null;
+        this.pos = null;
+        this.zoom = null;
+        this.pyamsOpRun = null;
         this.pyamsRun = null;
-        this.solveData = null;
     }
 
     get content() { return this.history[this.index]; }
@@ -108,32 +106,71 @@ class Doc {
     }
 }
 
+const TAB_H = 42;
+const STATUS_H = 28;
+let mainWin = null;
+let shellReady = false;
+let mainForceClose = false;
+let pythonStatus = 'Python: checking...';
+const tabs = [];                  // { id, kind: 'doc' | 'start', doc, view }
+let activeTab = null;
+let nextTabId = 1;
+
+function shellSend(channel, payload) {
+    if (mainWin && !mainWin.isDestroyed() && !mainWin.webContents.isDestroyed()) {
+        mainWin.webContents.send(channel, payload);
+    }
+}
+
 function send(doc, message) {
-    if (doc.win && !doc.win.isDestroyed() && !doc.win.webContents.isDestroyed()) {
-        doc.win.webContents.send('host:message', message);
+    if (doc.view && !doc.view.webContents.isDestroyed()) {
+        doc.view.webContents.send('host:message', message);
     }
 }
 
 function toast(doc, text, kind) {
-    send(doc, { type: '__toast', text, kind: kind || 'info' });
+    shellSend('shell:status', { toast: text, toastKind: kind || 'info' });
+}
+
+function tabTitle(tab) {
+    return tab.kind === 'start' ? 'Start' : tab.doc.name + '.' + tab.doc.fileType;
+}
+
+function sendTabs() {
+    shellSend('shell:tabs', tabs.map((t) => ({
+        id: t.id,
+        kind: t.kind,
+        title: tabTitle(t),
+        path: t.doc && t.doc.filePath ? t.doc.filePath : '',
+        dirty: !!(t.doc && t.doc.dirty),
+        active: t === activeTab
+    })));
+}
+
+function sendStatus() {
+    const doc = activeTab && activeTab.doc;
+    shellSend('shell:status', {
+        file: doc ? (doc.filePath || '(unsaved) ' + doc.name + '.' + doc.fileType) : '',
+        pos: doc ? doc.pos : null,
+        zoom: doc ? doc.zoom : null,
+        python: pythonStatus
+    });
 }
 
 function updateTitle(doc) {
-    if (!doc.win || doc.win.isDestroyed()) return;
-    doc.win.setTitle((doc.dirty ? '● ' : '') + doc.name + '.' + doc.fileType + ' — PyAMS');
-    if (process.platform === 'darwin') {
-        doc.win.setDocumentEdited(doc.dirty);
-        if (doc.filePath) doc.win.setRepresentedFilename(doc.filePath);
+    sendTabs();
+    if (!mainWin || mainWin.isDestroyed()) return;
+    if (activeTab && activeTab.doc === doc) {
+        mainWin.setTitle((doc.dirty ? '● ' : '') + doc.name + '.' + doc.fileType + ' — PyAMS');
+        if (process.platform === 'darwin') {
+            mainWin.setDocumentEdited(doc.dirty);
+            if (doc.filePath) mainWin.setRepresentedFilename(doc.filePath);
+        }
     }
 }
 
-function docOfWindow(win) {
-    if (!win || win.isDestroyed()) return null;
-    return docs.get(win.webContents.id) || null;
-}
-
 function focusedDoc() {
-    return docOfWindow(BrowserWindow.getFocusedWindow());
+    return activeTab && activeTab.doc ? activeTab.doc : null;
 }
 
 function lockWebContents(wc) {
@@ -144,70 +181,175 @@ function lockWebContents(wc) {
     });
 }
 
-function createDocWindow(doc) {
-    const win = new BrowserWindow({
-        width: 1320,
-        height: 840,
-        minWidth: 760,
-        minHeight: 520,
+function layout() {
+    if (!mainWin || mainWin.isDestroyed()) return;
+    const b = mainWin.getContentBounds();
+    const rect = { x: 0, y: TAB_H, width: b.width, height: Math.max(0, b.height - TAB_H - STATUS_H) };
+    for (const t of tabs) {
+        t.view.setBounds(rect);
+        t.view.setVisible(t === activeTab);
+    }
+}
+
+async function detectPython() {
+    const run = await LibrarySync.runPython(['-c', 'import sys;print(sys.version.split()[0])'], { timeout: 15000 });
+    const v = (run.stdout || '').trim();
+    pythonStatus = !run.error && /^\d+\.\d+/.test(v) ? 'Python ' + v : 'Python: not found';
+    sendStatus();
+}
+
+function ensureMainWindow() {
+    if (mainWin && !mainWin.isDestroyed()) return mainWin;
+    shellReady = false;
+    mainForceClose = false;
+    mainWin = new BrowserWindow({
+        width: 1360,
+        height: 880,
+        minWidth: 800,
+        minHeight: 560,
         show: false,
-        backgroundColor: '#c0c0c0',
+        backgroundColor: '#eee0bd',
         icon: ICON_FILE,
         title: 'PyAMS',
         webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, 'preload-shell.js'),
+            contextIsolation: true,
+            sandbox: true,
+            nodeIntegration: false
+        }
+    });
+    lockWebContents(mainWin.webContents);
+    mainWin.on('page-title-updated', (e) => e.preventDefault());
+    mainWin.once('ready-to-show', () => mainWin.show());
+    mainWin.on('resize', layout);
+    mainWin.on('maximize', layout);
+    mainWin.on('unmaximize', layout);
+    mainWin.on('enter-full-screen', layout);
+    mainWin.on('leave-full-screen', layout);
+    mainWin.webContents.on('did-finish-load', () => { shellReady = true; sendTabs(); sendStatus(); layout(); });
+    mainWin.loadFile(path.join(RENDERER, 'shell.html'));
+
+    mainWin.on('close', (e) => {
+        if (mainForceClose) return;
+        const dirtyDocs = tabs.filter((t) => t.doc && t.doc.dirty);
+        if (dirtyDocs.length === 0) return;
+        e.preventDefault();
+        (async () => {
+            for (const t of dirtyDocs) {
+                activateTab(t);
+                if (!(await confirmClose(t.doc))) { isQuitting = false; return; }
+            }
+            mainForceClose = true;
+            mainWin.close();
+        })();
+    });
+
+    mainWin.on('closed', () => {
+        for (const t of tabs) disposeTab(t);
+        tabs.length = 0;
+        activeTab = null;
+        mainWin = null;
+    });
+    return mainWin;
+}
+
+function disposeTab(t) {
+    if (t.doc) {
+        if (t.doc.pyamsOpRun) { try { t.doc.pyamsOpRun.kill(); } catch (e) { /* ignore */ } }
+        if (t.doc.pyamsRun) { try { t.doc.pyamsRun.kill(); } catch (e) { /* ignore */ } }
+    }
+    const wcId = t.view.webContents.id;
+    docs.delete(wcId);
+    try {
+        if (mainWin && !mainWin.isDestroyed()) mainWin.contentView.removeChildView(t.view);
+        if (!t.view.webContents.isDestroyed()) t.view.webContents.close();
+    } catch (e) { /* ignore */ }
+}
+
+function addTab(kind, doc) {
+    const win = ensureMainWindow();
+    const view = new WebContentsView({
+        webPreferences: {
+            preload: path.join(__dirname, kind === 'start' ? 'preload-start.js' : 'preload.js'),
             contextIsolation: true,
             sandbox: true,
             nodeIntegration: false,
             spellcheck: false
         }
     });
-    doc.win = win;
-    const id = win.webContents.id;
-    docs.set(id, doc);
+    view.setBackgroundColor(kind === 'start' ? '#f6efe0' : '#e6d6ab');
+    const tab = { id: nextTabId++, kind, doc: doc || null, view };
+    tabs.push(tab);
+    if (doc) { doc.view = view; doc.tab = tab; docs.set(view.webContents.id, doc); }
+    win.contentView.addChildView(view);
 
-    lockWebContents(win.webContents);
-    win.webContents.setVisualZoomLevelLimits(1, 1).catch(() => {});
-    // Native edit menu for text fields (dialogs); the schematic keeps its own right-click behaviour.
-    win.webContents.on('context-menu', (_e, params) => {
-        if (!params.isEditable && !params.selectionText) return;
-        Menu.buildFromTemplate([
-            { role: 'cut', enabled: params.editFlags.canCut },
-            { role: 'copy', enabled: params.editFlags.canCopy },
-            { role: 'paste', enabled: params.editFlags.canPaste },
-            { type: 'separator' },
-            { role: 'selectAll' }
-        ]).popup({ window: win });
-    });
-    win.once('ready-to-show', () => win.show());
-    // The window title shows the file name (and the unsaved marker), not the page <title>.
-    win.on('page-title-updated', (e) => e.preventDefault());
-    win.loadFile(path.join(RENDERER, 'editor.html'));
-    updateTitle(doc);
-
-    win.on('close', (e) => {
-        if (doc.forceClose || !doc.dirty) return;
-        e.preventDefault();
-        confirmClose(doc).then((ok) => {
-            if (ok) { doc.forceClose = true; win.close(); }
-            else { isQuitting = false; }
+    const wc = view.webContents;
+    lockWebContents(wc);
+    wc.setVisualZoomLevelLimits(1, 1).catch(() => {});
+    if (kind === 'doc') {
+        // Native edit menu for text fields (dialogs); the schematic keeps its own right-click behaviour.
+        wc.on('context-menu', (_e, params) => {
+            if (!params.isEditable && !params.selectionText) return;
+            Menu.buildFromTemplate([
+                { role: 'cut', enabled: params.editFlags.canCut },
+                { role: 'copy', enabled: params.editFlags.canCopy },
+                { role: 'paste', enabled: params.editFlags.canPaste },
+                { type: 'separator' },
+                { role: 'selectAll' }
+            ]).popup({ window: win });
         });
-    });
-
-    win.on('closed', () => {
-        if (doc.ngspiceProcess) { try { doc.ngspiceProcess.kill(); } catch (e) { /* ignore */ } }
-        if (doc.pyamsRun) { try { doc.pyamsRun.kill(); } catch (e) { /* ignore */ } }
-        docs.delete(id);
-        if (!isQuitting && docs.size === 0 && !startWindow) showStartWindow();
-    });
-
-    return win;
+    }
+    wc.loadFile(path.join(RENDERER, kind === 'start' ? 'start.html' : 'editor.html'));
+    activateTab(tab);
+    return tab;
 }
 
-/** Ask what to do with unsaved changes. Resolves true when the window may close. */
+function activateTab(tab) {
+    if (!tab || !tabs.includes(tab)) return;
+    activeTab = tab;
+    layout();
+    if (mainWin && !mainWin.isDestroyed()) {
+        if (!mainWin.isVisible() && !mainWin.isMinimized()) mainWin.show();
+        mainWin.setTitle(tab.doc ? (tab.doc.dirty ? '● ' : '') + tab.doc.name + '.' + tab.doc.fileType + ' — PyAMS' : 'PyAMS');
+    }
+    tab.view.webContents.focus();
+    sendTabs();
+    sendStatus();
+}
+
+/** Close a tab (asks to save unsaved changes). */
+async function closeTab(tab) {
+    if (!tab || !tabs.includes(tab)) return;
+    if (tab.doc && tab.doc.dirty) {
+        activateTab(tab);
+        if (!(await confirmClose(tab.doc))) return;
+    }
+    const idx = tabs.indexOf(tab);
+    tabs.splice(idx, 1);
+    disposeTab(tab);
+    if (tabs.length === 0) {
+        activeTab = null;
+        if (tab.kind === 'start' || isQuitting) {
+            mainForceClose = true;
+            if (mainWin && !mainWin.isDestroyed()) mainWin.close();
+        } else {
+            showStartTab();
+        }
+        return;
+    }
+    if (activeTab === tab) activateTab(tabs[Math.min(idx, tabs.length - 1)]);
+    else { layout(); sendTabs(); }
+}
+
+function showStartTab() {
+    const existing = tabs.find((t) => t.kind === 'start');
+    if (existing) { activateTab(existing); return; }
+    addTab('start', null);
+}
+
+/** Ask what to do with unsaved changes. Resolves true when the tab may close. */
 async function confirmClose(doc) {
-    if (doc.win && !doc.win.isDestroyed()) { doc.win.show(); doc.win.focus(); }
-    const { response } = await dialog.showMessageBox(doc.win, {
+    const { response } = await dialog.showMessageBox(mainWin, {
         type: 'warning',
         buttons: ['Save', "Don't Save", 'Cancel'],
         defaultId: 0,
@@ -225,8 +367,9 @@ async function confirmClose(doc) {
 
 function openDocument(fileType, filePath, content, displayName) {
     const doc = new Doc(fileType, filePath, content, displayName);
-    createDocWindow(doc);
-    if (startWindow && !startWindow.isDestroyed()) startWindow.close();
+    const start = tabs.find((t) => t.kind === 'start');
+    addTab('doc', doc);
+    if (start) closeTab(start);
     return doc;
 }
 
@@ -244,8 +387,8 @@ function openFilePath(filePath) {
         }
         for (const d of docs.values()) {
             if (d.filePath && path.resolve(d.filePath) === filePath) {
-                if (d.win.isMinimized()) d.win.restore();
-                d.win.focus();
+                if (mainWin && mainWin.isMinimized()) mainWin.restore();
+                activateTab(d.tab);
                 return d;
             }
         }
@@ -274,6 +417,37 @@ function openExample(filePath) {
     }
 }
 
+function showNewMenu() {
+    Menu.buildFromTemplate([
+        { label: 'New Circuit', accelerator: 'CmdOrCtrl+N', click: () => newDocument('dcs') },
+        { label: 'New Symbol', accelerator: 'CmdOrCtrl+Shift+N', click: () => newDocument('sym') },
+        { type: 'separator' },
+        { label: 'Open...', accelerator: 'CmdOrCtrl+O', click: () => openFileDialog(mainWin) },
+        { label: 'Start Page', click: () => showStartTab() }
+    ]).popup({ window: mainWin });
+}
+
+function showPythonMenu() {
+    Menu.buildFromTemplate([
+        { label: 'Check Python Environment', click: () => checkPython() },
+        { label: 'Set Python Path...', click: () => setPythonPath() },
+        { label: 'Use Automatic Python Detection', click: () => resetPythonPath() }
+    ]).popup({ window: mainWin });
+}
+
+ipcMain.on('shell:activate', (_e, id) => activateTab(tabs.find((t) => t.id === id)));
+ipcMain.on('shell:close', (_e, id) => { closeTab(tabs.find((t) => t.id === id)); });
+ipcMain.on('shell:newMenu', () => showNewMenu());
+ipcMain.on('shell:pythonMenu', () => showPythonMenu());
+ipcMain.on('shell:ready', () => { sendTabs(); sendStatus(); });
+ipcMain.on('shell:move', (_e, { id, to }) => {
+    const from = tabs.findIndex((t) => t.id === id);
+    if (from < 0 || to < 0 || to >= tabs.length) return;
+    const [t] = tabs.splice(from, 1);
+    tabs.splice(to, 0, t);
+    sendTabs();
+});
+
 async function openFileDialog(parent) {
     const res = await dialog.showOpenDialog(parent || undefined, {
         title: 'Open',
@@ -291,7 +465,7 @@ async function openFileDialog(parent) {
 
 async function getLiveContent(doc) {
     try {
-        const c = await doc.win.webContents.executeJavaScript(
+        const c = await doc.view.webContents.executeJavaScript(
             'window.__pyamsGetContent ? window.__pyamsGetContent() : null');
         return typeof c === 'string' ? c : null;
     } catch (e) {
@@ -304,7 +478,7 @@ async function saveDoc(doc, saveAs) {
     let target = doc.filePath;
     if (!target || saveAs) {
         const t = FILE_TYPES[doc.fileType];
-        const res = await dialog.showSaveDialog(doc.win, {
+        const res = await dialog.showSaveDialog(mainWin, {
             title: saveAs ? 'Save As' : 'Save',
             defaultPath: doc.filePath || path.join(defaultDir(), doc.name + '.' + t.ext),
             filters: [{ name: t.name, extensions: [t.ext] }, { name: 'All files', extensions: ['*'] }]
@@ -359,25 +533,11 @@ function findSymFiles(root, depth, out) {
     }
 }
 
-function ngspiceCommand() {
-    if (process.platform === 'win32') {
-        const bundled = path.join(DATA_ROOT, 'ngspice', 'bin', 'ngspice_con.exe');
-        if (fs.existsSync(bundled)) return bundled;
-        return 'ngspice_con.exe';
-    }
-    return 'ngspice';
-}
-
-function spawnNgspice(circuitFile, cwd) {
-    const cmd = ngspiceCommand();
-    const env = Object.assign({}, process.env);
-    if (path.isAbsolute(cmd)) env.PATH = path.dirname(cmd) + path.delimiter + (process.env.PATH || '');
-    return { cmd, proc: spawn(cmd, ['-b', circuitFile], { cwd, env, windowsHide: true }) };
-}
-
 async function handleMessage(doc, message) {
     if (!message || typeof message.type !== 'string') return;
     const post = (m) => send(doc, m);
+    // the "workspace" (project symbols and python models) is the folder of this document
+    Workspace.setProvider(() => (doc.filePath ? [path.dirname(doc.filePath)] : []));
 
     switch (message.type) {
         case 'ready':
@@ -403,7 +563,7 @@ async function handleMessage(doc, message) {
         case 'saveCsv': {
             try {
                 const base = safeFileBase(message.name, 'plot');
-                const res = await dialog.showSaveDialog(doc.win, {
+                const res = await dialog.showSaveDialog(mainWin, {
                     defaultPath: path.join(doc.filePath ? path.dirname(doc.filePath) : defaultDir(), base + '.csv'),
                     filters: [{ name: 'CSV file', extensions: ['csv'] }],
                     buttonLabel: 'Save CSV'
@@ -426,7 +586,7 @@ async function handleMessage(doc, message) {
         case 'savePng': {
             try {
                 const base = safeFileBase(message.name, 'plot');
-                const res = await dialog.showSaveDialog(doc.win, {
+                const res = await dialog.showSaveDialog(mainWin, {
                     defaultPath: path.join(doc.filePath ? path.dirname(doc.filePath) : defaultDir(), base + '.png'),
                     filters: [{ name: 'PNG image', extensions: ['png'] }],
                     buttonLabel: 'Save plot'
@@ -461,10 +621,13 @@ async function handleMessage(doc, message) {
         }
 
         case 'readSymFiles': {
+            // a list entry of the opened project ("Project", "Project/sub") points to its own folder,
+            // the others to the bundled symbols library
             const base = path.join(DATA_ROOT, 'symbols');
-            const targetDir = path.resolve(base, String(message.dir || ''));
+            const projectDir = SymbolsSync.workspaceDirs.get(String(message.dir || ''));
+            const targetDir = projectDir || path.resolve(base, String(message.dir || ''));
             const contents = [];
-            if (isInside(base, targetDir) && Array.isArray(message.files)) {
+            if ((projectDir || isInside(base, targetDir)) && Array.isArray(message.files)) {
                 for (const file of message.files) {
                     const filePath = path.resolve(targetDir, String(file));
                     try {
@@ -512,121 +675,28 @@ async function handleMessage(doc, message) {
             if (doc.pyamsRun) { doc.pyamsRun.kill(); doc.pyamsRun = null; }
             break;
 
-        // ---------------------------------- ngspice (optional) ------------------------------------
-        case 'execOp': {
-            const circuitFile = path.join(os.tmpdir(), `circuit_${Date.now()}.cir`);
-            try {
-                fs.writeFileSync(circuitFile, String(message.code), 'utf-8');
-                const { cmd, proc } = spawnNgspice(circuitFile, os.tmpdir());
-                let stdout = '';
-                let stderr = '';
-                proc.stdout.on('data', (d) => { stdout += d.toString(); });
-                proc.stderr.on('data', (d) => { stderr += d.toString(); });
-                proc.on('close', (code) => {
-                    try { fs.unlinkSync(circuitFile); } catch (e) { /* ignore */ }
-                    post({
-                        type: 'execOpResult',
-                        success: true,
-                        data: {
-                            success: code === 0, exitCode: code, stdout, stderr,
-                            results: spice.parseSpiceResults_(stdout, stderr),
-                            rawOutput: stdout + '\n' + stderr
-                        }
-                    });
-                });
-                proc.on('error', (error) => {
-                    try { fs.unlinkSync(circuitFile); } catch (e) { /* ignore */ }
-                    post({ type: 'execOpResult', success: false, error: 'Failed to start ngspice (' + cmd + '): ' + error.message });
-                });
-            } catch (error) {
-                post({ type: 'execOpResult', success: false, error: error.message });
-            }
-            break;
-        }
-
-        case 'startSimulation': {
-            const circuitFile = path.join(os.tmpdir(), `circuit_${Date.now()}.cir`);
-            const resultsFile = path.join(os.tmpdir(), 'results.txt');
-            try {
-                const spiceCode = String(message.code);
-                const analysisType = spice.detectAnalysisType(spiceCode);
-                fs.writeFileSync(circuitFile, spiceCode, 'utf-8');
-                if (doc.ngspiceProcess) { doc.ngspiceProcess.kill(); doc.ngspiceProcess = null; }
-
-                const { cmd, proc } = spawnNgspice(circuitFile, os.tmpdir());
-                doc.ngspiceProcess = proc;
-                let stdout = '';
-                let stderr = '';
-                let progress = 0;
-                const startTime = Date.now();
-
-                post({ type: 'simulationProgress', progress: 0 });
-                post({ type: 'simulationLog', message: 'Starting ngspice simulation...', logType: 'info' });
-
-                const timer = setInterval(() => {
-                    if (progress < 90) {
-                        progress += Math.random() * 5;
-                        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                        const minutes = Math.floor(elapsed / 60);
-                        const seconds = elapsed % 60;
-                        post({
-                            type: 'simulationProgress',
-                            progress: Math.min(90, progress),
-                            elapsedTime: minutes + ':' + (seconds < 10 ? '0' : '') + seconds
-                        });
-                    }
-                }, 500);
-
-                proc.stdout.on('data', (d) => { stdout += d.toString(); });
-                proc.stderr.on('data', (d) => { stderr += d.toString(); });
-
-                proc.on('close', (code) => {
-                    clearInterval(timer);
-                    let resultsContent = '';
-                    try { if (fs.existsSync(resultsFile)) resultsContent = fs.readFileSync(resultsFile, 'utf-8'); } catch (e) { /* ignore */ }
-                    try {
-                        fs.unlinkSync(circuitFile);
-                        if (fs.existsSync(resultsFile)) fs.unlinkSync(resultsFile);
-                    } catch (e) { /* ignore */ }
-
-                    const results = spice.parseSpiceResults(stdout, stderr, resultsContent, analysisType);
-                    doc.solveData = {
-                        success: code === 0, exitCode: code, stdout, stderr, results,
-                        rawOutput: stdout + '\n' + stderr
-                    };
-                    post({ type: 'simulationProgress', progress: 100, elapsedTime: 'Done' });
-                    post({ type: 'simulationComplete', data: { stdout, stderr, results } });
-                    doc.ngspiceProcess = null;
-                });
-
-                proc.on('error', (error) => {
-                    clearInterval(timer);
-                    try { fs.unlinkSync(circuitFile); } catch (e) { /* ignore */ }
-                    doc.solveData = { success: false, error: error.message, message: 'Failed to start ngspice: ' + cmd };
-                    post({ type: 'simulationError', error: 'Failed to start ngspice (' + cmd + '): ' + error.message });
-                    doc.ngspiceProcess = null;
-                });
-            } catch (error) {
-                post({ type: 'simulationError', error: error.message });
-            }
-            break;
-        }
-
-        case 'stopSimulation':
-            if (doc.ngspiceProcess) {
-                doc.ngspiceProcess.kill();
-                doc.ngspiceProcess = null;
-                post({ type: 'simulationProgress', progress: 0, elapsedTime: 'Stopped' });
-                post({ type: 'simulationLog', message: 'Simulation stopped by user', logType: 'warn' });
-            }
+        // ---------------------------------- PyAMS DC operating point ------------------------------
+        case 'startPyAMSOp':
+            if (doc.pyamsOpRun) { doc.pyamsOpRun.kill(); doc.pyamsOpRun = null; }
+            doc.pyamsOpRun = LibrarySync.startPyAMSAnalysis(DATA_ROOT, message.code, { type: 'op' },
+                (ev) => post({ type: 'pyamsOpEvent', event: ev }));
             break;
 
-        case 'getSimulationResults':
-            post({ type: 'simulationResults', data: doc.solveData || null });
+        case 'stopPyAMSOp':
+            if (doc.pyamsOpRun) { doc.pyamsOpRun.kill(); doc.pyamsOpRun = null; }
+            break;
+
+        case 'cursorPos':
+            doc.pos = message.pos || null;
+            if (activeTab && activeTab.doc === doc) sendStatus();
+            break;
+
+        case 'zoomChanged':
+            doc.zoom = message.zoom;
+            if (activeTab && activeTab.doc === doc) sendStatus();
             break;
 
         default:
-            // cursorPos / zoomChanged are handled inside the page (status bar)
             break;
     }
 }
@@ -672,30 +742,6 @@ function listExamples() {
     }
 }
 
-function showStartWindow() {
-    if (startWindow && !startWindow.isDestroyed()) { startWindow.focus(); return; }
-    startWindow = new BrowserWindow({
-        width: 980,
-        height: 660,
-        minWidth: 760,
-        minHeight: 520,
-        show: false,
-        backgroundColor: '#f6efe0',
-        icon: ICON_FILE,
-        title: 'PyAMS',
-        webPreferences: {
-            preload: path.join(__dirname, 'preload-start.js'),
-            contextIsolation: true,
-            sandbox: true,
-            nodeIntegration: false
-        }
-    });
-    lockWebContents(startWindow.webContents);
-    startWindow.once('ready-to-show', () => startWindow.show());
-    startWindow.loadFile(path.join(RENDERER, 'start.html'));
-    startWindow.on('closed', () => { startWindow = null; });
-}
-
 ipcMain.handle('start:getInfo', () => ({
     version: app.getVersion(),
     recent: settings.get('recent').map((p) => ({ name: path.basename(p), dir: path.dirname(p), path: p })),
@@ -706,7 +752,7 @@ ipcMain.on('start:action', (_event, { action, arg }) => {
     switch (action) {
         case 'new-circuit': newDocument('dcs'); break;
         case 'new-symbol': newDocument('sym'); break;
-        case 'open': openFileDialog(startWindow); break;
+        case 'open': openFileDialog(mainWin); break;
         case 'open-recent': if (typeof arg === 'string') openFilePath(arg); break;
         case 'open-example': if (typeof arg === 'string' && isInside(path.join(DATA_ROOT, 'demo'), path.resolve(arg))) openExample(arg); break;
         case 'docs': shell.openExternal('https://pyams-lib.readthedocs.io'); break;
@@ -729,12 +775,14 @@ async function setPythonPath() {
     if (res.canceled || !res.filePaths[0]) return;
     settings.set('pythonPath', res.filePaths[0]);
     applyPythonSetting();
+    detectPython();
     await checkPython();
 }
 
 async function resetPythonPath() {
     settings.set('pythonPath', '');
     applyPythonSetting();
+    detectPython();
     await checkPython();
 }
 
@@ -751,7 +799,7 @@ async function checkPython() {
     ].join('\n');
     const run = await LibrarySync.runPython(['-c', script], { timeout: 20000 });
     const ok = !run.error && /numpy .*OK/.test(run.stdout) && /matplotlib .*OK/.test(run.stdout);
-    await dialog.showMessageBox(BrowserWindow.getFocusedWindow() || undefined, {
+    await dialog.showMessageBox(mainWin || undefined, {
         type: ok ? 'info' : 'warning',
         title: 'Python environment',
         message: ok ? 'Python environment is ready' : 'Python environment needs attention',
@@ -789,7 +837,7 @@ function buildMenu() {
                 { label: 'New &Circuit', accelerator: 'CmdOrCtrl+N', click: () => newDocument('dcs') },
                 { label: 'New &Symbol', accelerator: 'CmdOrCtrl+Shift+N', click: () => newDocument('sym') },
                 { type: 'separator' },
-                { label: '&Open...', accelerator: 'CmdOrCtrl+O', click: () => openFileDialog(BrowserWindow.getFocusedWindow()) },
+                { label: '&Open...', accelerator: 'CmdOrCtrl+O', click: () => openFileDialog(mainWin) },
                 { label: 'Open &Recent', submenu: recentItems },
                 { label: 'Open E&xample', submenu: exampleItems.length ? exampleItems : [{ label: 'No examples found', enabled: false }] },
                 { type: 'separator' },
@@ -798,7 +846,7 @@ function buildMenu() {
                 { type: 'separator' },
                 { label: 'Show in Folder', click: () => { const d = focusedDoc(); if (d && d.filePath) shell.showItemInFolder(d.filePath); } },
                 { type: 'separator' },
-                { label: '&Close Window', accelerator: 'CmdOrCtrl+W', click: () => { const w = BrowserWindow.getFocusedWindow(); if (w) w.close(); } },
+                { label: '&Close Tab', accelerator: 'CmdOrCtrl+W', click: () => closeTab(activeTab) },
                 ...(isMac ? [] : [{ label: 'E&xit', accelerator: 'Alt+F4', click: () => app.quit() }])
             ]
         },
@@ -821,8 +869,11 @@ function buildMenu() {
                 { type: 'separator' },
                 { role: 'togglefullscreen' },
                 { type: 'separator' },
-                { role: 'reload' },
-                { role: 'toggleDevTools' }
+                { label: 'Next Tab', accelerator: 'Ctrl+Tab', click: () => { if (tabs.length > 1) activateTab(tabs[(tabs.indexOf(activeTab) + 1) % tabs.length]); } },
+                { label: 'Previous Tab', accelerator: 'Ctrl+Shift+Tab', click: () => { if (tabs.length > 1) activateTab(tabs[(tabs.indexOf(activeTab) + tabs.length - 1) % tabs.length]); } },
+                { type: 'separator' },
+                { label: 'Reload Editor', accelerator: 'CmdOrCtrl+R', click: () => { if (activeTab) activeTab.view.webContents.reload(); } },
+                { label: 'Toggle Developer Tools', accelerator: 'CmdOrCtrl+Shift+I', click: () => { if (activeTab) activeTab.view.webContents.toggleDevTools(); } }
             ]
         },
         {
@@ -835,7 +886,6 @@ function buildMenu() {
                 { label: 'Open Examples Folder', click: () => shell.openPath(path.join(DATA_ROOT, 'demo')) }
             ]
         },
-        { role: 'windowMenu' },
         {
             role: 'help',
             label: '&Help',
@@ -843,7 +893,7 @@ function buildMenu() {
                 { label: 'PyAMS &Documentation', click: () => shell.openExternal('https://pyams-lib.readthedocs.io') },
                 { label: 'PyAMS &Website', click: () => shell.openExternal('https://pyams.sf.net/') },
                 { label: 'Report an &Issue', click: () => shell.openExternal('https://github.com/d-fathi/PyAMS/issues') },
-                { label: 'Start Page', click: () => showStartWindow() },
+                { label: 'Start Page', click: () => showStartTab() },
                 { type: 'separator' },
                 { label: '&About PyAMS', click: () => showAbout() }
             ]
@@ -853,7 +903,7 @@ function buildMenu() {
 }
 
 function showAbout() {
-    dialog.showMessageBox(BrowserWindow.getFocusedWindow() || undefined, {
+    dialog.showMessageBox(mainWin || undefined, {
         type: 'info',
         title: 'About PyAMS',
         message: 'PyAMS ' + app.getVersion(),
@@ -882,9 +932,10 @@ if (!gotLock) {
 } else {
     app.on('second-instance', (_event, argv) => {
         const files = filesFromArgv(argv);
+        if (mainWin && mainWin.isMinimized()) mainWin.restore();
         if (files.length) files.forEach(openFilePath);
-        else if (startWindow) startWindow.focus();
-        else showStartWindow();
+        else if (mainWin) mainWin.focus();
+        else showStartTab();
     });
 
     app.on('open-file', (event, filePath) => {   // macOS
@@ -899,7 +950,7 @@ if (!gotLock) {
     });
 
     app.on('activate', () => {   // macOS dock click
-        if (BrowserWindow.getAllWindows().length === 0) showStartWindow();
+        if (!mainWin) showStartTab();
     });
 
     app.whenReady().then(() => {
@@ -909,6 +960,7 @@ if (!gotLock) {
 
         const files = filesFromArgv(process.argv).concat(pendingOpen);
         if (files.length) files.forEach(openFilePath);
-        else showStartWindow();
+        else showStartTab();
+        detectPython();
     });
 }

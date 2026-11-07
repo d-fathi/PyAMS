@@ -17,7 +17,10 @@ Usage:  python runAnalysis.py <extension_dir> <code_file> <analysis_json_file>
                       are not circuit options and are ignored (func is returned to the caller).
              sweep:   parametric sweep, the analysis is repeated for every value ("0.1m,5m,20m" or a list).
              xAxe:    a node / "Element.signal" used as the x axis instead of time (Time Domain, DC).
-             type: "Time Domain" | "AC" | "DC" (DC sweep when "param": "Element.Param" is given).
+             type: "Time Domain" | "AC" | "DC" (DC sweep when "param": "Element.Param" is given)
+                   | "OP" (DC operating point: one point, reports every node voltage and the
+                     current of every element, plus warnings about the circuit; the result is
+                     {"mode": "op", "nodes": [...], "currents": [...], "warnings": [...]}).
              Numbers may carry units / SI prefixes: "0.1us", "5ms", "1k", "2.2V".
 
 Every line printed on stdout is one JSON object:
@@ -68,6 +71,81 @@ def number(text, unit, parse):
     if isinstance(text, (int, float)):
         return float(text)
     return parse(str(text), unit)
+
+
+GROUND_NAMES = ('0', 'gnd', 'ground')
+
+
+def run_op(cir, elements, options):
+    """DC operating point of the circuit.  Emits the result event and returns 0."""
+    import warnings as _warnings
+
+    # --- checks on the circuit (before solving) ---------------------------------------------
+    notes = []
+    uses = {}                                    # node -> elements connected to it
+    for ename, el in elements.items():
+        seen = set()
+        for sig in el._signals.values():
+            for node in (sig.p, sig.n):
+                node = str(node)
+                if (ename, node) not in seen:
+                    seen.add((ename, node))
+                    uses.setdefault(node, []).append(ename)
+    if not any(n.lower() in GROUND_NAMES for n in uses):
+        notes.append('The circuit has no ground node ("0").')
+    for node, users in uses.items():
+        if node.lower() not in GROUND_NAMES and len(users) == 1:
+            notes.append('Node "%s" is connected to a single terminal (%s): it is floating.'
+                         % (node, users[0]))
+    for text in notes:
+        emit(event='log', message=text, level='warn')
+
+    # --- solve: node voltages first, then the current of every element -----------------------
+    emit(event='log', message='Solving the DC operating point...', level='info')
+    cir.analysis(mode='dc', start=0.0, **options)
+    with _warnings.catch_warnings(record=True) as caught:
+        _warnings.simplefilter('always')
+        run = cir.run()
+        run = run[0] if isinstance(run, list) else run
+        node_names = list(getattr(cir, '_out_names', []))
+        current_names = ['%s.I' % n for n, el in elements.items()
+                         if 'I' in el._signals and getattr(el._signals['I'], 'kind', None) is not None
+                         and str(el._signals['I'].kind).lower().find('current') >= 0]
+        if current_names:
+            cir.setOutPuts(*(node_names + current_names))
+            cir.analysis(mode='dc', start=0.0, **options)
+            run = cir.run()
+            run = run[0] if isinstance(run, list) else run
+    for w in caught:
+        notes.append(str(w.message))
+        emit(event='log', message=str(w.message), level='warn')
+
+    units = getattr(cir, '_units', {})
+
+    def entry(name):
+        col = run[name]
+        value = float(np_real(col[0] if len(col) else float('nan')))
+        return {'name': name, 'value': value if math.isfinite(value) else None,
+                'unit': units.get(name, '')}
+
+    nodes = [entry(n) for n in node_names]
+    currents = [entry(n) for n in current_names if n in run]
+    bad = [e['name'] for e in nodes + currents if e['value'] is None]
+    if bad:
+        raise ValueError('the operating point is not finite for: ' + ', '.join(bad))
+    emit(event='log', message='Done: %d node(s), %d current(s).' % (len(nodes), len(currents)),
+         level='success')
+    emit(event='result', data={'mode': 'op', 'nodes': nodes, 'currents': currents,
+                               'warnings': notes, 'elements': len(elements)})
+    return 0
+
+
+def np_real(value):
+    try:
+        import numpy
+        return numpy.real(value)
+    except Exception:
+        return value
 
 
 def main(argv):
@@ -155,6 +233,9 @@ def main(argv):
 
         last = {'pct': -1}
 
+        if kind in ('op', 'operating point', 'dc operating point'):
+            return run_op(cir, elements, options)
+
         if kind in ('time domain', 'time', 'transient', 'tran'):
             mode = 'tran'
             options['progress'] = progress
@@ -171,7 +252,7 @@ def main(argv):
                          stop=number(analysis['stop'], 'Hz', _parse_value),
                          step=number(analysis['step'], '', _parse_value)
                          if analysis.get('step') is not None else None, **options)
-        elif kind in ('dc', 'dc sweep', 'dc analysis', 'op', 'operating point'):
+        elif kind in ('dc', 'dc sweep', 'dc analysis'):
             mode = 'dc'
             param = analysis.get('param')
             if param and param != 'Non':

@@ -5,7 +5,7 @@ function addCodeHtml(elem) {
     newElement.setAttribute("y", 0);
     newElement.setAttribute("width", 222);
     newElement.setAttribute("height", 200);
-	  newElement.innerHTML =`<div  name="htmlCode"  style="zoom:60%;" 
+	  newElement.innerHTML =`<div  name="htmlCode"  style="zoom:0.2;" 
     code="<div class='ch'><h1>Hellow word</h1>\n <p>Here write the text in HTML</p></div>">
 
     <!-- Parent container that responds to mouse movement -->
@@ -13,7 +13,7 @@ function addCodeHtml(elem) {
         
         <!-- tool bar-->
         <div class="ch-page-toolbar">
-            <button class="ch-toolbar-button" title="Home" onclick="goHome()">
+            <button class="ch-toolbar-button" title="Home">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 3 L3 10 V21 H9 V15 H15 V21 H21 V10 Z"/>
                 </svg>
@@ -40,24 +40,57 @@ function addCodeHtml(elem) {
 }
 
 
-function modifedSizeCodeHtml(element) {
-  var a=100/60;
-    if (element.getAttribute("name") == "codeHTML") {
-        var x = parseInt(element.getAttribute("x"));
-        var y = parseInt(element.getAttribute("y"));
-        var w = parseInt(element.getAttribute("width"))*a;
-        var h = parseInt(element.getAttribute("height"));
+// The text is laid out on a large "page" CH_PAGE_WIDTH px wide and then scaled down
+// to fit the box drawn on the schematic, so it looks like a small thumbnail next to the plots.
+// The Home button shows the same text at full size (see goHome).
+var CH_PAGE_WIDTH = 1000;
 
-        element.setAttribute('transform', "translate(" + x + "," + y + ")");
-        
-        element.firstChild.style.height=h+'px';
-        element.firstChild.style.width=w+'px';
-        element.firstChild.firstChild.style.height=h+'px';
-		    element.firstChild.firstChild.style.width=w+'px';
-    }
+function modifedSizeCodeHtml(element) {
+    if (element.getAttribute("name") != "codeHTML") return;
+    var x = parseInt(element.getAttribute("x"));
+    var y = parseInt(element.getAttribute("y"));
+    var w = Math.max(parseFloat(element.getAttribute("width")) || 0, 20);
+    var h = Math.max(parseFloat(element.getAttribute("height")) || 0, 20);
+    var z = w / CH_PAGE_WIDTH;                       // scale of the thumbnail
+
+    element.setAttribute('transform', "translate(" + x + "," + y + ")");
+
+    var fo = element.firstChild;                     // <foreignObject>
+    fo.setAttribute("width", w);
+    fo.setAttribute("height", h);
+    fo.style.width = w + 'px';
+    fo.style.height = h + 'px';
+
+    var box = fo.firstChild;                         // <div name="htmlCode">
+    if (!box || !box.style) return;
+    box.style.zoom = z;
+    box.style.width = (w / z) + 'px';                // = CH_PAGE_WIDTH
+    box.style.height = (h / z) + 'px';
+
+    // keep the toolbar (Home / Edit) at its normal size whatever the thumbnail scale
+    var bar = box.querySelector('.ch-page-toolbar');
+    if (bar) bar.style.zoom = 1 / z;
 }
 
 
+
+// Math formulas (KaTeX): $ ... $ or \( ... \) inside a line, $$ ... $$ or \[ ... \] on its own line.
+// Used for the note on the drawing, the enlarged view and the preview of the HTML editor.
+function renderMath(el) {
+  if (!el || typeof renderMathInElement !== 'function') return;
+  try {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '$$',  right: '$$',  display: true  },
+        { left: '\\[', right: '\\]', display: true  },
+        { left: '\\(', right: '\\)', display: false },
+        { left: '$',   right: '$',   display: false }
+      ],
+      throwOnError: false,       // a wrong formula is shown in red instead of breaking the page
+      output: 'html'             // no hidden MathML copy: keeps the saved file smaller
+    });
+  } catch (e) { console.warn('KaTeX:', e); }
+}
 
 function updateHtmlCode(){
   var s=document.getElementsByName('htmlCode');
@@ -69,7 +102,7 @@ function updateHtmlCode(){
         
         <!-- tool bar-->
         <div class="ch-page-toolbar">
-            <button class="ch-toolbar-button" title="Home" onclick="goHome()">
+            <button class="ch-toolbar-button" title="Home">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 3 L3 10 V21 H9 V15 H15 V21 H21 V10 Z"/>
                 </svg>
@@ -86,6 +119,8 @@ function updateHtmlCode(){
     `;
     
     
+   renderMath(s[i]);
+   modifedSizeCodeHtml(s[i].parentNode.parentNode);
    i++;
  }
 
@@ -119,10 +154,46 @@ async function openEditCSS() {
 }
 
 
-function goHome(){
-  window.electron.openHtmlWindow({htmlcode:mtable.select.firstChild.firstChild.getAttribute("code"),circuit:getCircuit()});
+// Home button: show the text enlarged, on top of the drawing, so it can be read comfortably.
+function closeHtmlViewer() {
+  var ov = document.getElementById('chViewerOverlay');
+  if (ov) ov.remove();
+  document.removeEventListener('keydown', htmlViewerKey, true);
+}
+
+function htmlViewerKey(e) {
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeHtmlViewer(); }
+}
+
+function goHome(btn) {
+  var box = (btn && btn.closest) ? btn.closest('[name="htmlCode"]') : null;
+  if (!box && typeof mtable !== 'undefined' && mtable.select) box = mtable.select.firstChild.firstChild;
+  if (!box) return;
+
+  closeHtmlViewer();
+  var ov = document.createElement('div');
+  ov.id = 'chViewerOverlay';
+  ov.innerHTML = '<div id="chViewer">' +
+                   '<button id="chViewerClose" title="Close (Esc)">&times;</button>' +
+                   '<div id="chViewerBody">' + box.getAttribute("code") + '</div>' +
+                 '</div>';
+  ov.addEventListener('mousedown', function (e) { if (e.target === ov) closeHtmlViewer(); });
+  ov.querySelector('#chViewerClose').addEventListener('click', closeHtmlViewer);
+  document.addEventListener('keydown', htmlViewerKey, true);
+  document.body.appendChild(ov);
+  renderMath(ov.querySelector('#chViewerBody'));
 }
 
 function modifyAction(){
   getDialog('openEditHtml')
 }
+
+// Inline onclick attributes are not run inside the webview, so the Home button is handled here.
+// One delegated listener (capture phase) keeps working when the markup is rebuilt.
+document.addEventListener('click', function (e) {
+  var btn = e.target && e.target.closest ? e.target.closest('.ch-toolbar-button[title="Home"]') : null;
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  goHome(btn);
+}, true);

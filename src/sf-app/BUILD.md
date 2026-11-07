@@ -27,10 +27,11 @@ Build the Windows installer on Windows. (On Linux/macOS electron-builder needs W
 
 ## Layout
 ```
-src/            Electron main process (windows, menus, files, undo/redo, Python and ngspice processes)
-  main.js       application logic          preload.js        bridge for the editor window
-  librarySync.js / symbolsSync.js / spiceParser.js   (from the extension)
-renderer/       editor.html (loads media/*), host-shim.js (acquireVsCodeApi replacement), start page
+src/            Electron main process (tabbed window, menus, files, undo/redo, Python processes)
+  main.js       application logic          preload.js / preload-shell.js / preload-start.js   bridges
+  workspace.js  project folder (= folder of the open file)
+  librarySync.js / symbolsSync.js   (from the extension)
+renderer/       shell.html (tab bar + status bar), editor.html (loads media/*), host-shim.js (acquireVsCodeApi replacement), start page
 media/          PyAMS CAD (unchanged from the extension)
 resources/      files that must stay real files on disk: pyams/ (Python library), symbols/, demo/, data.json
 build/          icon.ico, icon.png
@@ -39,6 +40,4 @@ build/          icon.ico, icon.png
 ## Notes
 * Simulation runs the bundled `pyams` Python library, so Python 3 + `numpy` + `matplotlib` must be installed
   on the user's computer. **Tools > Set Python Path...** selects the interpreter.
-* The optional ngspice features need `ngspice` (Linux/macOS: in PATH; Windows: put it in `resources/ngspice/bin/ngspice_con.exe`
-  and add `{ "from": "resources/ngspice", "to": "ngspice" }` to `build.extraResources`).
 * Settings (recent files, Python path) are stored in the user-data folder of the application.

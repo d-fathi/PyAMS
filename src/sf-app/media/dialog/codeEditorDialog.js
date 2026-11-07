@@ -124,6 +124,36 @@ function fCodeEditorDialog(self) {
     color: #ffffff;
 }
 
+
+/* ===== HTML helpers: snippet bar + live preview ===== */
+#codeEditorDialog.ced-html { width: 1180px; height: 640px; }
+.ced-snippets {
+    display: none; flex-wrap: wrap; gap: 4px; padding: 5px 8px; flex-shrink: 0;
+    background: var(--vscode-editorWidget-background, #252526);
+    border-bottom: 1px solid var(--vscode-panel-border, #2b2b2b);
+}
+#codeEditorDialog.ced-html .ced-snippets { display: flex; }
+.ced-snip {
+    padding: 2px 8px; font-size: 11px; cursor: pointer; border-radius: 3px;
+    border: 1px solid var(--vscode-button-border, transparent);
+    background: var(--vscode-button-secondaryBackground, #3a3d41);
+    color: var(--vscode-button-secondaryForeground, #ccc);
+}
+.ced-snip:hover { background: var(--vscode-button-secondaryHoverBackground, #45494e); }
+.ced-main { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+.ced-main .ced-editor-container { min-width: 0; }
+.ced-preview-pane {
+    display: none; flex: 1; min-width: 0; flex-direction: column;
+    border-left: 1px solid var(--vscode-editorGroup-border, #444);
+}
+#codeEditorDialog.ced-html .ced-preview-pane { display: flex; }
+.ced-preview-title {
+    font-size: 11px; padding: 3px 10px; opacity: 0.75; flex-shrink: 0;
+    border-bottom: 1px solid var(--vscode-panel-border, #2b2b2b);
+}
+#cedPreview { flex: 1; overflow: auto; padding: 8px; background: var(--vscode-editor-background, #1e1e1e); }
+#cedPreview .ch { max-width: none; margin: 0; }
+
 /* Editor Container */
 .ced-editor-container {
     flex: 1;
@@ -198,9 +228,9 @@ function fCodeEditorDialog(self) {
     text-transform: none;
     
     /* Identical whitespace handling */
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
+    white-space: pre;            /* no wrapping, so line numbers always match the lines */
+    word-wrap: normal;
+    overflow-wrap: normal;
     tab-size: 4;
     -moz-tab-size: 4;
     
@@ -370,13 +400,20 @@ function fCodeEditorDialog(self) {
                 </span>
                 <button id="codeEditorDialogClose" title="Close (Esc)">×</button>
             </div>
-            <div class="ced-editor-container">
-                <div class="ced-line-numbers" id="cedLineNumbers"></div>
-                <div class="ced-editor-wrapper">
-                    <pre class="ced-highlight-layer" id="cedHighlight"></pre>
-                    <textarea class="ced-editor-textarea" id="cedCodeEditor" spellcheck="false" 
-                        autocorrect="off" autocapitalize="off" 
-                        placeholder="<!-- Enter code here -->"></textarea>
+            <div class="ced-snippets" id="cedSnippets"></div>
+            <div class="ced-main">
+                <div class="ced-editor-container">
+                    <div class="ced-line-numbers" id="cedLineNumbers"></div>
+                    <div class="ced-editor-wrapper">
+                        <pre class="ced-highlight-layer" id="cedHighlight"></pre>
+                        <textarea class="ced-editor-textarea" id="cedCodeEditor" spellcheck="false" wrap="off" 
+                            autocorrect="off" autocapitalize="off" 
+                            placeholder="<!-- Enter code here -->"></textarea>
+                    </div>
+                </div>
+                <div class="ced-preview-pane">
+                    <div class="ced-preview-title">Preview</div>
+                    <div id="cedPreview"></div>
                 </div>
             </div>
             <div class="ced-buttons-bar">
@@ -466,8 +503,10 @@ function fCodeEditorDialog(self) {
             codeEditor.value = selfDialog.codeContent;
         }
         
+        if (dialogEl) dialogEl.classList.toggle('ced-html', selfDialog.language === 'html');
         selfDialog.updateLineNumbers();
         selfDialog.updateHighlighting();
+        selfDialog.updatePreview();
         selfDialog.updateStatus('Ready');
     };
 
@@ -570,6 +609,119 @@ function fCodeEditorDialog(self) {
         }
     };
 
+    // ---- HTML helpers: snippets, live preview, indentation --------------------------------
+    // Ready-made blocks that use the classes defined in HTMLcode.css
+    var SNIPPETS = [
+        { label: 'H1',      title: 'Title',          html: '<h1>%</h1>' },
+        { label: 'H2',      title: 'Section title',  html: '<h2>%</h2>' },
+        { label: 'P',       title: 'Paragraph',      html: '<p>%</p>' },
+        { label: 'List',    title: 'Bullet list',    html: '<ul>\n    <li>%</li>\n    <li></li>\n</ul>' },
+        { label: 'B',       title: 'Bold',           wrap: ['<strong>', '</strong>'] },
+        { label: 'I',       title: 'Italic',         wrap: ['<em>', '</em>'] },
+        { label: 'Link',    title: 'Link',           wrap: ['<a href="https://">', '</a>'] },
+        { label: 'HR',      title: 'Separator line', html: '<hr>' },
+        { label: '$x$',    title: 'Math formula inside a line  ( $ ... $ )', wrap: ['$', '$'] },
+        { label: '$$x$$',  title: 'Math formula on its own line  ( $$ ... $$ )', html: '$$ % $$' },
+        { label: 'x/y',    title: 'Fraction \\frac{a}{b}', wrap: ['\\frac{', '}{}'] },
+        { label: 'Card',    title: 'Card',           html: '<div class="ch-card">\n    <h2>%</h2>\n    <p></p>\n</div>' },
+        { label: 'Formula', title: 'Formula box',    html: '<div class="ch-formula">%</div>' },
+        { label: '2 cols',  title: 'Two columns (blue / red)',
+          html: '<div class="ch-grid">\n    <div class="ch-col blue">\n        <h3>%</h3>\n        <ul><li></li></ul>\n    </div>\n    <div class="ch-col red">\n        <h3></h3>\n        <ul><li></li></ul>\n    </div>\n</div>' }
+    ];
+
+    // insert text at the cursor; "%" marks where the cursor goes (the selection replaces it)
+    this.insertSnippet = function(sn) {
+        if (!codeEditor) return;
+        var start = codeEditor.selectionStart, end = codeEditor.selectionEnd;
+        var sel = codeEditor.value.substring(start, end);
+        var text, caret;
+        // continue lines of the snippet at the indentation of the current line
+        var lineStart = codeEditor.value.lastIndexOf('\n', start - 1) + 1;
+        var indent = /^[ \t]*/.exec(codeEditor.value.substring(lineStart, start))[0];
+        if (sn.wrap) {
+            text = sn.wrap[0] + sel + sn.wrap[1];
+            caret = sel ? start + text.length : start + sn.wrap[0].length;
+        } else {
+            var body = sn.html.replace(/\n/g, '\n' + indent);
+            var at = body.indexOf('%');
+            text = body.replace('%', function() { return sel; });
+            caret = start + at + sel.length;
+        }
+        codeEditor.focus();
+        codeEditor.setRangeText(text, start, end, 'end');
+        codeEditor.selectionStart = codeEditor.selectionEnd = caret;
+        selfDialog.refreshAll();
+    };
+
+    this.buildSnippetBar = function() {
+        var bar = document.getElementById('cedSnippets');
+        if (!bar) return;
+        SNIPPETS.forEach(function(sn) {
+            var b = document.createElement('button');
+            b.className = 'ced-snip';
+            b.textContent = sn.label;
+            b.title = sn.title;
+            b.addEventListener('mousedown', function(e) { e.preventDefault(); });   // keep the cursor in the editor
+            b.addEventListener('click', function() { selfDialog.insertSnippet(sn); });
+            bar.appendChild(b);
+        });
+    };
+
+    var previewTimer = null;
+    this.updatePreview = function() {
+        var pv = document.getElementById('cedPreview');
+        if (!pv || !codeEditor || selfDialog.language !== 'html') return;
+        // scripts are never run in the preview
+        pv.innerHTML = codeEditor.value.replace(/<script[\s\S]*?<\/script>/gi, '');
+        if (typeof renderMath === 'function') renderMath(pv);
+    };
+    this.schedulePreview = function() {
+        clearTimeout(previewTimer);
+        previewTimer = setTimeout(selfDialog.updatePreview, 120);
+    };
+
+    this.refreshAll = function() {
+        selfDialog.updateLineNumbers();
+        selfDialog.updateHighlighting();
+        selfDialog.schedulePreview();
+        selfDialog.updateStatus('Modified - Lines: ' + codeEditor.value.split('\n').length, 'modified');
+    };
+
+    // Tab / Shift+Tab on one or several lines, Enter keeps the indentation of the line
+    this.handleEditKey = function(e) {
+        var ta = codeEditor, v = ta.value, a = ta.selectionStart, b = ta.selectionEnd;
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            var ls = v.lastIndexOf('\n', a - 1) + 1;
+            if (a === b && !e.shiftKey) { ta.setRangeText('    ', a, b, 'end'); }
+            else {
+                var block = v.substring(ls, b);
+                var lines = block.split('\n');
+                var out = lines.map(function(l) {
+                    return e.shiftKey ? l.replace(/^( {1,4}|\t)/, '') : '    ' + l;
+                });
+                var res = out.join('\n');
+                ta.setRangeText(res, ls, b, 'select');
+                ta.selectionStart = ls; ta.selectionEnd = ls + res.length;
+            }
+            selfDialog.refreshAll();
+        } else if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && a === b) {
+            var ls2 = v.lastIndexOf('\n', a - 1) + 1;
+            var indent = /^[ \t]*/.exec(v.substring(ls2, a))[0];
+            // an opening tag followed directly by its closing tag: <div>|</div>  -> split on three lines
+            var between = /<[a-z][^>\/]*>$/i.test(v.substring(0, a)) && /^<\//.test(v.substring(a));
+            e.preventDefault();
+            if (between) {
+                var ins = '\n' + indent + '    \n' + indent;
+                ta.setRangeText(ins, a, a, 'end');
+                ta.selectionStart = ta.selectionEnd = a + 1 + indent.length + 4;
+            } else {
+                ta.setRangeText('\n' + indent, a, a, 'end');
+            }
+            selfDialog.refreshAll();
+        }
+    };
+
     // Submit result
     this.submitResult = function() {
         var result = codeEditor ? codeEditor.value : '';
@@ -627,6 +779,7 @@ function fCodeEditorDialog(self) {
             codeEditor.addEventListener('input', function() { 
                 selfDialog.updateLineNumbers();
                 selfDialog.updateHighlighting();
+                selfDialog.schedulePreview();
                 selfDialog.updateStatus('Modified - Lines: ' + this.value.split('\n').length, 'modified');
             });
             
@@ -636,15 +789,12 @@ function fCodeEditorDialog(self) {
             codeEditor.addEventListener('keyup', selfDialog.updateLineNumbers);
             codeEditor.addEventListener('click', selfDialog.updateLineNumbers);
             
-            // Tab key support (4 spaces)
+            // Tab / Shift+Tab / Enter (auto-indent)
             codeEditor.addEventListener('keydown', function(e) {
-                if (e.key === 'Tab') {
+                if (selfDialog.language === 'html') { selfDialog.handleEditKey(e); }
+                else if (e.key === 'Tab') {
                     e.preventDefault();
-                    var start = this.selectionStart;
-                    var end = this.selectionEnd;
-                    var spaces = '    '; // 4 spaces
-                    this.value = this.value.substring(0, start) + spaces + this.value.substring(end);
-                    this.selectionStart = this.selectionEnd = start + spaces.length;
+                    this.setRangeText('    ', this.selectionStart, this.selectionEnd, 'end');
                     selfDialog.updateLineNumbers();
                     selfDialog.updateHighlighting();
                 }
@@ -705,5 +855,6 @@ function fCodeEditorDialog(self) {
     this.injectCSS();
     this.injectHTML();
     this.init();
+    this.buildSnippetBar();
 }
 var codeEditorDialog;

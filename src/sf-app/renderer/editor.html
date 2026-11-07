@@ -6,17 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PyAMS</title>
     <link href="../media/css/HTMLcode.css" rel="stylesheet">
+    <link href="../media/pack/katex/katex.min.css" rel="stylesheet">
     <link href="editor.css" rel="stylesheet">
 </head>
 <body>
     <div id="content"></div>
-    <div id="statusbar">
-        <span id="sbFile"></span>
-        <span id="sbToast"></span>
-        <span class="sb-spacer"></span>
-        <span id="sbPos" title="Cursor position (grid)"></span>
-        <span id="sbZoom" title="Zoom"></span>
-    </div>
 
     <!-- Bridge replacing the VS Code webview API (must load first) -->
     <script src="host-shim.js"></script>
@@ -56,7 +50,7 @@
     <script src="../media/dialog/listParametersDialog.js"></script>
     <script src="../media/dialog/optionsDialog.js"></script>
     <script src="../media/dialog/codeEditorDialog.js"></script>
-    <script src="../media/dialog/spiceNetlistDialog.js"></script>
+    <script src="../media/dialog/pyamsCircuitDialog.js"></script>
     <script src="../media/dialog/processAnalysisDialog.js"></script>
     <script src="../media/dialog/messageDialog.js"></script>
     <script src="../media/dialog/opAnalysisDialog.js"></script>
@@ -73,6 +67,8 @@
     <script src="../media/cad/drawing.js"></script>
     <script src="../media/cad/std.js"></script>
     <script src="../media/pack/plotly-latest.min.js"></script>
+    <script src="../media/pack/katex/katex.min.js"></script>
+    <script src="../media/pack/katex/auto-render.min.js"></script>
 
     <script src="editor-main.js"></script>
 </body>

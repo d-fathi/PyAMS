@@ -63,7 +63,7 @@ function pageSelect() {
                 collapsed: false,
                 showReset: true,
                 rows: [
-                    { label: "Netliste", type: "Button", value: 'show' , setClick:'openNetlistEditor' },
+                    { label: "PyAMS Circuit", type: "Button", value: 'show' , setClick:'openPyAMSCircuitEditor' },
                     { label: "OP Check", type: "Button", value: 'show' , setClick:'OPCheck' }
                 ]
             })
@@ -473,6 +473,9 @@ if(mtable.select.getAttribute("show")=='Name and value'){
         { label: 'Value', type: "text", value: mtable.select.getAttribute("paramvalue")}
     );
 }
+    defaultData.sections[0].rows.push(
+        { label: 'Bind', type: "dropdown", value: paramBind(mtable.select), options: ['param', 'init', 'method'] }
+    );
     mtable.type = "param";
     propertiesData = JSON.parse(JSON.stringify(defaultData));
     buildPanel();
@@ -490,7 +493,22 @@ function paramModified() {
 
     if(mtable.select.getAttribute("show")!=showValue){
         mtable.select.setAttribute("show", showValue);
-        mtable.select.textContent = showValue=='Name and value' ? mtable.select.getAttribute("paramname") + '=' + mtable.select.getAttribute("paramvalue") : mtable.select.getAttribute("paramvalue");
+        mtable.select.textContent = paramDisplayText(mtable.select);
+        paramSelected();
+        return;
+    }
+
+    // Bind (last row): param | init | method
+    var rowsP = propertiesData.sections[0].rows;
+    var newBind = rowsP[rowsP.length - 1].value;
+    if (newBind !== paramBind(mtable.select)) {
+        var oldColor = PARAM_BIND_COLORS[paramBind(mtable.select)];
+        if (newBind === 'param') mtable.select.removeAttribute("bind");
+        else mtable.select.setAttribute("bind", newBind);
+        // keep a custom colour; change only the default colour of the previous bind
+        if (rgb2hex(mtable.select.style.fill).toLowerCase() === oldColor.toLowerCase())
+            mtable.select.style.fill = PARAM_BIND_COLORS[newBind];
+        mtable.select.textContent = paramDisplayText(mtable.select);
         paramSelected();
         return;
     }
@@ -498,13 +516,11 @@ function paramModified() {
     if(showValue=='Name and value' ){
         mtable.select.setAttribute("paramname", propertiesData.sections[0].rows[6].value);
         mtable.select.setAttribute("paramvalue", propertiesData.sections[0].rows[7].value);
-        var text = propertiesData.sections[0].rows[6].value + '=' + propertiesData.sections[0].rows[7].value;
     } else{
         mtable.select.setAttribute("paramvalue", propertiesData.sections[0].rows[6].value);
-        var text = propertiesData.sections[0].rows[6].value;
     }
 
-    mtable.select.textContent = text;
+    mtable.select.textContent = paramDisplayText(mtable.select);
     deleteEllipseMS(mtable.resize);
     mtable.resize.updateSlect();
 } 

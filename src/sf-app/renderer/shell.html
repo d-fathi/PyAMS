@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' data:; script-src 'self';">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyAMS</title>
+    <link rel="stylesheet" href="shell.css">
+</head>
+<body>
+    <!-- The editor / start page views of the tabs are placed by the main process between these two bars -->
+    <header id="tabbar">
+        <img src="logo.png" alt="" class="app-logo">
+        <div id="tabs" role="tablist"></div>
+        <button id="newTab" class="icon-btn" title="New... (Ctrl+N)" aria-label="New">+</button>
+    </header>
+
+    <footer id="statusbar">
+        <span id="sbFile" class="sb-file"></span>
+        <span id="sbToast" class="sb-toast"></span>
+        <span class="sb-spacer"></span>
+        <span id="sbPos" class="sb-item" title="Cursor position"></span>
+        <span id="sbZoom" class="sb-item" title="Zoom"></span>
+        <button id="sbPython" class="sb-btn" title="Python environment">Python: checking...</button>
+    </footer>
+
+    <script src="shell.js"></script>
+</body>
+</html>

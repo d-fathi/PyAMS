@@ -7,7 +7,8 @@ Updated:     30/09/2026
 Copyright:   (c) PyAMS 2026
 Licence:     free
 #---------------------------------------------------------------------------------------------------
-Description: Dialog for DC Operating Point analysis with circuit validation
+Description: DC Operating Point analysis with the PyAMS library (no SPICE):
+             checks the circuit, solves it in Python and lists node voltages / element currents
              Shows only Process Log containing everything
 */
 
@@ -285,7 +286,7 @@ function fOpAnalysisDialog(self) {
     <div id="opAnalysisDialogHeader">
         <div class="op-header-left">
             <div class="op-status-dot" id="opStatusDot"></div>
-            <span class="op-title">DC Operating Point Check</span>
+            <span class="op-title">DC Operating Point (PyAMS)</span>
         </div>
         <button id="opAnalysisDialogClose" title="Close">×</button>
     </div>
@@ -344,6 +345,8 @@ function fOpAnalysisDialog(self) {
             if (overlay) overlay.classList.remove('visible');
             selfDialog.isVisible = false;
             selfDialog.stopElapsedTimer();
+            if (selfDialog.isRunning && typeof vscode !== 'undefined') vscode.postMessage({ type: 'stopPyAMSOp' });
+            selfDialog.isRunning = false;
         }
     };
 
@@ -430,37 +433,59 @@ function fOpAnalysisDialog(self) {
         }
     };
 
-    this.initData = function(spiceCode) {
-        selfDialog.spiceCode = spiceCode || '';
+    function fmt(value, unit) {
+        var v = Number(value), a = Math.abs(v);
+        unit = unit || '';
+        if (!isFinite(v)) return String(value) + ' ' + unit;
+        if (a === 0) return '0 ' + unit;
+        var p = [[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p']];
+        for (var i = 0; i < p.length; i++) {
+            if (a >= p[i][0]) return (v / p[i][0]).toPrecision(6).replace(/\.?0+$/, '') + ' ' + p[i][1] + unit;
+        }
+        return v.toExponential(3) + ' ' + unit;
+    }
+
+    this.initData = function(pyamsCode) {
+        selfDialog.pyamsCode = pyamsCode || '';
         selfDialog.resetDialog();
     };
 
     this.startAnalysis = function() {
-        if (!selfDialog.spiceCode || !selfDialog.spiceCode.trim()) {
-            selfDialog.appendLog('No SPICE code provided.', 'error');
+        if (!selfDialog.pyamsCode || !selfDialog.pyamsCode.trim()) {
+            selfDialog.appendLog('No PyAMS circuit code provided.', 'error');
             return;
         }
-
-        selfDialog.isRunning = true;
         selfDialog.resetDialog();
+        selfDialog.isRunning = true;
+        selfDialog.sawError = false;
+        selfDialog.warnLogged = 0;
         selfDialog.setStatus('running');
         selfDialog.setProgress(10);
         selfDialog.startElapsedTimer();
-
         if (startBtn) startBtn.disabled = true;
         if (okBtn) okBtn.disabled = true;
+        selfDialog.appendLog('Starting DC Operating Point analysis (PyAMS)...', 'info');
 
-        selfDialog.appendLog('Starting DC Operating Point analysis...', 'info');
-
-        if (typeof drawing !== 'undefined' && drawing.execOp) {
-            drawing.execOp(selfDialog.spiceCode).then(function(result) {
-                selfDialog.lastResult = result;
-                selfDialog.completeAnalysis(result);
-            }).catch(function(err) {
-                selfDialog.errorAnalysis(err);
-            });
+        if (typeof vscode !== 'undefined') {
+            vscode.postMessage({ type: 'startPyAMSOp', code: selfDialog.pyamsCode });
         } else {
-            selfDialog.errorAnalysis('drawing.execOp is not available.');
+            selfDialog.errorAnalysis('vscode API not available.');
+        }
+    };
+
+    this.onMessage = function(e) {
+        var msg = e.data;
+        if (!msg || msg.type !== 'pyamsOpEvent' || !selfDialog.isRunning) return;
+        var ev = msg.event || {};
+        if (ev.event === 'log') {
+            if (ev.level === 'warn') selfDialog.warnLogged++;
+            selfDialog.appendLog(ev.message, ev.level || 'info');
+            selfDialog.setProgress(Math.min(90, selfDialog.progress + 15));
+        } else if (ev.event === 'result') {
+            selfDialog.lastResult = ev.data;
+            selfDialog.completeAnalysis(ev.data);
+        } else if (ev.event === 'error') {
+            selfDialog.errorAnalysis(ev.message + (ev.line ? ' (line ' + ev.line + ')' : ''));
         }
     };
 
@@ -468,68 +493,27 @@ function fOpAnalysisDialog(self) {
         selfDialog.isRunning = false;
         selfDialog.setProgress(100);
         selfDialog.stopElapsedTimer();
+        result = result || {};
+        var nodes = result.nodes || [], currents = result.currents || [], warnings = result.warnings || [];
 
-        var parsed = result && result.results ? result.results : { results: [], errors: [], warnings: [] };
-        var values = parsed.results || [];
-        var errors = parsed.errors || [];
-        var warnings = parsed.warnings || [];
-
-        selfDialog.appendSeparator('Circuit Status');
-
-        if (errors.length > 0) {
-            selfDialog.setStatus('error');
-            if (progressBar) progressBar.classList.add('error');
-            selfDialog.appendLog('Circuit status: ERROR', 'error');
-        } else if (warnings.length > 0) {
+        if (warnings.length > 0) {
             selfDialog.setStatus('warning');
-            selfDialog.appendLog('Circuit status: WARNING', 'warn');
+            selfDialog.appendLog('Circuit status: WARNING (' + warnings.length + ')', 'warn');
         } else {
             selfDialog.setStatus('done');
             selfDialog.appendLog('Circuit status: OK', 'success');
         }
 
-        selfDialog.appendSeparator('Errors');
-        if (errors.length > 0) {
-            for (var i = 0; i < errors.length; i++) {
-                selfDialog.appendLog(errors[i], 'error');
-            }
-        } else {
-            selfDialog.appendLog('No errors found.', 'success');
-        }
+        selfDialog.appendLog('--- Node voltages ---', 'info');
+        if (nodes.length) nodes.forEach(function(n) { selfDialog.appendLog('V(' + n.name + ') = ' + fmt(n.value, n.unit || 'V'), 'info'); });
+        else selfDialog.appendLog('No nodes found.', 'warn');
 
-        selfDialog.appendSeparator('Warnings');
-        if (warnings.length > 0) {
-            for (var j = 0; j < warnings.length; j++) {
-                selfDialog.appendLog(warnings[j], 'warn');
-            }
-        } else {
-            selfDialog.appendLog('No warnings found.', 'success');
-        }
+        selfDialog.appendLog('--- Element currents ---', 'info');
+        if (currents.length) currents.forEach(function(c) { selfDialog.appendLog(c.name + ' = ' + fmt(c.value, c.unit || 'A'), 'info'); });
+        else selfDialog.appendLog('No element currents available.', 'warn');
 
-        selfDialog.appendSeparator('Operating Point Values');
-        if (values.length > 0) {
-            for (var k = 0; k < values.length; k++) {
-                var name = values[k].name || '';
-                var formatted = values[k].formatted !== undefined ? values[k].formatted : String(values[k].value);
-                selfDialog.appendLog(name + ' = ' + formatted, 'info');
-            }
-        } else {
-            selfDialog.appendLog('No operating point values found.', 'warn');
-        }
-
-        if (result && result.rawOutput) {
-            selfDialog.appendSeparator('Raw ngspice Output');
-            selfDialog.appendLog(result.rawOutput, 'info');
-        }
-
-        if (errors.length > 0) {
-            selfDialog.appendLog('Circuit check finished with errors.', 'error');
-        } else if (warnings.length > 0) {
-            selfDialog.appendLog('Circuit check finished with warnings.', 'warn');
-        } else {
-            selfDialog.appendLog('Circuit check completed successfully.', 'success');
-        }
-
+        selfDialog.appendLog(warnings.length ? 'Circuit check finished with warnings.' : 'Circuit check completed successfully.',
+                             warnings.length ? 'warn' : 'success');
         if (startBtn) startBtn.disabled = false;
         if (okBtn) okBtn.disabled = false;
     };
@@ -573,6 +557,7 @@ function fOpAnalysisDialog(self) {
 
     this.init = function() {
         selfDialog.cacheDOM();
+        window.addEventListener('message', selfDialog.onMessage);
 
         var dialog = document.getElementById('opAnalysisDialog');
         var header = document.getElementById('opAnalysisDialogHeader');

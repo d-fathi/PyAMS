@@ -140,6 +140,16 @@
     color: var(--vscode-textLink-foreground, #2980b9);
 }
 
+/* Success column (green) */
+.ch-col.green {
+    background-color: rgba(46, 160, 67, 0.12);
+    border-left: 4px solid #2ea043;
+}
+
+.ch-col.green h3 {
+    color: #2ea043;
+}
+
 /* Error column (red) - uses VS Code error validation colors */
 .ch-col.red {
     background-color: var(--vscode-inputValidation-errorBackground, #fdf2f2);
@@ -169,20 +179,20 @@
 
 .ch-page-toolbar {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: 4px;
+    left: 4px;
     display: flex;
-    gap: 6px;
+    gap: 3px;
     z-index: 9999;
     opacity: 0;
     transform: translateY(-10px);
     pointer-events: none;
     transition: opacity 0.3s ease, transform 0.3s ease;
     background: var(--vscode-editorWidget-background, rgba(255, 255, 255, 0.95));
-    padding: 8px;
-    border-radius: 6px;
+    padding: 3px;
+    border-radius: 4px;
     border: 1px solid var(--vscode-editorWidget-border, #ccc);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 .chtool:hover .ch-page-toolbar {
@@ -192,8 +202,8 @@
 }
 
 .ch-toolbar-button {
-    width: 26px;
-    height: 26px;
+    width: 16px;
+    height: 16px;
     border: 1px solid var(--vscode-button-border, transparent);
     padding: 0;
     background: var(--vscode-button-secondaryBackground, #d0d0d0);
@@ -202,7 +212,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 3px;
+    border-radius: 2px;
     transition: background 0.2s;
 }
 
@@ -211,8 +221,8 @@
 }
 
 .ch-toolbar-button svg {
-    width: 14px;
-    height: 14px;
+    width: 10px;
+    height: 10px;
     fill: var(--vscode-button-secondaryForeground, #555);
 }
 
@@ -220,4 +230,75 @@
     .ch-page-toolbar {
         display: none !important;
     }
+}
+
+/* ===== Thumbnail on the drawing (the text is a large page scaled down) ===== */
+[name="htmlCode"] {
+    overflow: hidden;
+}
+
+[name="htmlCode"] .chtool {
+    max-width: none;
+    margin: 0;
+}
+
+[name="htmlCode"] .ch {
+    max-width: none;
+    margin: 0;
+    min-height: 100%;
+}
+
+/* ===== Enlarged view opened by the Home button ===== */
+#chViewerOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+#chViewer {
+    position: relative;
+    width: min(960px, 94vw);
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--vscode-editor-background, #fff);
+    border: 1px solid var(--vscode-editorWidget-border, #ccc);
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+#chViewerBody {
+    overflow: auto;
+    padding: 8px;
+    font-size: 15px;
+}
+
+#chViewerBody .ch {
+    max-width: none;
+    margin: 0;
+    font-size: 15px;
+}
+
+#chViewerClose {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    z-index: 1;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--vscode-button-border, transparent);
+    border-radius: 4px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    background: var(--vscode-button-secondaryBackground, #d0d0d0);
+    color: var(--vscode-button-secondaryForeground, #333);
+}
+
+#chViewerClose:hover {
+    background: var(--vscode-button-secondaryHoverBackground, #bcbcbc);
 }

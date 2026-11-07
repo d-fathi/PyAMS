@@ -12,7 +12,56 @@ Description: Module to scan symbols folder and sync data.json with robust regex
 const fs = require('fs');
 const path = require('path');
 
+// folders that never hold project symbols
+const IGNORED_DIRS = new Set(['node_modules', '.git', '.vscode', '.venv', 'venv', '__pycache__']);
+
 class SymbolsSync {
+    // list name -> absolute folder, for the symbols found in the workspace (updated by each sync)
+    static workspaceDirs = new Map();
+
+    // .sym files of the workspace folders (and their sub folders), added at the end of the list:
+    //   { dirs:[ 'Project', 'Project/analog' ], 'Project':[ 'A.sym' ], 'Project/analog':[ 'B.sym' ] }
+    // symbolsDir (the extension's own library) is skipped, it is already in the list.
+    static scanWorkspace(symbolsDir) {
+        const found = { dirs: [] };
+        SymbolsSync.workspaceDirs = new Map();
+        let folders = [];
+        try { folders = require('./workspace').folders(); } catch (e) { return found; }
+
+        const inside = (child, parent) => {
+            const r = path.relative(parent, child);
+            return r === '' || (!r.startsWith('..') && !path.isAbsolute(r));
+        };
+
+        for (const folder of folders) {
+            const root = folder.uri.fsPath;
+            const label = folders.length > 1 ? 'Project[' + folder.name + ']' : 'Project';
+
+            let visited = 0;   // a project folder can be large: stop after a reasonable number of folders
+            const scan = (dirPath, rel) => {
+                if (inside(dirPath, symbolsDir) || ++visited > 3000) return;
+                let entries;
+                try { entries = fs.readdirSync(dirPath, { withFileTypes: true }); } catch (e) { return; }
+                const files = entries
+                    .filter(e => e.isFile() && e.name.toLowerCase().endsWith('.sym'))
+                    .map(e => e.name)
+                    .sort((a, b) => a.localeCompare(b));
+                if (files.length > 0) {
+                    const key = rel ? label + '/' + rel : label;
+                    found.dirs.push(key);
+                    found[key] = files;
+                    SymbolsSync.workspaceDirs.set(key, dirPath);
+                }
+                entries
+                    .filter(e => e.isDirectory() && !IGNORED_DIRS.has(e.name) && !e.name.startsWith('.'))
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach(e => scan(path.join(dirPath, e.name), rel ? rel + '/' + e.name : e.name));
+            };
+            scan(root, '');
+        }
+        return found;
+    }
+
     static async sync(document, context) {
         const extPath = context.extensionPath;
         const symbolsDir = path.join(extPath, 'symbols');
@@ -98,14 +147,23 @@ class SymbolsSync {
             result[key] = syncedFiles[key];
         }
 
-        // Write data.json. When the install folder is read-only (e.g. Program Files)
-        // the freshly scanned data is still returned, it just is not cached on disk.
+        // Write data.json
         try {
             fs.writeFileSync(dataJsonPath, JSON.stringify(result, null, 4), 'utf8');
         } catch (e) {
-            console.warn('Could not write data.json (read-only install?):', e.message);
+            console.error('Error writing data.json:', e);
         }
-        return result;
+
+        // symbols of the opened project: appended at the end of the list, not saved in data.json
+        const ws = SymbolsSync.scanWorkspace(symbolsDir);
+        const view = { dirs: result.dirs.slice() };
+        for (const key of Object.keys(result)) if (key !== 'dirs') view[key] = result[key];
+        for (const d of ws.dirs) {
+            if (view.dirs.includes(d)) continue;
+            view.dirs.push(d);
+            view[d] = ws[d];
+        }
+        return view;
     }
 }
 

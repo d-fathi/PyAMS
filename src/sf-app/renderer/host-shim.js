@@ -17,27 +17,9 @@
     window.libraryPath = info.libraryPath || '';
     window.workspacePath = info.workspacePath || '';
 
-    function $(id) { return document.getElementById(id); }
-
-    // Cursor position / zoom were shown in the VS Code status bar: show them in the page status bar.
-    function handleLocal(msg) {
-        if (msg.type === 'zoomChanged') {
-            var z = $('sbZoom');
-            if (z) z.textContent = Math.round(msg.zoom * 100) + '%';
-            return true;
-        }
-        if (msg.type === 'cursorPos') {
-            var p = $('sbPos');
-            if (p) p.textContent = msg.pos ? 'X: ' + msg.pos.x + '  Y: ' + msg.pos.y : '';
-            return true;
-        }
-        return false;
-    }
-
     var api = {
         postMessage: function (msg) {
             if (!msg || typeof msg !== 'object') return;
-            if (handleLocal(msg)) return;
             if (host) host.post(msg);
         },
         getState: function () { return undefined; },

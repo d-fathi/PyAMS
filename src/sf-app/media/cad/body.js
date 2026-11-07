@@ -98,6 +98,8 @@ width: fit-content;
 #btnAV { --icon-color: #f472b6; }
 #btnReference { --icon-color: #06836ae0 } 
 #btnParameter  { --icon-color: #06836ae0 } 
+#btnParamInit  { --icon-color: #1565c0 } 
+#btnParamMethod  { --icon-color: #d9730d } 
 #btnModel  { --icon-color: #06836ae0 } 
 #btnCommand  { --icon-color: #06836ae0 } 
 #btnPin  { --icon-color: #06836ae0 } 
@@ -240,6 +242,18 @@ body.innerHTML = `
    <button class="toolbar-btn" id="btnParameter" title="Add Parameter (J)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
        <text x="12" y="17" text-anchor="middle" font-size="11" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">P=1</text>
+     </svg>
+   </button>
+   <button class="toolbar-btn" id="btnParamInit" title="Add Init parameter (constructor argument: Model(a, b, name=value))">
+     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+       <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">n=1</text>
+       <path d="M4 20h16" stroke-width="2"/>
+     </svg>
+   </button>
+   <button class="toolbar-btn" id="btnParamMethod" title="Add Method parameter (El.setName(&quot;value&quot;), e.g. setPoints)">
+     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+       <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">f()</text>
+       <path d="M4 20h16" stroke-width="2"/>
      </svg>
    </button>
  </div>
@@ -446,7 +460,7 @@ function updateToolbarVisibility(self) {
     ];
     
     const dcsOnlyButtons = [
-        'btnReference', 'btnParameter', 'btnPin', 'btnModel'
+        'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod', 'btnPin', 'btnModel'
     ];
     
     symOnlyButtons.forEach(id => {
@@ -474,7 +488,7 @@ function updateToolbarVisibility(self) {
     const groups = [
         { id: 'grpWire', buttons: ['btnWire', 'btnBus'] },
         { id: 'grpPower', buttons: ['btnVCC', 'btnGND', 'btnPort'] },
-        { id: 'grpSymProps', buttons: ['btnPin', 'btnReference', 'btnParameter'] },
+        { id: 'grpSymProps', buttons: ['btnPin', 'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod'] },
         { id: 'grpTransform', buttons: ['btnRotate', 'btnFlipVertical', 'btnFlipHorizontal'] },
         { id: 'grpModel', buttons: ['btnModel', 'btnCommand'] },
         { id: 'grpAnalysis', buttons: ['btnHTML', 'btnAnalysis', 'btnAV'] },
@@ -577,6 +591,9 @@ document.getElementById('btnText').addEventListener('click',  () =>{self.activeB
 document.getElementById('btnPin').addEventListener('click',  () =>{self.activeBtnById('btnPin'); addShape('pin'); });
 document.getElementById('btnReference').addEventListener('click',  () =>{self.activeBtnById('btnReference'); addShape('ref'); });
 document.getElementById('btnParameter').addEventListener('click',  () =>{self.activeBtnById('btnParameter'); addShape('param'); });
+document.getElementById('btnParamInit').addEventListener('click',  () =>{self.activeBtnById('btnParamInit'); pendingParamBind = 'init'; addShape('param'); });
+document.getElementById('btnParamMethod').addEventListener('click',  () =>{self.activeBtnById('btnParamMethod'); pendingParamBind = 'method'; addShape('param'); });
+document.getElementById('btnHTML').addEventListener('click',  () =>{self.activeBtnById('btnHTML'); addShape('codeHTML'); });
 document.getElementById('btnModel').addEventListener('click',  () =>{self.activeBtnById('btnModel'); addShape('modelSpice'); });
 document.getElementById('btnAnalysis').addEventListener('click',  () =>{self.activeBtnById('btnAnalysis'); addShape("analysis"); });
 document.getElementById('btnRunAV').addEventListener('click',  () =>{ opAnalysis(); });
@@ -614,7 +631,7 @@ const toolButtons = [
   'btnSelect', 'btnWire', 'btnBus', 'btnText',
   'btnRectangle', 'btnEllipse', 'btnArc', 'btnPolyline', 'btnPolygon',
   'btnVCC', 'btnPort', 'btnGND',
-  'btnPin', 'btnReference', 'btnParameter',
+  'btnPin', 'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod',
   'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
   'btnModel', 'btnCommand',
   'btnHTML', 'btnAnalysis', 'btnAV',
@@ -625,7 +642,7 @@ const toolNames = [
   'select', 'wire', 'bus', 'component', 'text',
   'rectangle', 'ellipse', 'arc', 'polyline', 'polygon',
   'vcc', 'port', 'gnd',
-  'pin', 'reference', 'parameter',
+  'pin', 'reference', 'parameter', 'paramInit', 'paramMethod',
   'rotate', 'flipVertical', 'flipHorizontal',
   'model', 'command',
   'html', 'analysis', 'av',
@@ -724,6 +741,7 @@ document.addEventListener('keydown', (e) => {
     if (key === 'd') { if(drawing.pageType == 'dcs') return; addShape('modelSpice');  self.activeBtnSelect();}
     if (key === 'z') { if(drawing.pageType == 'sym') return;  addShape('probe');}
     if (key === 'w') { if(drawing.pageType == 'sym') return;  addShape('net');} 
+    if (key === 'm') { if(drawing.pageType == 'sym') return;  addShape('codeHTML');} 
     if ((key === 'escape') || (key === 'end') || (key === 'v')) { 
       self.activeBtnSelect();       
       self.shapes.design.mouse = false;

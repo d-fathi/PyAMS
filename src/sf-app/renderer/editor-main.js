@@ -18,16 +18,6 @@ window.__pyamsGetContent = function () {
     return null;
 };
 
-var toastTimer = null;
-function showToast(text, kind) {
-    var el = document.getElementById('sbToast');
-    if (!el) return;
-    el.textContent = text || '';
-    el.className = kind || '';
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { el.textContent = ''; el.className = ''; }, 6000);
-}
-
 function handleClipboardCommand(msg) {
     // If a text field (input/textarea/contenteditable) has focus, act on its text, not on the circuit
     if (isTextFieldFocused()) {
@@ -151,12 +141,6 @@ window.addEventListener('message', function (event) {
                 drawing.fileName = msg.fileName;
                 drawing.symbol.name = msg.fileName;   // keep the symbol name in sync with the file
             }
-            var sbFile = document.getElementById('sbFile');
-            if (sbFile) sbFile.textContent = msg.fileName + (window.fileType ? '.' + window.fileType : '');
-            break;
-
-        case '__toast':
-            showToast(msg.text, msg.kind);
             break;
     }
 });
