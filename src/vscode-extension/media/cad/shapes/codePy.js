@@ -541,7 +541,7 @@ function modifedSizeCodePy(element) {
 
       var e = element.getElementsByClassName('pplotly');
       for(var i=0;i<e.length;i++){
-      update = {
+      var update = {
           width:1*(w),
           height:1*(h-25)
       };

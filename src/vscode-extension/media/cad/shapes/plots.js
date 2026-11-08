@@ -17,40 +17,6 @@ it used in this project for plotting graphs and visualizing data. It provides a 
 */
 
 
-function plots() {
-    var npoints = 10000;
-    var y = [];
-    for (var i = 0, l = npoints; i < l; i++) {
-        y.push(Math.random())
-    };
-
-    var x = [];
-    for (var i = 0, l = npoints; i < l; i++) {
-        x.push(i);
-    };
-
-    var listForPlot = document.getElementsByName('plots');
-    for (var i = 0; i < listForPlot.length; i++) {
-        Plotly.plot(listForPlot[i], [{
-                    type: 'scatter',
-                    x: x,
-                    y: y
-                }
-            ], {
-            margin: {
-                l: 5,
-                r: 5,
-                b: 5,
-                t: 5,
-                pad: 4
-            },
-            paper_bgcolor: '#7f7f7f',
-            plot_bgcolor: '#c7c7c7'
-        });
-        Plotly.redraw(listForPlot[i]);
-    }
-
-}
 /*
 
 var plotConfig = {
@@ -187,8 +153,8 @@ function plotsSaveDataLayoutInDiv() {
     var listForPlot = document.querySelectorAll('[name="plots"]');
     for (var i = 0; i < listForPlot.length; i++) {
         var gd = listForPlot[i];
-        layout = JSON.stringify(gd.layout);
-        data = JSON.stringify(gd.data);
+        var layout = JSON.stringify(gd.layout);
+        var data = JSON.stringify(gd.data);
         //alert(data);
         listForPlot[i].setAttribute("layout", layout);
         listForPlot[i].setAttribute("data", data);
@@ -203,14 +169,40 @@ function plotsOpenDataLayoutInDiv() {
     var listForPlot = document.querySelectorAll('[name="plots"]');
     for (var i = 0; i < listForPlot.length; i++) {
 
-        layout = JSON.parse(listForPlot[i].getAttribute("layout"));
-        data = JSON.parse(listForPlot[i].getAttribute("data"));
+        var layout = JSON.parse(listForPlot[i].getAttribute("layout"));
+        var data = JSON.parse(listForPlot[i].getAttribute("data"));
         Plotly.plot(listForPlot[i], data, layout, plotConfig);
     }
 
   var listAnalysis = document.getElementsByClassName("analysis");
     for (var i = 0; i < listAnalysis.length; i++)
          modifedSizeAnalysis(listAnalysis[i]);
+}
+
+// A plot that was copied (copy / paste, duplicate) is only a dead snapshot of the drawing: the copy has no
+// Plotly state, so hover, zoom, the toolbar buttons and the dialog did not work. This draws it again from the
+// layout and data stored in its attributes (plotsSaveDataLayoutInDiv) and fits it to its frame.
+// root: a pasted node (or the drawing); the promise ends when all its plots are drawn.
+function plotsRestoreIn(root) {
+    var jobs = [];
+    var list = (root && root.querySelectorAll) ? root.querySelectorAll('[name="plots"]') : [];
+    for (var i = 0; i < list.length; i++) {
+        (function (div) {
+            var l = div.getAttribute('layout'), d = div.getAttribute('data');
+            if (!l || !d) return;
+            var layout, data;
+            try { layout = JSON.parse(l); data = JSON.parse(d); } catch (e) { return; }
+            div.innerHTML = '';                      // drop the dead copy (its svg ids would also clash with the original)
+            jobs.push(Promise.resolve(Plotly.plot(div, data, layout, plotConfig)));
+        })(list[i]);
+    }
+    return Promise.all(jobs).then(function () {
+        // size and 60 % scale of the analysis frames
+        var frames = [];
+        if (root && root.getAttribute && root.getAttribute('name') === 'analysis') frames.push(root);
+        if (root && root.querySelectorAll) frames = frames.concat(Array.prototype.slice.call(root.querySelectorAll('[name="analysis"]')));
+        frames.forEach(function (f) { try { modifedSizeAnalysis(f); } catch (e) { console.error(e); } });
+    });
 }
 
 function showPlotInModel(self) {

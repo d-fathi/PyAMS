@@ -167,6 +167,9 @@ self.saveData=function(data){
 self.copy = function () {
     var copyList = [];
 
+    // store the layout and data of the plots in their attributes, so that the copies can be drawn again
+    try { if (typeof plotsSaveDataLayoutInDiv === 'function') plotsSaveDataLayoutInDiv(); } catch (e) { console.error(e); }
+
         if (self.shapes.lsg.elms.length > 0) {
             copyList = [];
             for (var i = 0; i < self.shapes.lsg.elms.length; i++) {
@@ -224,6 +227,8 @@ self.paste = function (clipboardText) {
                 const node = tempSvg.firstChild;
                 svgContainer.appendChild(node);
                 self.copyData=true;
+                // pasted plots are redrawn: a copy of the rendered plot is only a picture
+                try { if (typeof plotsRestoreIn === 'function') plotsRestoreIn(node); } catch (e) { console.error(e); }
             }
         }
 
