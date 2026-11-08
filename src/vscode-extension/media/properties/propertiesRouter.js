@@ -17,6 +17,7 @@ var mtable = {};
 function showDescriptionElemSelectInPanel(select) {
 
     mtable.resize = drawing.resize;
+    try { if (typeof syncListElementsSelection === 'function') syncListElementsSelection(select); } catch (e) { console.error(e); }
 
     drawing.selectPart= false;
     drawing.selectAnalysis= false;

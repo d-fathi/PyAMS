@@ -68,6 +68,23 @@ function buildListElements() {
 	return select;
 }
 
+// The selection of the drawing changed (click in the schematic, new element, delete...):
+// show it in the open element list. Called by showDescriptionElemSelectInPanel.
+function syncListElementsSelection(elem) {
+	if (typeof nodeSelectorDialog === 'undefined' || !nodeSelectorDialog || !nodeSelectorDialog.isVisible) return;
+	if (!nodeSelectorDialog.onReorder) return;      // the dialog is used for something else
+	var svg = document.getElementById("sym");
+	var list = treeData[0].elem;
+	var idx = list.indexOf(elem);
+	// the drawing has changed since the list was built (element added or deleted): rebuild it
+	if (svg.children.length - 1 !== list.length || (elem && idx < 0 && elem.parentNode === svg)) {
+		var sel = buildListElements();
+		nodeSelectorDialog.initData(treeData, sel);
+		idx = treeData[0].elem.indexOf(elem);
+	}
+	nodeSelectorDialog.selectByIndex(0, elem ? idx : null);
+}
+
 // Select an element of the list in the drawing
 function selectListElement(elem) {
 	if (!elem || !elem.parentNode) return;

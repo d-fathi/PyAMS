@@ -442,6 +442,31 @@ function fNodeSelectorDialog(self) {
         });
     };
 
+    // Select a row from outside (e.g. the element selected in the drawing); onSelect is NOT called.
+    // nodeIndex = null/-1 clears the selection.
+    this.selectByIndex = function(groupIndex, nodeIndex) {
+        var rows = document.querySelectorAll('#nodeSelectorDialog .nodeselect-row');
+        var found = null;
+        rows.forEach(function(r) {
+            r.classList.remove('selected');
+            if (nodeIndex !== null && nodeIndex >= 0 &&
+                +r.dataset.groupIndex === groupIndex && +r.dataset.nodeIndex === nodeIndex) found = r;
+        });
+        var display = document.getElementById('nodeSelectorDialogSelectedDisplay');
+        if (found) {
+            found.classList.add('selected');
+            selfDialog.selectedNode = found.dataset.value;
+            selfDialog.selectedInfo = { groupIndex: groupIndex, nodeIndex: nodeIndex };
+            if (display) display.textContent = found.dataset.value;
+            if (found.scrollIntoView) found.scrollIntoView({ block: 'nearest' });
+        } else {
+            selfDialog.selectedNode = null;
+            selfDialog.selectedInfo = null;
+            if (display) display.textContent = 'No selection';
+        }
+        selfDialog.updateOrderButtons();
+    };
+
     // enable the order buttons only when an element is selected
     this.updateOrderButtons = function() {
         var on = !!selfDialog.selectedInfo;
