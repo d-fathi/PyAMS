@@ -1095,7 +1095,8 @@ function analysisSelect() {
     // X axe prpperty-----------------------------------------------------------------------------------
     defaultData.sections.push({ title: "X axe output", collapsed: false, showReset: true, rows: [] });
 
-    if(x.used)defaultData.sections[3].rows.push({ label: x.name, type: "axeproperty", value: x.color, color: x.color, setChange: 'colorOutput(-1,this)' , setClick: 'removeOutput(-1)' });
+    // the X axis has no colour: only its name (with delete); "Modify" below changes the signal
+    if(x.used)defaultData.sections[3].rows.push({ label: 'Signal', type: "axeproperty", noColor: true, value: x.name, color: x.color, delete: false });
     defaultData.sections[3].rows.push({ label: 'Add X axe', type: "Button", value: x.used?'Modify':'Add', setClick: 'addOutputX' });
 
     //Second sweep property------------------------------------------------------------------------

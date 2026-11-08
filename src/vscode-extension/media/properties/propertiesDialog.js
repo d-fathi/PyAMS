@@ -430,7 +430,14 @@ function fpropertiesPanel(self) {
                              updatePreview();
                         });
 
-                        axisWrapper.appendChild(axisColorPicker);
+                        if (row.noColor) {
+                            // name only (no colour picker): used by the X axis
+                            axisColorText.textContent = row.value;
+                            axisColorText.className = '';
+                            axisColorText.style.fontSize = '12px';
+                        } else {
+                            axisWrapper.appendChild(axisColorPicker);
+                        }
                         axisWrapper.appendChild(axisColorText);
                         axisWrapper.appendChild(deleteBtn);
                         control.appendChild(axisWrapper);
