@@ -101,6 +101,9 @@ width: fit-content;
 #btnSubBlock  { --icon-color: #06836ae0 } 
 
 
+/* param / init / method buttons: larger text icon */
+#btnParameter svg, #btnParamInit svg, #btnParamMethod svg { width: 21px; height: 21px; }
+
 .toolbar-btn svg {
   color: var(--icon-color);
   transition: all 0.3s ease;
@@ -236,19 +239,19 @@ body.innerHTML = `
    </button>
    <button class="toolbar-btn" id="btnParameter" title="Add Parameter (J)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-       <text x="12" y="17" text-anchor="middle" font-size="11" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">P=1</text>
+       <text x="12" y="16" text-anchor="middle" font-size="13" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none" textLength="23" lengthAdjust="spacingAndGlyphs">P=1</text>
      </svg>
    </button>
    <button class="toolbar-btn" id="btnParamInit" title="Add Init parameter (constructor argument: Model(a, b, name=value))">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-       <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">n=1</text>
-       <path d="M4 20h16" stroke-width="2"/>
+       <text x="12" y="16" text-anchor="middle" font-size="13" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none" textLength="23" lengthAdjust="spacingAndGlyphs">n=1</text>
+       <path d="M2 20h20" stroke-width="2"/>
      </svg>
    </button>
    <button class="toolbar-btn" id="btnParamMethod" title="Add Method parameter (El.setName(&quot;value&quot;), e.g. setPoints)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-       <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">f()</text>
-       <path d="M4 20h16" stroke-width="2"/>
+       <text x="12" y="16" text-anchor="middle" font-size="13" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none" textLength="19" lengthAdjust="spacingAndGlyphs">f()</text>
+       <path d="M2 20h20" stroke-width="2"/>
      </svg>
    </button>
  </div>
