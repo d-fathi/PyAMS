@@ -1093,17 +1093,22 @@ function analysisSelect() {
 
     
     // X axe prpperty-----------------------------------------------------------------------------------
+    // (no X axis in AC analysis: the x axis is always the frequency)
+    var hasX = (analy.type != 'AC Analysis');
+    if(hasX){
     defaultData.sections.push({ title: "X axe output", collapsed: false, showReset: true, rows: [] });
 
     // the X axis has no colour: only its name (with delete); "Modify" below changes the signal
     if(x.used)defaultData.sections[3].rows.push({ label: 'Signal', type: "axeproperty", noColor: true, value: x.name, color: x.color, delete: false });
     defaultData.sections[3].rows.push({ label: 'Add X axe', type: "Button", value: x.used?'Modify':'Add', setClick: 'addOutputX' });
+    }
 
     //Second sweep property------------------------------------------------------------------------
    if(analy.options.second_sweep && analy.options.second_sweep==true){
     defaultData.sections.push({ title: "Second sweep", collapsed: false, showReset: true, rows: [] });
-    defaultData.sections[4].rows.push( { label: 'Parameter', type: "Button", value: sweep.param, setClick: 'sweepAnalysis' });
-    defaultData.sections[4].rows.push( { label: 'Values', type: "text", value: sweep.values});
+    var sw=defaultData.sections.length-1;
+    defaultData.sections[sw].rows.push( { label: 'Parameter', type: "Button", value: sweep.param, setClick: 'sweepAnalysis' });
+    defaultData.sections[sw].rows.push( { label: 'Values', type: "text", value: sweep.values});
    }
 
 
@@ -1140,7 +1145,7 @@ function modifiedAnalysis() {
         }
 
         if(analy.options.second_sweep && analy.options.second_sweep==true)
-            analy.sweep.values=propertiesData.sections[4].rows[1].value;
+            analy.sweep.values=propertiesData.sections[propertiesData.sections.length-1].rows[1].value;
 
 
 
@@ -1162,7 +1167,8 @@ function modifiedAnalysis() {
             return;
     }
 
-  for(var i=0;i<propertiesData.sections[3].rows.length;i++)
+  if(propertiesData.sections[3] && propertiesData.sections[3].title=="X axe output")
+    for(var i=0;i<propertiesData.sections[3].rows.length;i++)
          if(propertiesData.sections[3].rows[i].delete){
             removeOutput(-1);
     }
