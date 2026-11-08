@@ -11,7 +11,7 @@ PyAMS: Python for Analog and Mixed Signals
 <p align="center">
  
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.3.0-blue" alt="V 0.3.0">
+    <img src="https://img.shields.io/badge/Version-0.3.1-blue" alt="V 0.3.1">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -46,6 +46,16 @@ There are two ways to use PyAMS:
 | **The library** | Installed by pip | Already included (only `numpy` and `matplotlib` are needed) |
 
 Both use the same `pyams` library and the same models, so a model written for one works in the other. See the `installation` documentation for details.
+
+## News
+
+**v0.3.1 (Current)** 
+
+1. Updated PyAMS extension for VS Code.
+1. Updated **PyAMS software** ([pyams.sf.net](https://pyams.sf.net)).
+2. Updated **PyAMS library**.
+3. Updated **PyAMS models**.
+4. **Documentation Enhancements:** Updated the official documentation ([Read the Docs](https://pyams-lib.readthedocs.io/en/latest/)).
 
 ## Key features
 

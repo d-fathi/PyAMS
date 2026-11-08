@@ -2,7 +2,7 @@
  Python library for analog and mixed-signal simulation (PyAMS Library)
 
 <h1 align="center">
-    <a href="https://pypi.org/project/pyams_lib/"><img src="https://pyams-lib.readthedocs.io/en/latest/_static/logo_.png" width="150px" alt="PyAMS-lib"></a>
+    <a href="https://pypi.org/project/pyams_lib/"><img src="https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/images/logo.png" width="150px" alt="PyAMS-lib"></a>
 </h1>
 
 ---
@@ -14,7 +14,7 @@
 </a>
 
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.3.0-blue" alt="V 0.3.0">
+    <img src="https://img.shields.io/badge/Version-0.3.1-blue" alt="V 0.3.1">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -30,9 +30,9 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/rlc_result.png" width="32%" alt="Transient analysis">
-  <img src="docs/images/ac_rlc.png" width="32%" alt="AC analysis">
-  <img src="docs/images/jfet_curves.png" width="32%" alt="DC sweep">
+  <img src="https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/rlc_result.png" width="32%" alt="Transient analysis">
+  <img src="https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/ac_rlc.png" width="32%" alt="AC analysis">
+  <img src="https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/jfet_curves.png" width="32%" alt="DC sweep">
 </p>
 
 # PyAMS Library
@@ -423,7 +423,7 @@ The `examples/` folder contains ready-to-run scripts, each saving a figure:
 
 | 555 astable | JFET output curves | Chua double scroll |
 |:--:|:--:|:--:|
-| ![555](docs/images/timer555_astable.png) | ![JFET](docs/images/jfet_curves.png) | ![Chua](docs/images/chua_double_scroll.png) |
+| ![555](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/timer555_astable.png) | ![JFET](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/jfet_curves.png) | ![Chua](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/chua_double_scroll.png) |
 
 ---
 
