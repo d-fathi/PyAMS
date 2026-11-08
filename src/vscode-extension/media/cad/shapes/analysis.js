@@ -51,16 +51,21 @@ function modifedSizeAnalysis(element) {
         e.style.transformOrigin = '0 0';
         e.style.transform = 'scale(' + (1 / a) + ')';
 
-        Plotly.redraw(e);
-        e.style.width = a*(w-6) + 'px';
-        e.style.height = a*(h-6) + 'px';
+        // the frame (3px double border) is inside the box, so that once scaled the box is exactly w x h
+        e.style.boxSizing = 'border-box';
+        e.style.borderWidth = '3px';
+        e.style.margin = '0';
+        e.style.padding = '0';
+        e.style.width = a*w + 'px';
+        e.style.height = a*h + 'px';
 
-        update = {
-            width:a*(w-8),
-            height:a*(h-8)
+        // one relayout draws the plot again at its new size (a redraw before it was a second, useless rendering);
+        // a plot that was not drawn yet (no data) only gets its size
+        var update = {
+            width: a*w - 6,
+            height: a*h - 6
         };
-
-        Plotly.relayout(e,update);
+        if (e.data) Plotly.relayout(e, update);
     }
 }
 
