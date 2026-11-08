@@ -394,6 +394,7 @@ webviewPanel.onDidDispose(() => {
         const drawingJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'drawing.js'));
         const stdJs= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'std.js'));
         const plotlyJs =webview.asWebviewUri(vscode.Uri.joinPath(mediaPath,'pack','plotly-latest.min.js'));
+        const plotlyFixJs =webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'plotlyScaleFix.js'));
         const htmlCodeCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'css', 'HTMLcode.css'));
         // KaTeX: math formulas in the HTML note (codeHTML) and in its editor
         const katexCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'pack', 'katex', 'katex.min.css'));
@@ -481,6 +482,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${drawingJs}"></script>
     <script nonce="${nonce}" src="${stdJs}"></script>
     <script nonce="${nonce}" src="${plotlyJs}"></script>
+    <script nonce="${nonce}" src="${plotlyFixJs}"></script>
     <script nonce="${nonce}" src="${katexJs}"></script>
     <script nonce="${nonce}" src="${katexAutoJs}"></script>
     

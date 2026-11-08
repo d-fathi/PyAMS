@@ -224,55 +224,8 @@ function showPlotInModel(self) {
 
 
 
-// ============================================
-// Mouse-position correction for scaled plots (hover, zoom box, pan)
-// The plots live inside an SVG <foreignObject> (scaled by the editor zoom) and use CSS "zoom".
-// Plotly 1.58 only knows about CSS transforms, so it mis-reads the mouse position in that case.
-// We replace its "inverse transform" computation with the real rendered scale of the plot.
-// ============================================
-function dsFixPlotScale(gd) {
-    var fl = gd && gd._fullLayout;
-    if (!fl) return;
-    fl._calcInverseTransform = function (g) {
-        var f = g._fullLayout;
-        var svg = g.querySelector('.main-svg');
-        if (!f || !svg) return;
-        var r = svg.getBoundingClientRect();
-        var w = parseFloat(svg.getAttribute('width')) || f.width;
-        var h = parseFloat(svg.getAttribute('height')) || f.height;
-        var kx = (r.width > 0 && w > 0) ? w / r.width : 1;
-        var ky = (r.height > 0 && h > 0) ? h / r.height : 1;
-        f._invTransform = [[kx, 0, 0, 0], [0, ky, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
-        f._invScaleX = kx;
-        f._invScaleY = ky;
-        f._lastBBox = r;
-    };
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    if (typeof Plotly === 'undefined') return;
-    ['plot', 'newPlot', 'react'].forEach(function (name) {
-        var orig = Plotly[name];
-        if (typeof orig !== 'function') return;
-        Plotly[name] = function (gd) {
-            var el = (typeof gd === 'string') ? document.getElementById(gd) : gd;
-            var res = orig.apply(this, arguments);
-            var apply = function () {
-                if (!el) return;
-                dsFixPlotScale(el);
-                if (!el._dsScaleHooked && el.on) {
-                    el._dsScaleHooked = true;
-                    // Plotly resets the function after a re-layout, so re-apply it
-                    el.on('plotly_afterplot', function () { dsFixPlotScale(el); });
-                    el.on('plotly_relayout', function () { dsFixPlotScale(el); });
-                }
-            };
-            apply();
-            if (res && res.then) res.then(function (r) { apply(); return r; });
-            return res;
-        };
-    });
-});
+// The mouse-position correction for plots in the scaled schematic is in plotlyScaleFix.js
+// (loaded right after plotly.js).
 
 
 // ============================================

@@ -21,7 +21,7 @@ var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'foreign
     newElement.setAttribute("y", 0);
     newElement.setAttribute("width", 440);
     newElement.setAttribute("height", 360);
-    newElement.innerHTML = "<div name='plots' style='border-style:double; zoom:60%;'  ondblclick='showPlotInModel(this)'></div>";
+    newElement.innerHTML = "<div name='plots' style='border-style:double; transform-origin:0 0; transform:scale(0.6);'  ondblclick='showPlotInModel(this)'></div>";
     elem.appendChild(newElement);
 }
 
@@ -43,9 +43,17 @@ function modifedSizeAnalysis(element) {
         var e = element.lastChild.firstChild;
         var gd = e;
 
+        // The plot is drawn at 100/60 of its size and shown at 60 %. This is done with a transform and
+        // not with the CSS "zoom" property: browsers disagree on the mouse coordinates inside "zoom",
+        // so hover labels and the zoom box of the plot were far from the pointer.
+        // (files saved by older versions still carry zoom:60%: it is converted here)
+        e.style.zoom = '';
+        e.style.transformOrigin = '0 0';
+        e.style.transform = 'scale(' + (1 / a) + ')';
+
         Plotly.redraw(e);
-        e.style.width = a*(w-6);
-        e.style.height =a*(h-6);
+        e.style.width = a*(w-6) + 'px';
+        e.style.height = a*(h-6) + 'px';
 
         update = {
             width:a*(w-8),
