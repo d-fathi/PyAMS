@@ -1,7 +1,7 @@
 
 treeData = [
        {
-         name: 'All Object',
+         name: 'All elements',
          collapsed: true, 
          nodes: [],
 		 elem: []
@@ -153,7 +153,8 @@ async function start_listElements() {
 			if (!elem) return;
 			reorderListElement(action, elem);
 			refresh();
-		}
+		},
+		{ title: 'Drawing elements', selectedLabel: 'Selected element' }
 	);
 }
 

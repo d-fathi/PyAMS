@@ -217,7 +217,7 @@ function fNodeSelectorDialog(self) {
         <button id="nodeSelectorDialogClose" title="Close">×</button>
     </div>
     <div id="nodeSelectorDialogSelectedBar">
-        <h2>Selected node</h2>
+        <h2 id="nodeSelectorDialogSelectedLabel">Selected node</h2>
         <span id="nodeSelectorDialogSelectedDisplay">No selection</span>
     </div>
     <div id="nodeSelectorDialogOrderBar">
@@ -420,7 +420,13 @@ function fNodeSelectorDialog(self) {
     };
 
     // Promise-based open (يدعم onSelect callback)
-    this.open = function(data, preSelected, onSelectCallback, onReorderCallback) {
+    // texts: optional { title, selectedLabel } (default: 'Node selection' / 'Selected node')
+    this.open = function(data, preSelected, onSelectCallback, onReorderCallback, texts) {
+        texts = texts || {};
+        var t = document.getElementById('nodeSelectorDialogTitle');
+        var l = document.getElementById('nodeSelectorDialogSelectedLabel');
+        if (t) t.textContent = texts.title || 'Node selection';
+        if (l) l.textContent = texts.selectedLabel || 'Selected node';
         selfDialog.onSelect = typeof onSelectCallback === 'function' ? onSelectCallback : null;
         selfDialog.onReorder = typeof onReorderCallback === 'function' ? onReorderCallback : null;
         document.getElementById('nodeSelectorDialogOrderBar').style.display = selfDialog.onReorder ? 'flex' : 'none';
@@ -565,7 +571,7 @@ function fNodeSelectorDialog(self) {
 var nodeSelectorDialog;
 
 // Convenience function (يدعم onSelect callback)
-function openNodeSelector(data, preSelected, onSelectCallback, onReorderCallback) {
+function openNodeSelector(data, preSelected, onSelectCallback, onReorderCallback, texts) {
     if (!nodeSelectorDialog) nodeSelectorDialog = new fNodeSelectorDialog(null);
-    return nodeSelectorDialog.open(data, preSelected, onSelectCallback, onReorderCallback);
+    return nodeSelectorDialog.open(data, preSelected, onSelectCallback, onReorderCallback, texts);
 }
