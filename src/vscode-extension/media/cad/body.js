@@ -98,6 +98,7 @@ width: fit-content;
 #btnModel  { --icon-color: #06836ae0 } 
 #btnCommand  { --icon-color: #06836ae0 } 
 #btnPin  { --icon-color: #06836ae0 } 
+#btnListElements  { --icon-color: #555 } 
 #btnSubBlock  { --icon-color: #06836ae0 } 
 
 
@@ -313,30 +314,11 @@ body.innerHTML = `
 
 
  <div class="toolbar-group">
-   <button class="toolbar-btn" id="btnBringToFront" title="Bring to Front (Ctrl+Shift+])">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect x="10" y="10" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/>
-       <rect x="4" y="4" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/>
-     </svg>
-   </button>
-   <button class="toolbar-btn" id="btnSendToBack" title="Send to Back (Ctrl+Shift+[)">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect x="4" y="4" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/>
-       <rect x="10" y="10" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/>
-     </svg>
-   </button>
-   <button class="toolbar-btn" id="btnBringForward" title="Bring Forward (Ctrl+])">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect x="6" y="6" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/>
-       <rect x="10" y="10" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/>
-       <path d="M8 4 L8 2 M8 2 L6 4 M8 2 L10 4" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-     </svg>
-   </button>
-   <button class="toolbar-btn" id="btnSendBackward" title="Send Backward (Ctrl+[)">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect x="4" y="4" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/>
-       <rect x="8" y="8" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/>
-       <path d="M16 20 L16 22 M16 22 L14 20 M16 22 L18 20" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+   <button class="toolbar-btn" id="btnListElements" title="List of drawing elements / change order">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+       <polygon points="12 3 21 8 12 13 3 8"/>
+       <polyline points="3 12 12 17 21 12"/>
+       <polyline points="3 16 12 21 21 16"/>
      </svg>
    </button>
  </div>
@@ -606,17 +588,8 @@ document.getElementById('btnRotate').addEventListener('click',  () =>{  rotatePa
 document.getElementById('btnFlipVertical').addEventListener('click',  () =>{ flipVerticallyPart(); });
 document.getElementById('btnFlipHorizontal').addEventListener('click',  () =>{  flipHorizontalPart(); });
 
-document.getElementById('btnBringToFront').addEventListener('click', () => {  
+document.getElementById('btnListElements').addEventListener('click', () => {
     start_listElements();
-});
-document.getElementById('btnSendToBack').addEventListener('click', () => {
-    if (self.drawing && self.drawing.sendToBack) self.drawing.sendToBack();
-});
-document.getElementById('btnBringForward').addEventListener('click', () => {
-    
-});
-document.getElementById('btnSendBackward').addEventListener('click', () => {
-    if (self.drawing && self.drawing.sendBackward) self.drawing.sendBackward();
 });
 document.getElementById('btnShowPanel').addEventListener('click', (e) => {  const isActive=e.currentTarget.classList.toggle('active'); if(!propertiesData)  pageSelect();  
           if (isActive) {
@@ -681,22 +654,22 @@ document.addEventListener('keydown', (e) => {
     };
     
     if (isCtrl && isShift && key === ']') {
-        if (self.drawing && self.drawing.bringToFront) self.drawing.bringToFront();
+        orderSelectedElement('front');
         e.preventDefault();
         return;
     }
     if (isCtrl && isShift && key === '[') {
-        if (self.drawing && self.drawing.sendToBack) self.drawing.sendToBack();
+        orderSelectedElement('back');
         e.preventDefault();
         return;
     }
     if (isCtrl && key === ']') {
-        if (self.drawing && self.drawing.bringForward) self.drawing.bringForward();
+        orderSelectedElement('forward');
         e.preventDefault();
         return;
     }
     if (isCtrl && key === '[') {
-        if (self.drawing && self.drawing.sendBackward) self.drawing.sendBackward();
+        orderSelectedElement('backward');
         e.preventDefault();
         return;
     }
@@ -791,8 +764,7 @@ document.getElementById("btnBus").style.display = "none";
 
     // --- Future Application Buttons Logic ---'btnAnalysis',, 'btnHTML'
     const futureButtons = [
-          'btnRunAnalysis','btnCommand','btnSubBlock',
-          'btnSendToBack','btnBringForward','btnSendBackward'
+          'btnRunAnalysis','btnCommand','btnSubBlock'
     ];
     
     futureButtons.forEach(id => {
