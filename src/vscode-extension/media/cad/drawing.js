@@ -119,6 +119,9 @@ self.getSymbolDescription = function () {
 
  self.getSymbol = function () {
      self.getSymbolDescription();
+     // the plots keep their layout and data in attributes (this is what is drawn again when the file is opened):
+     // bring them up to date so that the saved file holds the final state of every plot (zoom, axes, results)
+     try { if (typeof plotsSaveDataLayoutInDiv === 'function') plotsSaveDataLayoutInDiv(); } catch (e) { console.error(e); }
      return document.getElementById("sym").innerHTML;
  }
  self.setSymbol = function (data) {
@@ -503,7 +506,35 @@ self.makePyAMSPlot = function(results, options) {
 // Draw the result of runPyAMSAnalysis() in an element with Plotly.
 self.plotPyAMSResults = function(elem, results, options) {
     var p = self.makePyAMSPlot(results, options);
+    self.keepPlotStyle(elem, p.layout);
     return Plotly.newPlot(elem, p.data, p.layout, p.config);
+};
+
+// Keep the look of the plot (colors, fonts, title, legend, grid...) that the user set before running again:
+// copy the style of the previous layout (drawn plot, or the layout saved in the file) into the new one.
+// The data dependent parts (axis ranges, domains, titles, type) stay those of the new results.
+self.keepPlotStyle = function(elem, layout) {
+    var old = null;
+    try {
+        if (elem.layout) old = elem.layout;
+        else if (elem.getAttribute && elem.getAttribute('layout')) old = JSON.parse(elem.getAttribute('layout'));
+    } catch (e) { old = null; }
+    if (!old) return layout;
+
+    ['paper_bgcolor', 'plot_bgcolor', 'font', 'title', 'legend', 'hovermode', 'colorway', 'bordercolor', 'showlegend', 'hoverlabel']
+        .forEach(function(k) { if (old[k] !== undefined) layout[k] = JSON.parse(JSON.stringify(old[k])); });
+    if (old.margin) layout.margin = JSON.parse(JSON.stringify(old.margin));
+
+    var styleKeys = ['gridcolor', 'gridwidth', 'showgrid', 'zeroline', 'zerolinecolor', 'zerolinewidth',
+                     'linecolor', 'linewidth', 'showline', 'mirror', 'ticks', 'tickcolor', 'tickfont',
+                     'showticklabels_', 'exponentformat', 'minor'];
+    Object.keys(layout).forEach(function(k) {
+        if (!/^[xy]axis\d*$/.test(k) || !old[k]) return;
+        styleKeys.forEach(function(sk) { if (old[k][sk] !== undefined) layout[k][sk] = JSON.parse(JSON.stringify(old[k][sk])); });
+        // font of the axis title (the text itself comes from the new results)
+        if (old[k].title && old[k].title.font && layout[k].title) layout[k].title.font = JSON.parse(JSON.stringify(old[k].title.font));
+    });
+    return layout;
 };
 
 //*************Get List Parameter Dialog*******************************//
