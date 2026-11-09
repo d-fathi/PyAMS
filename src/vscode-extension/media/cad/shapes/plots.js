@@ -153,6 +153,7 @@ function plotsSaveDataLayoutInDiv() {
     var listForPlot = document.querySelectorAll('[name="plots"]');
     for (var i = 0; i < listForPlot.length; i++) {
         var gd = listForPlot[i];
+        if (!gd.data || !gd.layout) continue;      // not drawn (yet): keep the attributes it was loaded with
         var layout = JSON.stringify(gd.layout);
         var data = JSON.stringify(gd.data);
         //alert(data);
@@ -254,6 +255,17 @@ function dsThemeColors() {
     return { paper: bg, plot: bg, font: fg, grid: grid };
 }
 
+// Background mode of a plot in the schematic: 'auto' (VS Code theme), 'light' or 'dark'.
+// It is stored in the plotbg attribute (saved with the file); for older plots it is guessed from the colors.
+function dsPlotBgMode(gd) {
+    var m = gd.getAttribute && gd.getAttribute('plotbg');
+    if (m === 'auto' || m === 'light' || m === 'dark') return m;
+    var c = String((gd.layout && gd.layout.paper_bgcolor) || '').toLowerCase();
+    if (c === '#ffffff' || c === '#fff' || c === 'white') return 'light';
+    if (c === '#1e1e1e') return 'dark';
+    return 'auto';
+}
+
 function dsOpenPlotDialog(srcGd) {
     if (!srcGd || !srcGd.data) return;
     var old = document.getElementById('plotViewDialogOverlay');
@@ -311,6 +323,8 @@ function dsOpenPlotDialog(srcGd) {
     var $ = function (id) { return overlay.querySelector('#' + id); };
     var plotDiv = $('pvPlot');
 
+    var initialBg = dsPlotBgMode(srcGd);
+
     function fillControls() {
         $('pvTitle').value = titleText(layout.title);
         $('pvXTitle').value = titleText(x0.title);
@@ -321,7 +335,7 @@ function dsOpenPlotDialog(srcGd) {
         $('pvLegend').checked = (layout.showlegend !== false);
         $('pvLine').value = lw0;
         $('pvFont').value = (layout.font && layout.font.size) || 12;
-        $('pvBg').value = 'auto';
+        $('pvBg').value = initialBg;
         $('pvHover').value = layout.hovermode || 'closest';
     }
     fillControls();
@@ -339,7 +353,7 @@ function dsOpenPlotDialog(srcGd) {
         });
         Plotly.relayout(plotDiv, u);
     }
-    themeUpdate('auto');
+    themeUpdate($('pvBg').value);
     // follow VS Code theme changes while the dialog is open
     var themeObserver = new MutationObserver(function () {
         if ($('pvBg') && $('pvBg').value === 'auto') themeUpdate('auto');
@@ -394,7 +408,7 @@ function dsOpenPlotDialog(srcGd) {
         x0 = layout[xs[0]] || {}; y0 = layout[ys[0]] || {};
         fillControls();
         $('pvLegendPos').value = 'right';
-        themeUpdate('auto');
+        themeUpdate($('pvBg').value);
     });
 
     $('pvPng').addEventListener('click', function () {
@@ -419,6 +433,7 @@ function dsOpenPlotDialog(srcGd) {
         if (srcGd.layout) { l.width = srcGd.layout.width; l.height = srcGd.layout.height; }
         else { delete l.width; delete l.height; }
         l.autosize = false;
+        srcGd.setAttribute('plotbg', $('pvBg').value);          // remember Light / Dark / VS Code theme
         Plotly.react(srcGd, JSON.parse(JSON.stringify(plotDiv.data)), l, plotConfig);
         try { plotsSaveDataLayoutInDiv(); } catch (e) {}
         try { if (typeof drawing !== 'undefined' && drawing.saveData) drawing.saveData('Plot layout'); } catch (e) {}
