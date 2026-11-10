@@ -239,6 +239,9 @@ var dsPlotDialogCss = [
 '#plotViewDialog input:focus,#plotViewDialog select:focus{outline:1px solid var(--vscode-focusBorder,#0078d4);outline-offset:-1px;}',
 '#plotViewDialog .pv-btn{padding:4px 12px;border:0;border-radius:3px;background:var(--vscode-button-background,#0078d4);color:var(--vscode-button-foreground,#fff);cursor:pointer;font-family:inherit;font-size:inherit;}',
 '#plotViewDialog .pv-btn:hover{background:var(--vscode-button-hoverBackground,#026ec1);}',
+'#plotViewDialog .pv-btn:active{transform:translateY(1px);filter:brightness(0.85);box-shadow:inset 0 2px 4px rgba(0,0,0,.35);}',
+'#plotViewDialog .pv-btn:focus-visible{outline:2px solid var(--vscode-focusBorder,#007fd4);outline-offset:1px;}',
+'#plotViewDialog .pv-btn.done{background:#2e7d32;color:#fff;}',
 '#plotViewDialog .pv-btn.sec{background:var(--vscode-button-secondaryBackground,#e1e4e8);color:var(--vscode-button-secondaryForeground,#222);}',
 '#plotViewDialog .pv-btn.sec:hover{background:var(--vscode-button-secondaryHoverBackground,#d0d4d9);}',
 '#plotViewDialog .pv-plot{flex:1;min-height:0;}',
@@ -411,9 +414,24 @@ function dsOpenPlotDialog(srcGd) {
         themeUpdate($('pvBg').value);
     });
 
+    // visible feedback of a click on the buttons of the footer: the label changes for a moment
+    function flash(btn, text) {
+        if (!btn) return;
+        if (!btn._label) btn._label = btn.textContent;
+        btn.textContent = text;
+        btn.classList.add('done');
+        clearTimeout(btn._flashTimer);
+        btn._flashTimer = setTimeout(function () {
+            btn.textContent = btn._label;
+            btn.classList.remove('done');
+        }, 1400);
+    }
+
     $('pvPng').addEventListener('click', function () {
+        flash($('pvPng'), 'Saving…');
         Plotly.toImage(plotDiv, { format: 'png', width: plotDiv.offsetWidth, height: plotDiv.offsetHeight, scale: 2 })
             .then(function (url) {
+                flash($('pvPng'), 'PNG sent ✓');
                 var t = titleText(plotDiv.layout.title);
                 vscode.postMessage({ type: 'savePng', dataUrl: url, name: t || 'plot' });
             })
@@ -421,6 +439,7 @@ function dsOpenPlotDialog(srcGd) {
     });
 
     $('pvCsv').addEventListener('click', function () {
+        flash($('pvCsv'), 'Saving…');
         var text = dsPlotToCsv(plotDiv);
         if (!text) { vscode.postMessage({ type: 'savePngError', error: 'No data to export' }); return; }
         var t = titleText(plotDiv.layout.title);
@@ -433,6 +452,7 @@ function dsOpenPlotDialog(srcGd) {
         if (srcGd.layout) { l.width = srcGd.layout.width; l.height = srcGd.layout.height; }
         else { delete l.width; delete l.height; }
         l.autosize = false;
+        flash($('pvApply'), 'Applied ✓');
         srcGd.setAttribute('plotbg', $('pvBg').value);          // remember Light / Dark / VS Code theme
         Plotly.react(srcGd, JSON.parse(JSON.stringify(plotDiv.data)), l, plotConfig);
         try { plotsSaveDataLayoutInDiv(); } catch (e) {}
