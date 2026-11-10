@@ -1,0 +1,23 @@
+/* Live simulation side panel (stage 1: layout only, nothing runs yet) */
+#livePanel { position: fixed; top: 120px; right: 16px; width: 270px; z-index: 900; display: none;
+  background: var(--vscode-editorWidget-background, #252526); color: var(--vscode-editorWidget-foreground, #ccc);
+  border: 1px solid var(--vscode-editorWidget-border, #454545); border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35); font-family: var(--vscode-font-family, verdana); font-size: 12px; }
+#livePanel.show { display: block; }
+#livePanel .lp-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: move; user-select: none;
+  border-bottom: 1px solid var(--vscode-editorWidget-border, #454545); }
+#livePanel .lp-title { font-weight: bold; flex: 1; }
+#livePanel .lp-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: #b45309; color: #fff; }
+#livePanel .lp-close { cursor: pointer; border: 0; background: transparent; color: inherit; font-size: 16px; line-height: 1; }
+#livePanel .lp-body { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+#livePanel .lp-row { display: flex; gap: 6px; align-items: center; }
+#livePanel .lp-btn { flex: 1; height: 28px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--vscode-button-secondaryBackground, #555); background: var(--vscode-editorWidget-background, #333); color: inherit; opacity: .55; }
+#livePanel .lp-btn:hover { opacity: .8; }
+#livePanel .lp-btn svg { width: 16px; height: 16px; }
+#livePanel .lp-sec { font-weight: bold; opacity: .85; }
+#livePanel .lp-empty { opacity: .6; font-style: italic; padding: 6px 0; }
+#livePanel .lp-note { font-size: 11px; opacity: .7; text-align: center; border-top: 1px solid var(--vscode-editorWidget-border, #454545); padding-top: 8px; }
+#livePanel .lp-switch { display: flex; align-items: center; gap: 8px; opacity: .55; cursor: pointer; }
+#livePanel .lp-switch i { width: 30px; height: 16px; border-radius: 8px; background: #666; position: relative; display: inline-block; }
+#livePanel .lp-switch i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; }

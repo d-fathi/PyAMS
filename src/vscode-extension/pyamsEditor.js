@@ -351,6 +351,8 @@ webviewPanel.onDidDispose(() => {
         const designeJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'designe.js'));
         const listSymbolJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'listSymbol.js'));
         const listElementsJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'listElements.js'));
+        const liveJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveSimulation.js'));
+        const liveCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveSimulation.css'));
         const importCircuitJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'importCircuit.js'));
         const sh01Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'information.js'));
         const sh02Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'polyline.js'));
@@ -414,6 +416,7 @@ webviewPanel.onDidDispose(() => {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PyAMS Editor</title>
     <link href="${htmlCodeCss}" rel="stylesheet">
+    <link href="${liveCss}" rel="stylesheet">
     <link href="${katexCss}" rel="stylesheet">
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: verdana; }
@@ -478,6 +481,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${resizeJs}"></script>
     <script nonce="${nonce}" src="${listSymbolJs}"></script>
     <script nonce="${nonce}" src="${listElementsJs}"></script>
+    <script nonce="${nonce}" src="${liveJs}"></script>
     <script nonce="${nonce}" src="${simulationJs}"></script>
     <script nonce="${nonce}" src="${drawingJs}"></script>
     <script nonce="${nonce}" src="${stdJs}"></script>
