@@ -42,6 +42,30 @@ width: fit-content;
 .toolbar-btn.active { background: #c0c0ff; border-color: #4444aa; }
 .toolbar-btn.hidden-btn { display: none; }
 
+/* Live simulation side panel (stage 1: layout only, nothing runs yet) */
+#livePanel { position: fixed; top: 120px; right: 16px; width: 270px; z-index: 900; display: none;
+  background: var(--vscode-editorWidget-background, #252526); color: var(--vscode-editorWidget-foreground, #ccc);
+  border: 1px solid var(--vscode-editorWidget-border, #454545); border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35); font-family: var(--vscode-font-family, verdana); font-size: 12px; }
+#livePanel.show { display: block; }
+#livePanel .lp-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; cursor: move; user-select: none;
+  border-bottom: 1px solid var(--vscode-editorWidget-border, #454545); }
+#livePanel .lp-title { font-weight: bold; flex: 1; }
+#livePanel .lp-badge { font-size: 10px; padding: 1px 6px; border-radius: 8px; background: #b45309; color: #fff; }
+#livePanel .lp-close { cursor: pointer; border: 0; background: transparent; color: inherit; font-size: 16px; line-height: 1; }
+#livePanel .lp-body { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+#livePanel .lp-row { display: flex; gap: 6px; align-items: center; }
+#livePanel .lp-btn { flex: 1; height: 28px; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--vscode-button-secondaryBackground, #555); background: var(--vscode-editorWidget-background, #333); color: inherit; opacity: .55; }
+#livePanel .lp-btn:hover { opacity: .8; }
+#livePanel .lp-btn svg { width: 16px; height: 16px; }
+#livePanel .lp-sec { font-weight: bold; opacity: .85; }
+#livePanel .lp-empty { opacity: .6; font-style: italic; padding: 6px 0; }
+#livePanel .lp-note { font-size: 11px; opacity: .7; text-align: center; border-top: 1px solid var(--vscode-editorWidget-border, #454545); padding-top: 8px; }
+#livePanel .lp-switch { display: flex; align-items: center; gap: 8px; opacity: .55; cursor: pointer; }
+#livePanel .lp-switch i { width: 30px; height: 16px; border-radius: 8px; background: #666; position: relative; display: inline-block; }
+#livePanel .lp-switch i::after { content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: #fff; }
+
 .toolbar-btn.disabled-btn { 
     opacity: 0.35; 
     cursor: not-allowed; 
@@ -86,10 +110,8 @@ width: fit-content;
 #btnZoomOut { --icon-color: #25e79a; }
 #btnGrid { --icon-color: #cbd5e1; }
 #btnSnap { --icon-color: #94a3b8; }
-#btnRunAnalysis { --icon-color: #4ade80; }
 #btnHTML { --icon-color: #fb923c; }
 #btnAnalysis { --icon-color: #f472b6; }
-#btnRunAV { --icon-color: #f472b6; }
 #btnAV { --icon-color: #f472b6; }
 #btnReference { --icon-color: #06836ae0 } 
 #btnParameter  { --icon-color: #06836ae0 } 
@@ -99,6 +121,7 @@ width: fit-content;
 #btnCommand  { --icon-color: #06836ae0 } 
 #btnPin  { --icon-color: #06836ae0 } 
 #btnListElements  { --icon-color: #555 } 
+#btnLive  { --icon-color: #e11d48 } 
 #btnSubBlock  { --icon-color: #06836ae0 } 
 
 
@@ -321,6 +344,11 @@ body.innerHTML = `
        <polyline points="3 16 12 21 21 16"/>
      </svg>
    </button>
+   <button class="toolbar-btn" id="btnLive" title="Live (interactive) simulation panel">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+       <polyline points="2 12 6 12 9 4 14 20 17 12 22 12"/>
+     </svg>
+   </button>
  </div>
  <div class="toolbar-group" id="grpAnalysis">
    <button class="toolbar-btn" id="btnHTML" title="HTML Mode (M)">
@@ -343,24 +371,6 @@ body.innerHTML = `
        <text x="17.5" y="17" text-anchor="middle" font-size="12" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">V</text>
      </svg>
    </button>  
- </div>
- <div class="toolbar-group" id="grpRun">
-   <button class="toolbar-btn" id="btnRunAnalysis" title="Run Analysis (F9)">
-     <svg viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="2">
-       <rect x="3" y="2" width="18" height="16" rx="2"/>
-       <path d="M3 10 C 6 4, 9 4, 12 10 C 15 16, 18 16, 21 10"/>
-       <polygon points="9,20 15,23 9,26" fill="currentColor" stroke="currentColor" stroke-width="1" opacity="0.7"/>
-     </svg>
-   </button>
-   <button class="toolbar-btn" id="btnRunAV" title="Run AV Measurement (F10)">
-     <svg viewBox="0 0 24 28" xmlns="http://www.w3.org/2000/svg">
-       <rect x="1" y="2" width="11" height="16" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-       <rect x="12" y="2" width="11" height="16" fill="#ffffff" stroke="currentColor" stroke-width="1"/>
-       <text x="6.5" y="15" text-anchor="middle" font-size="11" font-weight="bold" font-family="Arial, sans-serif" fill="#ffffff" stroke="none">A</text>
-       <text x="17.5" y="15" text-anchor="middle" font-size="11" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">V</text>
-       <polygon points="9,20 15,23 9,26" fill="currentColor" stroke="currentColor" stroke-width="1" opacity="0.7"/>
-     </svg>
-   </button>
  </div>
  <div class="toolbar-group" id="grpSubBlock">
    <button class="toolbar-btn" id="btnSubBlock" title="Sub Block (C)">
@@ -436,7 +446,7 @@ function updateToolbarVisibility(self) {
         'btnVCC', 'btnGND', 'btnPort',
         'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
         'btnCommand', 'btnHTML', 'btnAnalysis', 'btnAV',    
-        'btnRunAnalysis', 'btnRunAV', 'btnSubBlock'
+        'btnLive', 'btnSubBlock'
     ];
     
     const dcsOnlyButtons = [
@@ -472,7 +482,6 @@ function updateToolbarVisibility(self) {
         { id: 'grpTransform', buttons: ['btnRotate', 'btnFlipVertical', 'btnFlipHorizontal'] },
         { id: 'grpModel', buttons: ['btnModel', 'btnCommand'] },
         { id: 'grpAnalysis', buttons: ['btnHTML', 'btnAnalysis', 'btnAV'] },
-        { id: 'grpRun', buttons: ['btnRunAnalysis', 'btnRunAV'] },
         { id: 'grpSubBlock', buttons: ['btnSubBlock'] }
     ];
     
@@ -524,24 +533,6 @@ function updateButtonsState(self) {
         }
     });
     
-  
-    const btnRunAnalysis = document.getElementById('btnRunAnalysis');
-    const isSelectAnalysis = !!self.selectAnalysis;
-    
-    if (btnRunAnalysis) {
-        if (isSelectAnalysis) {
-            btnRunAnalysis.classList.remove('disabled-btn');
-            btnRunAnalysis.disabled = false;
-        } else {
-            btnRunAnalysis.classList.add('disabled-btn');
-            btnRunAnalysis.disabled = true;
-            if (btnRunAnalysis.classList.contains('active')) {
-                btnRunAnalysis.classList.remove('active');
-                const selectBtn = document.getElementById('btnSelect');
-                if (selectBtn) selectBtn.classList.add('active');
-            }
-        }
-    }
 }
 
 function initToolbar(self) {
@@ -576,7 +567,6 @@ document.getElementById('btnParamMethod').addEventListener('click',  () =>{self.
 document.getElementById('btnHTML').addEventListener('click',  () =>{self.activeBtnById('btnHTML'); addShape('codeHTML'); });
 document.getElementById('btnModel').addEventListener('click',  () =>{self.activeBtnById('btnModel'); addShape('modelSpice'); });
 document.getElementById('btnAnalysis').addEventListener('click',  () =>{self.activeBtnById('btnAnalysis'); addShape("analysis"); });
-document.getElementById('btnRunAV').addEventListener('click',  () =>{ opAnalysis(); });
 
 document.getElementById('btnWire').addEventListener('click',  () =>{self.activeBtnById('btnWire'); addShape('net'); });
 document.getElementById('btnPlaceComponent').addEventListener('click',  () =>{ showSymbolPanel() });
@@ -591,6 +581,65 @@ document.getElementById('btnFlipHorizontal').addEventListener('click',  () =>{  
 document.getElementById('btnListElements').addEventListener('click', () => {
     start_listElements();
 });
+
+// ---- Live (interactive) simulation panel: stage 1 = layout only; Run/Pause/Stop/Reset do nothing yet ----
+function createLivePanel() {
+    let panel = document.getElementById('livePanel');
+    if (panel) return panel;
+    const ic = (d) => '<svg viewBox="0 0 24 24" fill="currentColor">' + d + '</svg>';
+    panel = document.createElement('div');
+    panel.id = 'livePanel';
+    panel.innerHTML =
+        '<div class="lp-head"><span class="lp-title">Live Simulation</span><span class="lp-badge">Coming Soon</span>' +
+        '<button class="lp-close" title="Close">&times;</button></div>' +
+        '<div class="lp-body">' +
+          '<div class="lp-row">' +
+            '<button class="lp-btn" data-act="run" title="Run">' + ic('<polygon points="6,4 20,12 6,20"/>') + '</button>' +
+            '<button class="lp-btn" data-act="pause" title="Pause">' + ic('<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>') + '</button>' +
+            '<button class="lp-btn" data-act="stop" title="Stop">' + ic('<rect x="5" y="5" width="14" height="14"/>') + '</button>' +
+            '<button class="lp-btn" data-act="reset" title="Reset">' + ic('<path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/>') + '</button>' +
+          '</div>' +
+          '<div class="lp-switch" data-act="live" title="Re-run automatically when a control changes"><i></i><span>Live</span></div>' +
+          '<div class="lp-sec">Controls</div>' +
+          '<div class="lp-empty">No controls yet</div>' +
+          '<div class="lp-note">Future Application (Coming Soon)</div>' +
+        '</div>';
+    document.body.appendChild(panel);
+
+    // nothing is implemented in this stage: every action only shows the "Coming Soon" message
+    panel.querySelectorAll('[data-act]').forEach(el => {
+        el.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); showFutureToast(el); });
+    });
+    panel.querySelector('.lp-close').addEventListener('click', () => toggleLivePanel(false));
+
+    // drag by the header
+    const head = panel.querySelector('.lp-head');
+    head.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.lp-close')) return;
+        const r = panel.getBoundingClientRect();
+        const dx = e.clientX - r.left, dy = e.clientY - r.top;
+        const move = (m) => {
+            panel.style.left = Math.max(0, Math.min(window.innerWidth - 60, m.clientX - dx)) + 'px';
+            panel.style.top = Math.max(0, Math.min(window.innerHeight - 40, m.clientY - dy)) + 'px';
+            panel.style.right = 'auto';
+        };
+        const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', up);
+        e.preventDefault();
+    });
+    return panel;
+}
+
+function toggleLivePanel(show) {
+    const panel = createLivePanel();
+    const on = (typeof show === 'boolean') ? show : !panel.classList.contains('show');
+    panel.classList.toggle('show', on);
+    const btn = document.getElementById('btnLive');
+    if (btn) btn.classList.toggle('active', on);
+}
+
+document.getElementById('btnLive').addEventListener('click', () => { toggleLivePanel(); });
 document.getElementById('btnShowPanel').addEventListener('click', (e) => {  const isActive=e.currentTarget.classList.toggle('active'); if(!propertiesData)  pageSelect();  
           if (isActive) {
                 propertiesPanel.show(propertiesData);
@@ -684,14 +733,6 @@ document.addEventListener('keydown', (e) => {
             if (self.drawing && self.drawing.setTool) self.drawing.setTool(toolNames[keyMap[key]]);
         }
     }
-    if (e.key === 'F9') {
-        if (isButtonEnabled('btnRunAnalysis')) {
-            toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
-            document.getElementById('btnRunAnalysis').classList.add('active');
-            if (self.drawing && self.drawing.setTool) self.drawing.setTool('runAnalysis');
-        }
-        e.preventDefault();
-    }
     if (e.key === 'F10') { opAnalysis(); }
     if(!isCtrl && !isShift){
     if (key === '+') { self.zoomIn(); pageSelect()}
@@ -764,7 +805,7 @@ document.getElementById("btnBus").style.display = "none";
 
     // --- Future Application Buttons Logic ---'btnAnalysis',, 'btnHTML'
     const futureButtons = [
-          'btnRunAnalysis','btnCommand','btnSubBlock'
+          'btnCommand','btnSubBlock'
     ];
     
     futureButtons.forEach(id => {
