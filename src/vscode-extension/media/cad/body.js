@@ -85,7 +85,6 @@ width: fit-content;
 #btnZoomIn { --icon-color: #35f37b; }
 #btnZoomOut { --icon-color: #25e79a; }
 #btnGrid { --icon-color: #cbd5e1; }
-#btnSnap { --icon-color: #94a3b8; }
 #btnHTML { --icon-color: #fb923c; }
 #btnAnalysis { --icon-color: #f472b6; }
 #btnAV { --icon-color: #f472b6; }
@@ -387,9 +386,6 @@ body.innerHTML = `
    <button class="toolbar-btn active" id="btnGrid" title="Toggle Grid (G)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
    </button>
-   <button class="toolbar-btn" id="btnSnap" title="Snap to Grid (S)">
-     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-   </button>
  </div>
 </div>
 <div id="setgrid">
@@ -534,7 +530,6 @@ document.getElementById('btnSelect').addEventListener('click',  () =>{self.activ
 document.getElementById('btnZoomIn').addEventListener('click', () => {colorThemes(); self.zoomIn(); });
 document.getElementById('btnZoomOut').addEventListener('click', () => { self.zoomOut(); });
 document.getElementById('btnGrid').addEventListener('click', (e) => {  self.showGrid(!self.grid.showGrid); e.currentTarget.classList.toggle('active'); });
-document.getElementById('btnSnap').addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); });
 
 document.getElementById('btnEllipse').addEventListener('click',  () =>{self.activeBtnById('btnEllipse'); addShape('ellipse'); });
 document.getElementById('btnRectangle').addEventListener('click',  () =>{self.activeBtnById('btnRectangle'); addShape('rect'); });
@@ -662,7 +657,6 @@ document.addEventListener('keydown', (e) => {
             if (self.drawing && self.drawing.setTool) self.drawing.setTool(toolNames[keyMap[key]]);
         }
     }
-    if (e.key === 'F10') { opAnalysis(); }
     if(!isCtrl && !isShift){
     if (key === '+') { self.zoomIn(); pageSelect()}
     if (key === '-') {  self.zoomOut(); }
