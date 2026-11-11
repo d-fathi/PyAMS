@@ -347,7 +347,7 @@ function rotatePart() {
                     e.setAttribute("y", x);
                     e.setAttribute("width", h);
                     e.setAttribute("height", w);
-                    modifedSizeLiveWidget(e);
+                    liveWidgetOp(e, 'T');       // the content turns with the symbol
 
                     break;
 
@@ -487,7 +487,7 @@ function flipHorizontalPart() {
                     var width = parseInt(e.getAttribute("width"));
 
                     e.setAttribute("x", Math.abs(x - w + width));
-                    modifedSizeLiveWidget(e);
+                    liveWidgetOp(e, 'H');
 
                     break;
 
@@ -602,7 +602,7 @@ function flipVerticallyPart() {
                     var height = parseInt(e.getAttribute("height"));
 
                     e.setAttribute("y", Math.abs(y - h + height));
-                    modifedSizeLiveWidget(e);
+                    liveWidgetOp(e, 'V');
 
                     break;
 

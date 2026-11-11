@@ -163,16 +163,42 @@ var liveWidget = (function () {
         var lab = String(c.label || ''), ah = lab ? Math.max(10, h - LABEL_H) : h;
         var body = mk('g', { 'pointer-events': 'none' }, g);
         var fn = { led: drawLed, segment: drawSegment, switch: drawSwitch, button: drawButton, slider: drawSlider }[type];
-        fn(body, w, ah, c);
+        // the content is drawn in its own (logical) box, then turned / mirrored by the orientation matrix
+        var M = getM(g), sw = isSwapped(M), la = sw ? ah : w, lb = sw ? w : ah;
+        var cg = mk('g', { transform: 'translate(' + (w / 2) + ',' + (ah / 2) + ') matrix(' + M[0] + ',' + M[2] + ',' + M[1] + ',' + M[3] + ',0,0) translate(' + (-la / 2) + ',' + (-lb / 2) + ')' }, body);
+        fn(cg, la, lb, c);
         if (lab) {
             var t = mk('text', { x: w / 2, y: h - 2, 'text-anchor': 'middle', 'font-size': 10, 'font-family': 'Arial, sans-serif', fill: '#9ca3af' }, body);
             t.textContent = lab;
         }
     }
 
+    // orientation matrix [m11,m12,m21,m22] of the content (identity = as drawn); it follows the
+    // rotate / flip commands of the symbol editor
+    function getM(g) {
+        var a = String(g.getAttribute('wm') || '1,0,0,1').split(',').map(Number);
+        return (a.length === 4 && a.every(isFinite)) ? a : [1, 0, 0, 1];
+    }
+    function isSwapped(M) { return M[0] === 0 && M[3] === 0; }
+    function mul(A, B) { return [A[0] * B[0] + A[1] * B[2], A[0] * B[1] + A[1] * B[3], A[2] * B[0] + A[3] * B[2], A[2] * B[1] + A[3] * B[3]]; }
+    // op: 'T' transpose (the editor's Rotate), 'H' horizontal flip, 'V' vertical flip
+    function applyOp(g, op) {
+        var O = { T: [0, 1, 1, 0], H: [-1, 0, 0, 1], V: [1, 0, 0, -1] }[op];
+        if (!O) return;
+        g.setAttribute('wm', mul(O, getM(g)).join(','));
+        redraw(g);
+    }
+    // set the size of the widget in its own (unturned) direction
+    function setLogicalSize(g, lw, lh) {
+        var sw = isSwapped(getM(g));
+        g.setAttribute('width', sw ? lh : lw);
+        g.setAttribute('height', sw ? lw : lh);
+    }
+
     function create(g, type) {
         type = TYPES[type] ? type : 'led';
         g.setAttribute('wtype', type);
+        g.setAttribute('wm', '1,0,0,1');
         g.setAttribute('width', TYPES[type].w);
         g.setAttribute('height', TYPES[type].h);
         g.setAttribute('wref', newRef(type, g));
@@ -181,11 +207,12 @@ var liveWidget = (function () {
     }
 
     return { TYPES: TYPES, ORDER: ORDER, defaultCfg: defaultCfg, getType: getType, getCfg: getCfg, setCfg: setCfg,
-             redraw: redraw, create: create, cleanRef: cleanRef, uniqueRef: uniqueRef, newRef: newRef, isAutoRef: isAutoRef };
+             redraw: redraw, applyOp: applyOp, setLogicalSize: setLogicalSize, create: create, cleanRef: cleanRef, uniqueRef: uniqueRef, newRef: newRef, isAutoRef: isAutoRef };
 })();
 
 // functions used by the rest of the editor (same names as the other elements)
 function addLiveWidget(elem) { liveWidget.create(elem, 'led'); }
+function liveWidgetOp(elem, op) { if (elem && elem.getAttribute && elem.getAttribute('name') === 'liveWidget') liveWidget.applyOp(elem, op); }
 function modifedSizeLiveWidget(elem) { if (elem && elem.getAttribute && elem.getAttribute('name') === 'liveWidget') liveWidget.redraw(elem); }
 
 // ---------------------------------------------------------------------------------------------
@@ -290,6 +317,7 @@ function modifiedLiveWidget() {
         // new kind of widget: its own defaults, default size, and a new automatic ref
         var keepLabel = c.label;
         el.setAttribute('wtype', newType);
+        el.setAttribute('wm', '1,0,0,1');
         c = W.defaultCfg(newType); c.label = keepLabel;
         el.setAttribute('width', W.TYPES[newType].w);
         el.setAttribute('height', W.TYPES[newType].h);
@@ -307,7 +335,7 @@ function modifiedLiveWidget() {
                 break;
             case 'segment': {
                 var n = Math.max(1, Math.min(8, Math.round(f(R[0].value, 1))));
-                if (n !== c.digits) { el.setAttribute('width', W.TYPES.segment.w * n); rebuild = true; }
+                if (n !== c.digits) { W.setLogicalSize(el, W.TYPES.segment.w * n, W.TYPES.segment.h); rebuild = true; }
                 c.digits = n; c.dp = R[1].value === 'Yes';
                 c.color = R[2].value; c.offColor = R[3].value; c.value = f(R[4].value, 0);
                 break; }
