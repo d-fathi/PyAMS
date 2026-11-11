@@ -837,6 +837,14 @@ function fshapes(svg, setDrawing, width, height) {
                 return true;
             }
 
+		// live scope: found by position (the canvas inside the foreignObject is the event target)
+		var els = document.querySelectorAll('[name="liveScope"]');
+        for (var i = els.length-1; i >=0 ; i--)
+            if (pointInRect(els[i], self.offset)) {
+                self.setCritElem = els[i];
+                return true;
+            }
+
 
 
 
