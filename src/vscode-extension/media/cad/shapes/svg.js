@@ -60,7 +60,7 @@ function savePageToSVG(size) {
         case "rect":
         case "image":
         case "probe":
-		case "oscilloscope":
+		case "liveScope":
             var x = parseInt(elem.getAttribute("x"));
             var y = parseInt(elem.getAttribute("y"));
             getMinMaxSize(min_, max_, x, y)
@@ -109,14 +109,13 @@ function savePageToSVG(size) {
 
         case "probe":
         case "part":
-		case "oscilloscope":
+		case "liveScope":
             var x = parseInt(elem.getAttribute("x"));
             var y = parseInt(elem.getAttribute("y"));
 
             elem.setAttribute("x", x + dx);
             elem.setAttribute("y", y + dy);
             elem.setAttribute('transform', "translate(" + (x + dx) + "," + (y + dy) + ")");
-			modifedSizeDivByoscilloscope(elem);
             break;
 
         case "rect":

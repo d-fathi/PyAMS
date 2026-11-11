@@ -36,7 +36,6 @@ var S=`
 <a class="myButton"  onclick="first_()">first</a>
 <a class="myButton"  onclick="appEnd_()">appEnd</a>
 <a class="myButton"  onclick="drawing.resize.rot()">rot</a>
-<a class="myButton"  onclick="drawing.shapes.addElement('oscilloscope')">oscilloscope</a>
 <a class="myButton"  onclick="plots()">plot</a>
 <a class="myButton"  onclick="appClick('net')">net</a>
 <a class="myButton"  onclick="openpage()">circuit</a>

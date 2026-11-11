@@ -109,8 +109,8 @@ function showDescriptionElemSelectInPanel(select) {
                 probeSelect();
              break;
 
-			 case "oscilloscope":
-                oscilloscopeSelect();
+			 case "liveScope":
+                liveScopeSelect();
              break;
 
             default:
@@ -220,8 +220,8 @@ function changeSelect() {
 	      probeModified();
         break;
 
-	case 'oscilloscope':
-	      oscilloscopeModified();
+	case 'liveScope':
+	      modifiedLiveScope();
         break;
     }
   // drawing.saveData('Changed property of ' + mtable.typeSelect);

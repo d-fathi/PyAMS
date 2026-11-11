@@ -146,6 +146,7 @@ self.getSymbolDescription = function () {
     }  else { 
         self.setSymbolDescription();
 	    plotsOpenDataLayoutInDiv();
+	    try { liveScope.initAll(document); } catch (e) { console.error(e); }
         modifiedClassText();
         updateHtmlCode();
     }
@@ -232,6 +233,7 @@ self.paste = function (clipboardText) {
                 self.copyData=true;
                 // pasted plots are redrawn: a copy of the rendered plot is only a picture
                 try { if (typeof plotsRestoreIn === 'function') plotsRestoreIn(node); } catch (e) { console.error(e); }
+                try { liveScope.initAll(node); } catch (e) { console.error(e); }
             }
         }
 

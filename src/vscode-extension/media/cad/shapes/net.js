@@ -173,7 +173,7 @@ function refNetWithPart()
 		{
 		 collection[i].setAttribute("id",netId);
 		 netId++;
-		} else if((collection[i].getAttribute("name")=='part')||(collection[i].getAttribute("name")=='oscilloscope'))
+		} else if((collection[i].getAttribute("name")=='part'))
 		{
 		  partsDesc.push({part:collection[i],pins:getListPins(collection[i])});
 		}

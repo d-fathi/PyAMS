@@ -44,7 +44,7 @@ function creatLimiteOfSelect(self) {
         case "rect":
         case "image":
 		case "probe":
-		case "oscilloscope":
+		case "liveScope":
 		case "analysis":
             var x = parseInt(elem.getAttribute("x"));
             var y = parseInt(elem.getAttribute("y"));
@@ -206,7 +206,7 @@ function itElemSelectByRect(x, y, xo, yo, elem) {
     case "rect":
     case "image":
 	case "probe":
-	case "oscilloscope":
+	case "liveScope":
 	case "analysis":
         rect.push({
             x: parseInt(elem.getAttribute("x")),
@@ -257,7 +257,7 @@ function saveInArrayElemSelectByRect(self, elem) {
     case 'part':
     case 'rect':
     case 'image':
-	case 'oscilloscope':
+	case 'liveScope':
 	case 'analysis':
     case 'text':
     case 'param':
@@ -322,7 +322,7 @@ function moveElemGroup(self) {
 
             case "probe":
             case "part":
-			case "oscilloscope":
+			case "liveScope":
 			case "analysis":
                 elem.setAttribute("x", pos.x + dx);
                 elem.setAttribute("y", pos.y + dy);
@@ -384,7 +384,7 @@ function upElemGroup(self) {
 			case 'probe':
             case 'rect':
             case 'image':
-			case 'oscilloscope':
+			case 'liveScope':
 			case 'analysis':
             case 'text':
             case 'param':

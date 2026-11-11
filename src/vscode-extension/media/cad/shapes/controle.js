@@ -42,7 +42,6 @@ function stepPx(ele)
 	case "pin":
 	case "part":
 	case "net":
-    case "oscilloscope":
          return 5;
       break;
 	}

@@ -1,8 +1,9 @@
 /*
  * Live (interactive) simulation - own scope.
  *
- * Stage 1: only the side panel (layout). Run / Pause / Stop / Reset and the Live switch do nothing yet,
- * they show the "Future Application (Coming Soon)" message.
+ * Stage 2: the panel drives the DEMO source of the liveScope elements (Run / Pause / Stop / Reset).
+ * The simulation of the circuit itself and the Live switch are not implemented yet: they show
+ * the "Future Application (Coming Soon)" message.
  *
  * The rest of the editor only uses:
  *    liveSimulation.toggle() / show() / hide() / isOpen()
@@ -40,7 +41,7 @@ var liveSimulation = (function () {
         panel = document.createElement('div');
         panel.id = 'livePanel';
         panel.innerHTML =
-            '<div class="lp-head"><span class="lp-title">Live Simulation</span><span class="lp-badge">Coming Soon</span>' +
+            '<div class="lp-head"><span class="lp-title">Live Simulation</span><span class="lp-badge">Demo</span>' +
             '<button class="lp-close" title="Close">&times;</button></div>' +
             '<div class="lp-body">' +
               '<div class="lp-row">' +
@@ -52,13 +53,27 @@ var liveSimulation = (function () {
               '<div class="lp-switch" data-act="live" title="Re-run automatically when a control changes"><i></i><span>Live</span></div>' +
               '<div class="lp-sec">Controls</div>' +
               '<div class="lp-empty">No controls yet</div>' +
-              '<div class="lp-note">Future Application (Coming Soon)</div>' +
+              '<div class="lp-note">Run feeds the scopes with demo signals.<br>Circuit simulation: Future Application (Coming Soon)</div>' +
             '</div>';
         document.body.appendChild(panel);
 
-        // nothing is implemented in this stage
+        // Run / Pause / Stop / Reset drive the demo source; the Live switch is not implemented yet
+        var actions = {
+            run:   function () { liveScope.demo.start(); },
+            pause: function () { liveScope.demo.pause(); },
+            stop:  function () { liveScope.demo.stop(); },
+            reset: function () { liveScope.demo.reset(); }
+        };
+        function showState() {
+            var run = panel.querySelector('[data-act="run"]');
+            if (run) run.classList.toggle('on', liveScope.demo.isRunning());
+        }
         panel.querySelectorAll('[data-act]').forEach(function (el) {
-            el.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); comingSoon(el); });
+            el.addEventListener('click', function (e) {
+                e.preventDefault(); e.stopPropagation();
+                var a = actions[el.getAttribute('data-act')];
+                if (a) { a(); showState(); } else comingSoon(el);
+            });
         });
         panel.querySelector('.lp-close').addEventListener('click', function () { api.hide(); });
 

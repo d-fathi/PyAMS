@@ -98,6 +98,7 @@ width: fit-content;
 #btnPin  { --icon-color: #06836ae0 } 
 #btnListElements  { --icon-color: #555 } 
 #btnLive  { --icon-color: #e11d48 } 
+#btnScope  { --icon-color: #22c55e }
 #btnSubBlock  { --icon-color: #06836ae0 } 
 
 
@@ -347,6 +348,13 @@ body.innerHTML = `
        <text x="17.5" y="17" text-anchor="middle" font-size="12" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">V</text>
      </svg>
    </button>  
+   <button class="toolbar-btn" id="btnScope" title="Live scope (oscilloscope for the live simulation)">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+       <rect x="2.5" y="3.5" width="19" height="14" rx="2"/>
+       <path d="M5 11 C 7 5, 9 5, 11 11 C 13 17, 15 17, 17 11 L 19 11"/>
+       <path d="M8 21h8"/>
+     </svg>
+   </button>
  </div>
  <div class="toolbar-group" id="grpSubBlock">
    <button class="toolbar-btn" id="btnSubBlock" title="Sub Block (C)">
@@ -422,7 +430,7 @@ function updateToolbarVisibility(self) {
         'btnVCC', 'btnGND', 'btnPort',
         'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
         'btnCommand', 'btnHTML', 'btnAnalysis', 'btnAV',    
-        'btnLive', 'btnSubBlock'
+        'btnLive', 'btnScope', 'btnSubBlock'
     ];
     
     const dcsOnlyButtons = [
@@ -457,7 +465,7 @@ function updateToolbarVisibility(self) {
         { id: 'grpSymProps', buttons: ['btnPin', 'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod'] },
         { id: 'grpTransform', buttons: ['btnRotate', 'btnFlipVertical', 'btnFlipHorizontal'] },
         { id: 'grpModel', buttons: ['btnModel', 'btnCommand'] },
-        { id: 'grpAnalysis', buttons: ['btnHTML', 'btnAnalysis', 'btnAV'] },
+        { id: 'grpAnalysis', buttons: ['btnHTML', 'btnAnalysis', 'btnAV', 'btnScope'] },
         { id: 'grpSubBlock', buttons: ['btnSubBlock'] }
     ];
     
@@ -543,6 +551,7 @@ document.getElementById('btnParamMethod').addEventListener('click',  () =>{self.
 document.getElementById('btnHTML').addEventListener('click',  () =>{self.activeBtnById('btnHTML'); addShape('codeHTML'); });
 document.getElementById('btnModel').addEventListener('click',  () =>{self.activeBtnById('btnModel'); addShape('modelSpice'); });
 document.getElementById('btnAnalysis').addEventListener('click',  () =>{self.activeBtnById('btnAnalysis'); addShape("analysis"); });
+document.getElementById('btnScope').addEventListener('click',  () =>{self.activeBtnById('btnScope'); addShape("liveScope"); });
 
 document.getElementById('btnWire').addEventListener('click',  () =>{self.activeBtnById('btnWire'); addShape('net'); });
 document.getElementById('btnPlaceComponent').addEventListener('click',  () =>{ showSymbolPanel() });
@@ -575,7 +584,7 @@ const toolButtons = [
   'btnPin', 'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod',
   'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
   'btnModel', 'btnCommand',
-  'btnHTML', 'btnAnalysis', 'btnAV',
+  'btnHTML', 'btnAnalysis', 'btnAV', 'btnScope',
   'btnSubBlock'
 ];   
 
@@ -586,8 +595,7 @@ const toolNames = [
   'pin', 'reference', 'parameter', 'paramInit', 'paramMethod',
   'rotate', 'flipVertical', 'flipHorizontal',
   'model', 'command',
-  'html', 'analysis', 'av',
-  'runAnalysis', 'runAV',
+  'html', 'analysis', 'av', 'liveScope',
   'subblock'
 ];
 

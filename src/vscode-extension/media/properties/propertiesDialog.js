@@ -950,6 +950,10 @@ drawing.getListParameter(code)
             break;
     
 
+        case 'openScopeSetup':
+            liveScope.openSetup(mtable.select);
+            break;
+
         case 'runAnalysis':
             runSimulation();
             break;  
