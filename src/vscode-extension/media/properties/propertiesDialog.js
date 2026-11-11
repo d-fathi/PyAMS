@@ -950,8 +950,8 @@ drawing.getListParameter(code)
             break;
     
 
-        case 'openScopeSetup':
-            liveScope.openSetup(mtable.select);
+        case 'addScopeChannel':
+            liveScopeAddChannel();
             break;
 
         case 'runAnalysis':
