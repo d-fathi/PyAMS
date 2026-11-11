@@ -263,6 +263,7 @@ function fpropertiesPanel(self) {
             header.addEventListener('click', function() {
                 header.classList.toggle('collapsed');
                 content.classList.toggle('hidden');
+                if (section.collapseKey) { try { propSectionState[section.collapseKey] = header.classList.contains('collapsed'); } catch (e) {} }
             });
             sectionDiv.appendChild(header);
 

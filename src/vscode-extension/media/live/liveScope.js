@@ -465,6 +465,7 @@ function modifedSizeLiveScope(elem) { if (elem && elem.getAttribute && elem.getA
 //   section 3  Channels         : [Add channel]
 //   section 4+ one section per channel: Signal, Color / remove, Show, Units/div, Offset, Invert
 // ---------------------------------------------------------------------------------------------
+var propSectionState = (typeof propSectionState !== 'undefined') ? propSectionState : {};
 var LS_CH_ROWS = 5;                      // rows of a channel section
 
 function liveScopeSelect() {
@@ -479,14 +480,14 @@ function liveScopeSelect() {
             { label: "Width  (px)", type: "number", value: parseInt(el.getAttribute("width")) },
             { label: "Height (px)", type: "number", value: parseInt(el.getAttribute("height")) }
         ] },
-        { title: "Display", collapsed: false, showReset: true, rows: [
+        { title: "Display", collapsed: true, showReset: true, rows: [
             { label: "Mode", type: "dropdown", options: ["YT", "XY"], value: cfg.mode },
             { label: "Background", type: "dropdown", options: ["Dark", "Light"], value: cfg.dark ? "Dark" : "Light" },
             { label: "Line width", type: "number", value: cfg.lineWidth },
             { label: "Grid", type: "dropdown", options: ["On", "Off"], value: cfg.grid ? "On" : "Off" },
             { label: "Labels", type: "dropdown", options: ["On", "Off"], value: cfg.labels ? "On" : "Off" }
         ] },
-        { title: "Time & Trigger", collapsed: false, showReset: true, rows: [
+        { title: "Time & Trigger", collapsed: true, showReset: true, rows: [
             { label: "Time / div", type: "text", value: f(cfg.timeDiv, 's') },
             { label: "Trigger", type: "dropdown", options: ["Auto", "Normal", "Single", "Free run"],
               value: { auto: "Auto", normal: "Normal", single: "Single", off: "Free run" }[cfg.trigger.mode] || "Auto" },
@@ -502,13 +503,19 @@ function liveScopeSelect() {
 
     cfg.channels.forEach(function (c, i) {
         var unit = c.kind === 'current' ? 'A' : 'V';
-        sections.push({ title: "CH" + (i + 1) + "  " + (c.signal || ''), collapsed: false, showReset: true, rows: [
+        sections.push({ title: "CH" + (i + 1) + "  " + (c.signal || ''), collapseKey: "ls.CH" + (i + 1), collapsed: false, showReset: true, rows: [
             { label: "Color", type: "axeproperty", value: c.color, color: c.color, delete: false },
             { label: "Show", type: "dropdown", options: ["Yes", "No"], value: c.on ? "Yes" : "No" },
             { label: "Units / div", type: "text", value: f(c.vdiv, unit) },
             { label: "Offset", type: "text", value: f(c.offset || 0, unit) },
             { label: "Invert", type: "dropdown", options: ["No", "Yes"], value: c.invert ? "Yes" : "No" }
         ] });
+    });
+
+    // remember the last open / closed state of every section
+    sections.forEach(function (sec) {
+        if (!sec.collapseKey) sec.collapseKey = "ls." + sec.title.split('  ')[0];
+        if (typeof propSectionState[sec.collapseKey] === 'boolean') sec.collapsed = propSectionState[sec.collapseKey];
     });
 
     defaultData = { header: { title: "Live scope", subtitle: "Selected" }, sections: sections };
