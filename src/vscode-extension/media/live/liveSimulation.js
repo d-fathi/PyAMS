@@ -51,18 +51,18 @@ var liveSimulation = (function () {
                 '<button class="lp-btn" data-act="reset" title="Reset">' + icon('<path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/>') + '</button>' +
               '</div>' +
               '<div class="lp-switch" data-act="live" title="Re-run automatically when a control changes"><i></i><span>Live</span></div>' +
-              '<div class="lp-sec">Controls</div>' +
-              '<div class="lp-empty">No controls yet</div>' +
+              '<div class="lp-sec">Widgets</div>' +
+              '<div class="lp-list" id="lpControls"></div>' +
               '<div class="lp-note">Run feeds the scopes with demo signals.<br>Circuit simulation: Future Application (Coming Soon)</div>' +
             '</div>';
         document.body.appendChild(panel);
 
         // Run / Pause / Stop / Reset drive the demo source; the Live switch is not implemented yet
         var actions = {
-            run:   function () { liveScope.demo.start(); },
-            pause: function () { liveScope.demo.pause(); },
-            stop:  function () { liveScope.demo.stop(); },
-            reset: function () { liveScope.demo.reset(); }
+            run:   function () { liveScope.demo.start(); liveWidgetRT.start(); },
+            pause: function () { liveScope.demo.pause(); liveWidgetRT.pause(); },
+            stop:  function () { liveScope.demo.stop(); liveWidgetRT.stop(); },
+            reset: function () { liveScope.demo.reset(); liveWidgetRT.reset(); }
         };
         function showState() {
             var run = panel.querySelector('[data-act="run"]');
@@ -76,6 +76,23 @@ var liveSimulation = (function () {
             });
         });
         panel.querySelector('.lp-close').addEventListener('click', function () { api.hide(); });
+
+        // list of the live widgets of the circuit (input widgets first) with their current value
+        function renderControls() {
+            var box = panel.querySelector('#lpControls'); if (!box) return;
+            var l = [];
+            try { l = liveWidgetRT.list(); } catch (e) {}
+            l.sort(function (a, b) { return (a.dir === b.dir) ? 0 : (a.dir === 'in' ? -1 : 1); });
+            if (!l.length) { box.innerHTML = '<div class="lp-empty">No widgets in the circuit</div>'; return; }
+            box.innerHTML = l.map(function (w) {
+                return '<div class="lp-item"><span class="lp-dir">' + (w.dir === 'in' ? '\u25B6' : '\u25C0') + '</span>' +
+                       '<span class="lp-ref">' + w.ref.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</span>' +
+                       '<span class="lp-val">' + (isFinite(w.value) ? +(+w.value).toFixed(3) : '') + '</span></div>';
+            }).join('');
+        }
+        liveWidgetRT.onChange = renderControls;
+        api.refresh = renderControls;
+        renderControls();
 
         // drag by the header
         panel.querySelector('.lp-head').addEventListener('mousedown', function (e) {
@@ -97,6 +114,7 @@ var liveSimulation = (function () {
 
     function set(on) {
         create().classList.toggle('show', on);
+        if (on && api.refresh) api.refresh();
         if (typeof api.onChange === 'function') api.onChange(on);
         return on;
     }

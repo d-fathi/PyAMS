@@ -26,3 +26,10 @@
 
 /* ---- liveScope element (canvas in the schematic) ---- */
 .liveScopeCanvas { display: block; background: #0d1117; }
+
+/* live widget list in the live panel */
+#livePanel .lp-list { display: flex; flex-direction: column; gap: 2px; max-height: 180px; overflow-y: auto; }
+#livePanel .lp-item { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 2px 4px; border-radius: 4px; background: rgba(127,127,127,.12); }
+#livePanel .lp-dir { font-size: 9px; opacity: .7; width: 10px; }
+#livePanel .lp-ref { flex: 1; font-family: Consolas, monospace; }
+#livePanel .lp-val { font-family: Consolas, monospace; opacity: .85; }

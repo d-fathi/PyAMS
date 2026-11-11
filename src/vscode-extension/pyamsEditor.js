@@ -354,6 +354,7 @@ webviewPanel.onDidDispose(() => {
         const liveJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveSimulation.js'));
         const liveScopeJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveScope.js'));
         const liveWidgetJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveWidget.js'));
+        const liveWidgetRuntimeJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveWidgetRuntime.js'));
         const liveCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveSimulation.css'));
         const importCircuitJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'importCircuit.js'));
         const sh01Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'information.js'));
@@ -485,6 +486,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${listElementsJs}"></script>
     <script nonce="${nonce}" src="${liveScopeJs}"></script>
     <script nonce="${nonce}" src="${liveWidgetJs}"></script>
+    <script nonce="${nonce}" src="${liveWidgetRuntimeJs}"></script>
     <script nonce="${nonce}" src="${liveJs}"></script>
     <script nonce="${nonce}" src="${simulationJs}"></script>
     <script nonce="${nonce}" src="${drawingJs}"></script>

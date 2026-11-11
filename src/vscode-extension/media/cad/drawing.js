@@ -147,6 +147,7 @@ self.getSymbolDescription = function () {
         self.setSymbolDescription();
 	    plotsOpenDataLayoutInDiv();
 	    try { liveScope.initAll(document); } catch (e) { console.error(e); }
+	    try { liveWidget.initAll(document); } catch (e) { console.error(e); }
         modifiedClassText();
         updateHtmlCode();
     }
@@ -155,7 +156,9 @@ self.getSymbolDescription = function () {
 
 self.saveData=function(data){
 
+             try { liveWidgetRT.beforeSave(); } catch (e) {}
              var content = self.getSymbol();
+             try { liveWidgetRT.afterSave(); } catch (e) {}
              // send the content to the extension for saving
              self.pendingSave =true;
              if (typeof vscode !== 'undefined') {
@@ -234,6 +237,7 @@ self.paste = function (clipboardText) {
                 // pasted plots are redrawn: a copy of the rendered plot is only a picture
                 try { if (typeof plotsRestoreIn === 'function') plotsRestoreIn(node); } catch (e) { console.error(e); }
                 try { liveScope.initAll(node); } catch (e) { console.error(e); }
+                try { liveWidget.initAll(node); } catch (e) { console.error(e); }
             }
         }
 

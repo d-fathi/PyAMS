@@ -129,8 +129,9 @@ var liveWidget = (function () {
     function drawButton(p, w, h, c) {
         var s = Math.max(8, Math.min(w, h)), cx = w / 2, cy = h / 2;
         mk('rect', { x: cx - s / 2 + 1, y: cy - s / 2 + 1, width: s - 2, height: s - 2, rx: 6, fill: '#374151', stroke: '#111827', 'stroke-width': 1.2 }, p);
-        mk('circle', { cx: cx, cy: cy, r: Math.max(3, s / 2 - 6), fill: c.color, stroke: '#111827', 'stroke-width': 1.2 }, p);
-        mk('ellipse', { cx: cx - s * 0.08, cy: cy - s * 0.1, rx: s * 0.1, ry: s * 0.06, fill: '#ffffff', opacity: 0.35 }, p);
+        mk('circle', { cx: cx, cy: cy + (c.pressed ? 1 : 0), r: Math.max(3, s / 2 - (c.pressed ? 8 : 6)), fill: c.color, stroke: '#111827', 'stroke-width': 1.2 }, p);
+        if (c.pressed) mk('circle', { cx: cx, cy: cy + 1, r: Math.max(3, s / 2 - 8), fill: '#000000', opacity: 0.25 }, p);
+        else mk('ellipse', { cx: cx - s * 0.08, cy: cy - s * 0.1, rx: s * 0.1, ry: s * 0.06, fill: '#ffffff', opacity: 0.35 }, p);
     }
 
     function drawSlider(p, w, h, c) {
@@ -150,6 +151,15 @@ var liveWidget = (function () {
         }
     }
 
+    // values of the live simulation (runtime only, never saved): {v, on, pressed}
+    function applyRT(type, c, rt) {
+        var o = Object.assign({}, c);
+        if (type === 'led' || type === 'segment' || type === 'slider') o.value = rt.v;
+        else if (type === 'switch') o.on = !!rt.on;
+        else if (type === 'button') o.pressed = !!rt.pressed;
+        return o;
+    }
+
     // (re)build the content of the element
     function redraw(g) {
         if (!g) return;
@@ -158,6 +168,7 @@ var liveWidget = (function () {
         g.setAttribute('transform', 'translate(' + x + ',' + y + ')');
         while (g.firstChild) g.removeChild(g.firstChild);
         var type = getType(g), c = getCfg(g);
+        if (g.__rt) c = applyRT(type, c, g.__rt);
         // transparent hit area / thin frame (helps to see the extent while editing)
         mk('rect', { x: 0, y: 0, width: w, height: h, fill: 'transparent', stroke: 'none' }, g);
         var lab = String(c.label || ''), ah = lab ? Math.max(10, h - LABEL_H) : h;
@@ -188,6 +199,32 @@ var liveWidget = (function () {
         g.setAttribute('wm', mul(O, getM(g)).join(','));
         redraw(g);
     }
+    // pointer position (client coordinates) -> coordinates in the widget's own (unturned) box
+    function toLogical(g, clientX, clientY) {
+        var svg = g.ownerSVGElement, m = g.getScreenCTM();
+        if (!svg || !m) return null;
+        var pt = svg.createSVGPoint(); pt.x = clientX; pt.y = clientY;
+        var p = pt.matrixTransform(m.inverse());
+        var w = num(g.getAttribute('width'), 30), h = num(g.getAttribute('height'), 30);
+        var c = getCfg(g), ah = String(c.label || '') ? Math.max(10, h - LABEL_H) : h;
+        var M = getM(g), sw = isSwapped(M), la = sw ? ah : w, lb = sw ? w : ah;
+        var d0 = p.x - w / 2, d1 = p.y - ah / 2;
+        return { x: M[0] * d0 + M[2] * d1 + la / 2, y: M[1] * d0 + M[3] * d1 + lb / 2, la: la, lb: lb };
+    }
+    // fraction 0..1 of a slider for a pointer position
+    function sliderFraction(g, clientX, clientY) {
+        var L = toLogical(g, clientX, clientY); if (!L) return null;
+        var kr = Math.max(4, Math.min(L.la, L.lb) * 0.28), pad = kr + 1;
+        var f = getCfg(g).vertical ? 1 - (L.y - pad) / Math.max(1, L.lb - 2 * pad) : (L.x - pad) / Math.max(1, L.la - 2 * pad);
+        return Math.max(0, Math.min(1, f));
+    }
+    // redraw every widget found in `root` from its saved settings (after opening / pasting)
+    function initAll(root) {
+        var list = (root && root.querySelectorAll) ? Array.prototype.slice.call(root.querySelectorAll('[name="liveWidget"]')) : [];
+        if (root && root.getAttribute && root.getAttribute('name') === 'liveWidget') list.push(root);
+        list.forEach(function (g) { delete g.__rt; redraw(g); });
+    }
+
     // set the size of the widget in its own (unturned) direction
     function setLogicalSize(g, lw, lh) {
         var sw = isSwapped(getM(g));
@@ -207,7 +244,7 @@ var liveWidget = (function () {
     }
 
     return { TYPES: TYPES, ORDER: ORDER, defaultCfg: defaultCfg, getType: getType, getCfg: getCfg, setCfg: setCfg,
-             redraw: redraw, applyOp: applyOp, setLogicalSize: setLogicalSize, create: create, cleanRef: cleanRef, uniqueRef: uniqueRef, newRef: newRef, isAutoRef: isAutoRef };
+             redraw: redraw, initAll: initAll, toLogical: toLogical, sliderFraction: sliderFraction, applyOp: applyOp, setLogicalSize: setLogicalSize, create: create, cleanRef: cleanRef, uniqueRef: uniqueRef, newRef: newRef, isAutoRef: isAutoRef };
 })();
 
 // functions used by the rest of the editor (same names as the other elements)
