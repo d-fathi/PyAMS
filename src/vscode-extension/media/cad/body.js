@@ -98,6 +98,7 @@ width: fit-content;
 #btnListElements  { --icon-color: #555 } 
 #btnLive  { --icon-color: #e11d48 } 
 #btnScope  { --icon-color: #22c55e }
+#btnWidget { --icon-color: #f59e0b }
 #btnSubBlock  { --icon-color: #06836ae0 } 
 
 
@@ -252,6 +253,14 @@ body.innerHTML = `
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
        <text x="12" y="16" text-anchor="middle" font-size="13" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none" textLength="19" lengthAdjust="spacingAndGlyphs">f()</text>
        <path d="M2 20h20" stroke-width="2"/>
+     </svg>
+   </button>
+   <button class="toolbar-btn" id="btnWidget" title="Live widget: LED, 7-segment, switch, push button, slider (type chosen in the properties)">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+       <circle cx="8" cy="8" r="3.5"/>
+       <rect x="3" y="14" width="18" height="6" rx="3"/>
+       <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
+       <path d="M14 6h7M14 10h7"/>
      </svg>
    </button>
  </div>
@@ -430,7 +439,7 @@ function updateToolbarVisibility(self) {
     ];
     
     const dcsOnlyButtons = [
-        'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod', 'btnPin', 'btnModel'
+        'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod', 'btnPin', 'btnModel', 'btnWidget'
     ];
     
     symOnlyButtons.forEach(id => {
@@ -458,7 +467,7 @@ function updateToolbarVisibility(self) {
     const groups = [
         { id: 'grpWire', buttons: ['btnWire', 'btnBus'] },
         { id: 'grpPower', buttons: ['btnVCC', 'btnGND', 'btnPort'] },
-        { id: 'grpSymProps', buttons: ['btnPin', 'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod'] },
+        { id: 'grpSymProps', buttons: ['btnPin', 'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod', 'btnWidget'] },
         { id: 'grpTransform', buttons: ['btnRotate', 'btnFlipVertical', 'btnFlipHorizontal'] },
         { id: 'grpModel', buttons: ['btnModel', 'btnCommand'] },
         { id: 'grpAnalysis', buttons: ['btnHTML', 'btnAnalysis', 'btnAV', 'btnScope'] },
@@ -546,6 +555,7 @@ document.getElementById('btnParamMethod').addEventListener('click',  () =>{self.
 document.getElementById('btnHTML').addEventListener('click',  () =>{self.activeBtnById('btnHTML'); addShape('codeHTML'); });
 document.getElementById('btnModel').addEventListener('click',  () =>{self.activeBtnById('btnModel'); addShape('modelSpice'); });
 document.getElementById('btnAnalysis').addEventListener('click',  () =>{self.activeBtnById('btnAnalysis'); addShape("analysis"); });
+document.getElementById('btnWidget').addEventListener('click',  () =>{self.activeBtnById('btnWidget'); addShape("liveWidget"); });
 document.getElementById('btnScope').addEventListener('click',  () =>{self.activeBtnById('btnScope'); addShape("liveScope"); });
 
 document.getElementById('btnWire').addEventListener('click',  () =>{self.activeBtnById('btnWire'); addShape('net'); });
@@ -580,7 +590,7 @@ const toolButtons = [
   'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
   'btnModel', 'btnCommand',
   'btnHTML', 'btnAnalysis', 'btnAV', 'btnScope',
-  'btnSubBlock'
+  'btnSubBlock', 'btnWidget'
 ];   
 
 const toolNames = [

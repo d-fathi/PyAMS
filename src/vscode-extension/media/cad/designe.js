@@ -30,6 +30,7 @@ function elemNotByDown() {
 		    break;
 	case 'analysis':
 	case 'liveScope':
+	case 'liveWidget':
     case 'codeHTML':
 	case 'codePy':
 	      drawing.shapes.addElement(drawing.shapes.design.name);
@@ -210,6 +211,7 @@ function designMouseMouve(self, pos) {
       case 'probe':
 	  case 'part':
       case 'liveScope':
+      case 'liveWidget':
       case 'codeHTML':
       case 'analysis':
 	  case 'codePy':

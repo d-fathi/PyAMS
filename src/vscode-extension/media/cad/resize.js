@@ -19,6 +19,7 @@ function getType(self) {
     case "rect":
     case "image":
 	case "liveScope":
+	case "liveWidget":
 	case "analysis":
     case "ellipse":
 	case "codePy":
@@ -80,6 +81,7 @@ function setInitPos(self) {
        case "rect":
        case "image":
 	   case "liveScope":
+	   case "liveWidget":
        case "analysis":
        case "codeHTML":
 	   case "codePy":
@@ -152,6 +154,7 @@ function setPosSize(self) {
       case "image":
       case "analysis":
       case "liveScope":
+      case "liveWidget":
       case "codeHTML":
 	  case "codePy":
         el.setAttribute("width", Math.abs(self.ellps[0].x - self.ellps[2].x));
@@ -160,6 +163,7 @@ function setPosSize(self) {
         el.setAttribute("y", Math.min(self.ellps[0].y, self.ellps[3].y));
 		    modifedSizeAnalysis(self.setElement);
 		    modifedSizeLiveScope(self.setElement);
+		    modifedSizeLiveWidget(self.setElement);
 		    modifedSizeCodePy(self.setElement);
 		    modifedSizeCodeHtml(self.setElement);
 		    findPosProb();

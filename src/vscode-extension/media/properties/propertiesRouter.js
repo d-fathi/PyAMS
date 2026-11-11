@@ -113,6 +113,10 @@ function showDescriptionElemSelectInPanel(select) {
                 liveScopeSelect();
              break;
 
+			 case "liveWidget":
+                liveWidgetSelect();
+             break;
+
             default:
                 selectPage();
 
@@ -222,6 +226,10 @@ function changeSelect() {
 
 	case 'liveScope':
 	      modifiedLiveScope();
+        break;
+
+	case 'liveWidget':
+	      modifiedLiveWidget();
         break;
     }
   // drawing.saveData('Changed property of ' + mtable.typeSelect);

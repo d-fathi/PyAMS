@@ -61,6 +61,7 @@ function savePageToSVG(size) {
         case "image":
         case "probe":
 		case "liveScope":
+		case "liveWidget":
             var x = parseInt(elem.getAttribute("x"));
             var y = parseInt(elem.getAttribute("y"));
             getMinMaxSize(min_, max_, x, y)
@@ -110,6 +111,7 @@ function savePageToSVG(size) {
         case "probe":
         case "part":
 		case "liveScope":
+		case "liveWidget":
             var x = parseInt(elem.getAttribute("x"));
             var y = parseInt(elem.getAttribute("y"));
 

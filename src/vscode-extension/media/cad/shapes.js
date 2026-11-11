@@ -24,6 +24,7 @@ function evtDown(self) {
         case "rect":
         case "image":
 	    case "liveScope":
+	    case "liveWidget":
 	    case "codePy":
         case "codeHTML":
       	case "analysis":
@@ -101,6 +102,7 @@ function evtMouve(self) {
 	case "analysis":
         appDscription = false;
     case "liveScope":
+    case "liveWidget":
     case "codeHTML":
 	case "codePy":
         self.selectedElement.setAttribute("x", x);
@@ -469,6 +471,17 @@ function fshapes(svg, setDrawing, width, height) {
 
 
 
+        case 'liveWidget':
+            var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+            newElement.setAttribute('transform', "translate(10,10)");
+            newElement.setAttribute("x", 10);
+            newElement.setAttribute("y", 10);
+            newElement.setAttribute("class", "liveWidget");
+            newElement.setAttribute("name", "liveWidget");
+            addLiveWidget(newElement);
+            svg.appendChild(newElement);
+            break;
+
         case 'liveScope':
             var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'g');
             newElement.setAttribute('transform', "translate(10,10)");
@@ -831,6 +844,14 @@ function fshapes(svg, setDrawing, width, height) {
 
 
 		var els = document.querySelectorAll('[name="analysis"]');
+        for (var i = els.length-1; i >=0 ; i--)
+            if (pointInRect(els[i], self.offset)) {
+                self.setCritElem = els[i];
+                return true;
+            }
+
+		// live widget (LED, switch, ...): found by position
+		var els = document.querySelectorAll('[name="liveWidget"]');
         for (var i = els.length-1; i >=0 ; i--)
             if (pointInRect(els[i], self.offset)) {
                 self.setCritElem = els[i];
