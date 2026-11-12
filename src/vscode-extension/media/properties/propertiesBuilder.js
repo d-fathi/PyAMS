@@ -262,7 +262,7 @@ function polylineSelect() {
 
 function polylineModified() {
     mtable.select.style.stroke = propertiesData.sections[0].rows[0].color;
-    modifiedEvent();
+    if (typeof modifiedEvent === 'function') modifiedEvent();
     deleteEllipseMS(mtable.resize);
     mtable.resize.updateSlect();
 }
@@ -271,21 +271,14 @@ function polylineModified() {
 
 
 function polygonSelect() {
-    defaultData = {
-        header: { title: "Polygon", subtitle: "Selected" },
-        sections: [
-            {
-                title: "Basic Properties",
-                collapsed: false,
-                showReset: true,
-                rows: [
-                    { label: "Stroke", type: "color", value: rgb2hex(mtable.select.style.stroke), color: rgb2hex(mtable.select.style.stroke) },
-                    { label: "Fill", type: "color", value: rgb2hex(mtable.select.style.fill), color: rgb2hex(mtable.select.style.fill) },
-                    { label: "Style", type: "Button", value: 'CSS Code', setClick:'openEditCSS' }
-                ]
-            }
-        ]
-    };
+    var el = mtable.select, live = el.hasAttribute('wlive');
+    var rows = [{ label: "Stroke", type: "color", value: rgb2hex(el.style.stroke), color: rgb2hex(el.style.stroke) }];
+    if (!live) rows.push({ label: "Fill", type: "color", value: rgb2hex(el.style.fill), color: rgb2hex(el.style.fill) });
+    rows.push({ label: "Live segment", type: "dropdown", options: ["No", "Yes"], value: live ? "Yes" : "No" });
+    rows.push({ label: "Style", type: "Button", value: 'CSS Code', setClick:'openEditCSS' });
+    var sections = [{ title: "Basic Properties", collapsed: false, showReset: true, rows: rows }];
+    if (live) { try { sections = sections.concat(liveSegmentSections(el)); } catch (e) { console.error(e); } }
+    defaultData = { header: { title: live ? "Polygon segment" : "Polygon", subtitle: live ? (el.getAttribute('wref') || '') : "Selected" }, sections: sections };
 
     mtable.type = "polygon";
     propertiesData = JSON.parse(JSON.stringify(defaultData));
@@ -293,11 +286,18 @@ function polygonSelect() {
 }
 
 function polygonModified() {
-    mtable.select.style.stroke = propertiesData.sections[0].rows[0].color;
-    mtable.select.style.fill = propertiesData.sections[0].rows[1].color;
-    modifiedEvent();
+    var el = mtable.select, P = propertiesData.sections, B = P[0].rows;
+    var row = function (l) { for (var i = 0; i < B.length; i++) if (B[i].label === l) return B[i]; return null; };
+    el.style.stroke = row("Stroke").color;
+    var fill = row("Fill"); if (fill) el.style.fill = fill.color;
+    var want = row("Live segment") ? row("Live segment").value === "Yes" : false, rebuild = false;
+    if (want && !el.hasAttribute('wlive')) { try { liveWidget.makeLive(el); } catch (e) { console.error(e); } rebuild = true; }
+    else if (!want && el.hasAttribute('wlive')) { liveWidget.makeNormal(el); rebuild = true; }
+    else if (want && P.length >= 3) { try { rebuild = liveSegmentModified(el, P[1], P[2]); } catch (e) { console.error(e); } }
+    if (typeof modifiedEvent === 'function') modifiedEvent();
     deleteEllipseMS(mtable.resize);
     mtable.resize.updateSlect();
+    if (rebuild) polygonSelect();
 }
 //--Net description ---------------------------------------------------
 

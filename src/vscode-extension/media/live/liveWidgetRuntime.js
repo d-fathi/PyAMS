@@ -27,7 +27,7 @@ var liveWidgetRT = (function () {
     var TOGGLE = { 'switch': 1, spst: 1, spdt: 1 }, MOMENTARY = { button: 1, pushsw: 1 };
 
     function root() { return document.getElementById('sym') || document; }
-    function widgets() { return Array.prototype.slice.call(root().querySelectorAll('[name="liveWidget"]')); }
+    function widgets() { return Array.prototype.slice.call(root().querySelectorAll('[name="liveWidget"], polygon[wlive]')); }
     function refOf(g) {
         var p = g.parentNode, w = g.getAttribute('wref') || '';
         if (p && p.getAttribute && p.getAttribute('name') === 'part' && p.getAttribute('sref')) return p.getAttribute('sref') + '.' + w;
@@ -81,7 +81,7 @@ var liveWidgetRT = (function () {
             if (isInput(g)) return;
             var type = liveWidget.getType(g), c = liveWidget.getCfg(g), v;
             i++;
-            if (type === 'led') v = (Math.floor(t * 1.5 + i * 0.5) % 2) ? 1 : 0;
+            if (type === 'led' || type === 'polyseg') v = (Math.floor(t * 1.5 + i * 0.5) % 2) ? 1 : 0;
             else if (type === 'segment') v = Math.floor(t * 2) % Math.pow(10, Math.max(1, c.digits || 1));
             else return;
             if (!g.__rt || g.__rt.v !== v) {

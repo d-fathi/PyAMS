@@ -23,28 +23,35 @@ var liveWidget = (function () {
         slider:  { title: 'Slider',      prefix: 'sl',  w: 120, h: 30 },
         spst:    { title: 'SPST switch', prefix: 'spst', w: 70, h: 30 },
         spdt:    { title: 'SPDT switch', prefix: 'spdt', w: 70, h: 46 },
-        pushsw:  { title: 'Push switch', prefix: 'psw', w: 60,  h: 30 }
+        pushsw:  { title: 'Push switch', prefix: 'psw', w: 60,  h: 30 },
+        polyseg: { title: 'Polygon segment', prefix: 'pseg', w: 40, h: 12 }     // becomes an editable polygon
     };
-    var ORDER = ['led', 'segment', 'switch', 'button', 'slider', 'spst', 'spdt', 'pushsw'];
+    var ORDER = ['led', 'segment', 'switch', 'button', 'slider', 'spst', 'spdt', 'pushsw', 'polyseg'];
     var TOGGLE = { 'switch': 1, spst: 1, spdt: 1 };     // keep their position (state `on`)
     var MOMENTARY = { button: 1, pushsw: 1 };           // active only while pressed
     var LABEL_H = 12;
 
     function defaultCfg(type) {
         switch (type) {
-            case 'led':     return { label: '', shape: 'circle', onColor: '#22c55e', offColor: '#3b4350', threshold: 0.5, value: 1 };
-            case 'segment': return { label: '', digits: 1, dp: false, color: '#ef4444', offColor: '#3a1c1c', value: 8 };
+            case 'led':     return { label: '', scale: 1, offset: 0, shape: 'circle', onColor: '#22c55e', offColor: '#3b4350', threshold: 0.5, value: 1 };
+            case 'segment': return { label: '', scale: 1, offset: 0, digits: 1, dp: false, color: '#ef4444', offColor: '#3a1c1c', value: 8 };
             case 'switch':  return { label: '', onValue: 1, offValue: 0, on: false, color: '#22c55e' };
             case 'button':  return { label: '', pressValue: 1, releaseValue: 0, color: '#3b82f6' };
             case 'spst':    return { label: '', onValue: 1, offValue: 0, on: false, color: '#8b95a5', accent: '#22c55e' };
             case 'spdt':    return { label: '', onValue: 1, offValue: 0, on: true,  color: '#8b95a5', accent: '#22c55e' };   // on = upper position
+            case 'polyseg': return { onColor: '#ef4444', offColor: '#3a1c1c', threshold: 0.5, value: 1, scale: 1, offset: 0 };
             case 'pushsw':  return { label: '', pressValue: 1, releaseValue: 0, color: '#8b95a5', accent: '#22c55e' };
             case 'slider':  return { label: '', min: 0, max: 1, step: 0.01, value: 0.5, vertical: false, color: '#3b82f6' };
         }
         return { label: '' };
     }
 
-    function getType(g) { var t = g.getAttribute('wtype'); return TYPES[t] ? t : 'led'; }
+    function isPoly(g) { return !!(g && g.tagName && g.tagName.toLowerCase() === 'polygon'); }
+    function getType(g) {
+        if (isPoly(g)) return 'polyseg';                  // a polygon marked as a live segment
+        var t = g.getAttribute('wtype'); return TYPES[t] ? t : 'led';
+    }
+    var SEL = '[name="liveWidget"], polygon[wlive]';
     function getCfg(g) {
         var t = getType(g), c = null;
         try { c = JSON.parse(g.getAttribute('wcfg')); } catch (e) {}
@@ -68,7 +75,7 @@ var liveWidget = (function () {
         return s;
     }
     function allRefs(except) {
-        var out = [], els = document.querySelectorAll('[name="liveWidget"]');
+        var out = [], els = document.querySelectorAll(SEL);
         for (var i = 0; i < els.length; i++) if (els[i] !== except) out.push(els[i].getAttribute('wref'));
         return out;
     }
@@ -162,7 +169,7 @@ var liveWidget = (function () {
     // values of the live simulation (runtime only, never saved): {v, on, pressed}
     function applyRT(type, c, rt) {
         var o = Object.assign({}, c);
-        if (type === 'led' || type === 'segment' || type === 'slider') o.value = rt.v;
+        if (type === 'led' || type === 'segment' || type === 'slider' || type === 'polyseg') o.value = rt.v;
         else if (TOGGLE[type]) o.on = !!rt.on;
         else if (MOMENTARY[type]) o.pressed = !!rt.pressed;
         return o;
@@ -223,9 +230,33 @@ var liveWidget = (function () {
         lead(p, xa, yb, xb, yb, pr ? c.accent : c.color, sw + 0.8);
     }
 
+    // a polygon used as a live segment: only its colour changes (on / off)
+    function paintPoly(g) {
+        var c = getCfg(g), v = g.__rt ? g.__rt.v : c.value;
+        g.style.fill = (num(v, 0) >= num(c.threshold, 0.5)) ? c.onColor : c.offColor;
+    }
+    // turn a normal polygon into a live segment (and back)
+    function makeLive(g) {
+        var cfg = defaultCfg('polyseg'), cur = g.style.fill;
+        if (cur && cur !== 'none') cfg.onColor = hexOf(cur) || cfg.onColor;
+        g.setAttribute('wlive', '1');
+        g.setAttribute('wref', newRef('polyseg', g));
+        setCfg(g, cfg); paintPoly(g);
+    }
+    function makeNormal(g) {
+        ['wlive', 'wref', 'wcfg', 'wbind'].forEach(function (a) { g.removeAttribute(a); });
+        delete g.__rt;
+    }
+    function hexOf(col) {
+        var m = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/.exec(String(col).trim());
+        if (m) return '#' + [m[1], m[2], m[3]].map(function (n) { return ('0' + (+n).toString(16)).slice(-2); }).join('');
+        return /^#[0-9a-f]{6}$/i.test(col) ? col : '';
+    }
+
     // (re)build the content of the element
     function redraw(g) {
         if (!g) return;
+        if (isPoly(g)) { paintPoly(g); return; }
         var x = num(g.getAttribute('x'), 0), y = num(g.getAttribute('y'), 0);
         var w = Math.max(10, num(g.getAttribute('width'), 30)), h = Math.max(10, num(g.getAttribute('height'), 30));
         g.setAttribute('transform', 'translate(' + x + ',' + y + ')');
@@ -284,8 +315,8 @@ var liveWidget = (function () {
     }
     // redraw every widget found in `root` from its saved settings (after opening / pasting)
     function initAll(root) {
-        var list = (root && root.querySelectorAll) ? Array.prototype.slice.call(root.querySelectorAll('[name="liveWidget"]')) : [];
-        if (root && root.getAttribute && root.getAttribute('name') === 'liveWidget') list.push(root);
+        var list = (root && root.querySelectorAll) ? Array.prototype.slice.call(root.querySelectorAll(SEL)) : [];
+        if (root && root.matches && root.matches(SEL)) list.push(root);
         list.forEach(function (g) { delete g.__rt; redraw(g); });
     }
 
@@ -307,9 +338,83 @@ var liveWidget = (function () {
         redraw(g);
     }
 
-    return { TYPES: TYPES, ORDER: ORDER, defaultCfg: defaultCfg, getType: getType, getCfg: getCfg, setCfg: setCfg,
-             redraw: redraw, initAll: initAll, toLogical: toLogical, sliderFraction: sliderFraction, applyOp: applyOp, setLogicalSize: setLogicalSize, create: create, cleanRef: cleanRef, uniqueRef: uniqueRef, newRef: newRef, isAutoRef: isAutoRef };
+    // ---- binding to the model of the symbol ---------------------------------------------------------
+    //   wbind = "param:R"    input widget -> parameter R of the model        (set between two steps)
+    //   wbind = "signal:I"   output widget <- signal I of the model          (read after every step)
+    //   wbind = "pin:out"    output widget <- voltage of the pin "out"
+    function isInputType(t) { return !!(TOGGLE[t] || MOMENTARY[t] || t === 'slider'); }
+    function getBinding(g) {
+        var b = String(g.getAttribute('wbind') || ''), i = b.indexOf(':');
+        if (i < 1) return null;
+        var c = getCfg(g);
+        return { kind: b.slice(0, i), name: b.slice(i + 1), scale: num(c.scale, 1), offset: num(c.offset, 0) };
+    }
+    function bindingFits(type, bind) {                  // does the kind of binding suit the direction?
+        if (!bind) return true;
+        var k = String(bind).split(':')[0];
+        return isInputType(type) ? k === 'param' : (k === 'signal' || k === 'pin');
+    }
+
+    return { isInputType: isInputType, getBinding: getBinding, bindingFits: bindingFits, TYPES: TYPES, ORDER: ORDER, defaultCfg: defaultCfg, getType: getType, getCfg: getCfg, setCfg: setCfg,
+             redraw: redraw, initAll: initAll, makeLive: makeLive, makeNormal: makeNormal, isPoly: isPoly, toLogical: toLogical, sliderFraction: sliderFraction, applyOp: applyOp, setLogicalSize: setLogicalSize, create: create, cleanRef: cleanRef, uniqueRef: uniqueRef, newRef: newRef, isAutoRef: isAutoRef };
 })();
+
+// ---------------------------------------------------------------------------------------------
+// information about the model of the symbol, for the Binding section
+//   params : the parameters of the symbol (elements "param" that go to setParams) + those of the model
+//   signals: the signals of the model (needs Python: the model is instantiated once to read them)
+//   pins   : the names of the pins
+// ---------------------------------------------------------------------------------------------
+var liveWidgetModelCache = {};
+
+function liveWidgetPins() {
+    var out = [], pins = document.querySelectorAll('#sym [name="pin"]');
+    for (var i = 0; i < pins.length; i++) {
+        var t = pins[i].querySelector('text'), n = t ? String(t.textContent || '').trim() : '';
+        if (n && out.indexOf(n) < 0) out.push(n);
+    }
+    return out;
+}
+function liveWidgetSymbolParams() {
+    var out = [], els = document.querySelectorAll('#sym [name="param"]');
+    for (var i = 0; i < els.length; i++) {
+        var b = els[i].getAttribute('bind'), n = els[i].getAttribute('paramname');
+        if (n && b !== 'init' && b !== 'method' && out.indexOf(n) < 0) out.push(n);
+    }
+    return out;
+}
+// Python text that creates one instance of the model of the symbol (null when there is no model)
+function liveWidgetModelCode() {
+    try {
+        var m = drawing.symbol && drawing.symbol.model;
+        if (!m || !m.name || m.name === 'None') return null;
+        var n = document.querySelectorAll('#sym [name="pin"]').length, pins = [];
+        for (var i = 0; i < n; i++) pins.push('"n' + i + '"');
+        var bound = getBoundParams(document.getElementById('sym'));
+        return pyImportLine(m.name, m.dir, m.file) + "\n" + pyElementCode('X1', m.name, pins, '', bound);
+    } catch (e) { return null; }
+}
+// returns the cached info ({signals:[], params:[]}) or null; asks Python once when it is not known yet
+function liveWidgetModelInfo(onReady) {
+    var code = liveWidgetModelCode();
+    if (!code) return { signals: [], params: [] };
+    var c = liveWidgetModelCache[code];
+    if (c) return c.info || null;
+    liveWidgetModelCache[code] = { info: null };
+    try {
+        drawing.getListParameter(code).then(function (data) {
+            var info = { signals: [], params: [] };
+            var m = data && data.models && data.models[0];
+            if (m) {
+                (m.signals || []).forEach(function (x) { info.signals.push(x.name); });
+                (m.params || []).forEach(function (x) { info.params.push(x.name); });
+            }
+            liveWidgetModelCache[code].info = info;
+            if (onReady) onReady();
+        }).catch(function () { liveWidgetModelCache[code].info = { signals: [], params: [] }; if (onReady) onReady(); });
+    } catch (e) { liveWidgetModelCache[code].info = { signals: [], params: [] }; }
+    return null;
+}
 
 // functions used by the rest of the editor (same names as the other elements)
 function addLiveWidget(elem) { liveWidget.create(elem, 'led'); }
@@ -322,6 +427,35 @@ function modifedSizeLiveWidget(elem) { if (elem && elem.getAttribute && elem.get
 //   section 1  Widget           : Type, Ref, Label
 //   section 2  type settings    : depends on the type (see below)
 // ---------------------------------------------------------------------------------------------
+// the Binding section of the properties panel (shared by the widgets and the live polygon)
+function liveWidgetBindingSection(el, type, c, reselect) {
+    var W = liveWidget, input = W.isInputType(type), saved = String(el.getAttribute('wbind') || '');
+    var info = liveWidgetModelInfo(reselect);
+    var opts = ['None'], seen = {};
+    var add = function (kind, name) { var k = kind + ': ' + name; if (!seen[k]) { seen[k] = 1; opts.push(k); } };
+    if (input) {
+        liveWidgetSymbolParams().forEach(function (n) { add('param', n); });
+        if (info) info.params.forEach(function (n) { add('param', n); });
+    } else {
+        if (info) info.signals.forEach(function (n) { add('signal', n); });
+        liveWidgetPins().forEach(function (n) { add('pin', n); });
+    }
+    var cur = 'None';
+    if (saved && W.bindingFits(type, saved)) {
+        var k = saved.replace(':', ': ');
+        if (!seen[k]) opts.push('\u26A0 ' + k);                 // saved, but not found in the model (any more)
+        cur = seen[k] ? k : '\u26A0 ' + k;
+    }
+    var brows = [{ label: input ? 'Model parameter' : 'Model signal', type: 'dropdown', options: opts, value: cur }];
+    if (!input) {
+        brows.push({ label: 'Scale', type: 'number', value: c.scale === undefined ? 1 : c.scale });
+        brows.push({ label: 'Offset', type: 'number', value: c.offset === undefined ? 0 : c.offset });
+    }
+    if (!info) brows.push({ label: 'Model signals', type: 'text', value: 'reading the model...' });
+    return { title: 'Binding', collapsed: false, showReset: true, collapseKey: 'lw.Binding', rows: brows };
+
+}
+
 function liveWidgetSelect() {
     var el = mtable.select, W = liveWidget;
     var type = W.getType(el), c = W.getCfg(el);
@@ -413,6 +547,8 @@ function liveWidgetSelect() {
             sec.collapsed = propSectionState[sec.collapseKey];
     });
 
+    sections.push(liveWidgetBindingSection(el, type, c, function () { if (mtable.select === el && mtable.type === 'liveWidget') liveWidgetSelect(); }));
+
     defaultData = { header: { title: 'Live widget', subtitle: W.TYPES[type].title + '  ·  ' + (el.getAttribute('wref') || '') }, sections: sections };
     mtable.type = 'liveWidget';
     propertiesData = JSON.parse(JSON.stringify(defaultData));
@@ -436,12 +572,14 @@ function modifiedLiveWidget() {
     W.ORDER.forEach(function (t) { if (W.TYPES[t].title === P[1].rows[0].value) newType = t; });
     var ref = W.cleanRef(P[1].rows[1].value);
     var rebuild = false;
+    if (newType === 'polyseg' && oldType !== 'polyseg') { liveWidgetToPolygon(el); return; }
 
     if (newType !== oldType) {
         // new kind of widget: its own defaults, default size, and a new automatic ref
         var keepLabel = c.label;
         el.setAttribute('wtype', newType);
         el.setAttribute('wm', '1,0,0,1');
+        if (!W.bindingFits(newType, el.getAttribute('wbind'))) el.removeAttribute('wbind');
         c = W.defaultCfg(newType); c.label = keepLabel;
         el.setAttribute('width', W.TYPES[newType].w);
         el.setAttribute('height', W.TYPES[newType].h);
@@ -495,6 +633,11 @@ function modifiedLiveWidget() {
                 c.vertical = vert; c.color = R[5].value;
                 break; }
         }
+        // binding to the model of the symbol
+        var BR = P[3].rows, sel = String(BR[0].value || 'None');
+        var nb = (sel === 'None') ? '' : sel.replace(/^\u26A0\s*/, '').replace(': ', ':');
+        if (nb) el.setAttribute('wbind', nb); else el.removeAttribute('wbind');
+        if (!W.isInputType(oldType)) { c.scale = f(BR[1].value, 1); c.offset = f(BR[2].value, 0); }
         // ref must be a valid, unique name
         if (!ref) ref = el.getAttribute('wref') || W.newRef(newType, el);
         var u = W.uniqueRef(ref, el);
@@ -509,4 +652,59 @@ function modifiedLiveWidget() {
     mtable.resize.updateSlect();
 
     if (rebuild) liveWidgetSelect();
+}
+
+// ---------------------------------------------------------------------------------------------
+// Polygon segment: a normal polygon (points can be added / moved with the polygon tools) that is
+// a live output: its fill is the "on" or the "off" colour according to the bound signal.
+// ---------------------------------------------------------------------------------------------
+function liveWidgetToPolygon(el) {
+    var x = parseFloat(el.getAttribute('x')) || 0, y = parseFloat(el.getAttribute('y')) || 0;
+    var pts = [[5, 0], [31, 0], [36, 5], [31, 10], [5, 10], [0, 5]].map(function (p) { return (x + p[0]) + ',' + (y + p[1]); }).join(' ');
+    var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttribute('points', pts);
+    poly.style.stroke = '#1f2937'; poly.style.strokeWidth = '1px'; poly.style.fill = '#ef4444';
+    poly.setAttribute('class', 'draggable');
+    poly.setAttribute('name', 'polygon');
+    liveWidget.makeLive(poly);
+    el.parentNode.insertBefore(poly, el);
+    try { deleteEllipseMS(mtable.resize); } catch (e) {}
+    el.remove();
+    mtable.resize.setElement = poly;
+    mtable.resize.creatEllipse();
+}
+
+// sections added to the panel of a polygon that is a live segment
+function liveSegmentSections(el) {
+    var W = liveWidget, c = W.getCfg(el);
+    var live = { title: 'Live segment', collapsed: false, showReset: true, collapseKey: 'lw.Segment', rows: [
+        { label: 'Ref', type: 'text', value: el.getAttribute('wref') || '' },
+        { label: 'On color', type: 'color', value: c.onColor, color: c.onColor },
+        { label: 'Off color', type: 'color', value: c.offColor, color: c.offColor },
+        { label: 'Threshold', type: 'number', value: c.threshold },
+        { label: 'Preview value', type: 'number', value: c.value }
+    ] };
+    var bind = liveWidgetBindingSection(el, 'polyseg', c, function () { if (mtable.select === el && mtable.type === 'polygon') polygonSelect(); });
+    [live, bind].forEach(function (sec) {
+        if (typeof propSectionState !== 'undefined' && typeof propSectionState[sec.collapseKey] === 'boolean') sec.collapsed = propSectionState[sec.collapseKey];
+    });
+    return [live, bind];
+}
+
+// read the two sections back (live = Live segment, bind = Binding); returns true when the panel must be rebuilt
+function liveSegmentModified(el, live, bind) {
+    var W = liveWidget, c = W.getCfg(el), rebuild = false;
+    var f = function (v, d) { v = parseFloat(v); return isFinite(v) ? v : d; };
+    var ref = W.cleanRef(live.rows[0].value) || el.getAttribute('wref') || W.newRef('polyseg', el);
+    var u = W.uniqueRef(ref, el); if (u !== live.rows[0].value) rebuild = true;
+    el.setAttribute('wref', u);
+    c.onColor = live.rows[1].color || live.rows[1].value; c.offColor = live.rows[2].color || live.rows[2].value;
+    c.threshold = f(live.rows[3].value, 0.5); c.value = f(live.rows[4].value, 0);
+    var sel = String(bind.rows[0].value || 'None');
+    var nb = (sel === 'None') ? '' : sel.replace(/^\u26A0\s*/, '').replace(': ', ':');
+    if (nb) el.setAttribute('wbind', nb); else el.removeAttribute('wbind');
+    c.scale = f(bind.rows[1].value, 1); c.offset = f(bind.rows[2].value, 0);
+    W.setCfg(el, c);
+    W.redraw(el);
+    return rebuild;
 }
