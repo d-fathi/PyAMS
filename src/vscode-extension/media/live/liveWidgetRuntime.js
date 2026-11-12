@@ -23,7 +23,8 @@ var liveWidgetRT = (function () {
     'use strict';
     var api = { onInput: null, onChange: null, demo: true };
     var active = false, running = false, timer = null, t0 = 0, tPause = 0;
-    var INPUTS = { 'switch': 1, button: 1, slider: 1 };
+    var INPUTS = { 'switch': 1, spst: 1, spdt: 1, button: 1, pushsw: 1, slider: 1 };
+    var TOGGLE = { 'switch': 1, spst: 1, spdt: 1 }, MOMENTARY = { button: 1, pushsw: 1 };
 
     function root() { return document.getElementById('sym') || document; }
     function widgets() { return Array.prototype.slice.call(root().querySelectorAll('[name="liveWidget"]')); }
@@ -38,8 +39,8 @@ var liveWidgetRT = (function () {
     // starting value of a widget, from its saved settings
     function initial(g) {
         var t = liveWidget.getType(g), c = liveWidget.getCfg(g);
-        if (t === 'switch') return { v: c.on ? c.onValue : c.offValue, on: !!c.on };
-        if (t === 'button') return { v: c.releaseValue, pressed: false };
+        if (TOGGLE[t]) return { v: c.on ? c.onValue : c.offValue, on: !!c.on };
+        if (MOMENTARY[t]) return { v: c.releaseValue, pressed: false };
         return { v: c.value };
     }
     function valueOf(g) { return g.__rt ? g.__rt.v : initial(g).v; }
@@ -53,8 +54,8 @@ var liveWidgetRT = (function () {
         value = Number(value); if (!isFinite(value)) return false;
         var t = liveWidget.getType(g), c = liveWidget.getCfg(g), rt = g.__rt || (g.__rt = initial(g));
         rt.v = value;
-        if (t === 'switch') rt.on = Math.abs(value - c.onValue) <= Math.abs(value - c.offValue);
-        if (t === 'button') rt.pressed = (value === c.pressValue);
+        if (TOGGLE[t]) rt.on = Math.abs(value - c.onValue) <= Math.abs(value - c.offValue);
+        if (MOMENTARY[t]) rt.pressed = (value === c.pressValue);
         show(g); changed();
         return true;
     }
@@ -147,9 +148,9 @@ var liveWidgetRT = (function () {
         var t = liveWidget.getType(g); if (!INPUTS[t]) return;       // outputs behave like normal drawing
         e.stopPropagation(); e.preventDefault();
         var c = liveWidget.getCfg(g), rt = g.__rt || (g.__rt = initial(g));
-        if (t === 'switch') {
+        if (TOGGLE[t]) {
             rt.on = !rt.on; rt.v = rt.on ? c.onValue : c.offValue; show(g); changed(); emit(g, rt.v);
-        } else if (t === 'button') {
+        } else if (MOMENTARY[t]) {
             rt.pressed = true; rt.v = c.pressValue; show(g); changed(); emit(g, rt.v);
             drag = { g: g, kind: 'button' };
         } else if (t === 'slider') {

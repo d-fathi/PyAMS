@@ -20,9 +20,14 @@ var liveWidget = (function () {
         segment: { title: '7-Segment',   prefix: 'seg', w: 30,  h: 50 },
         switch:  { title: 'Switch',      prefix: 'sw',  w: 50,  h: 30 },
         button:  { title: 'Push button', prefix: 'btn', w: 40,  h: 40 },
-        slider:  { title: 'Slider',      prefix: 'sl',  w: 120, h: 30 }
+        slider:  { title: 'Slider',      prefix: 'sl',  w: 120, h: 30 },
+        spst:    { title: 'SPST switch', prefix: 'spst', w: 70, h: 30 },
+        spdt:    { title: 'SPDT switch', prefix: 'spdt', w: 70, h: 46 },
+        pushsw:  { title: 'Push switch', prefix: 'psw', w: 60,  h: 30 }
     };
-    var ORDER = ['led', 'segment', 'switch', 'button', 'slider'];
+    var ORDER = ['led', 'segment', 'switch', 'button', 'slider', 'spst', 'spdt', 'pushsw'];
+    var TOGGLE = { 'switch': 1, spst: 1, spdt: 1 };     // keep their position (state `on`)
+    var MOMENTARY = { button: 1, pushsw: 1 };           // active only while pressed
     var LABEL_H = 12;
 
     function defaultCfg(type) {
@@ -31,6 +36,9 @@ var liveWidget = (function () {
             case 'segment': return { label: '', digits: 1, dp: false, color: '#ef4444', offColor: '#3a1c1c', value: 8 };
             case 'switch':  return { label: '', onValue: 1, offValue: 0, on: false, color: '#22c55e' };
             case 'button':  return { label: '', pressValue: 1, releaseValue: 0, color: '#3b82f6' };
+            case 'spst':    return { label: '', onValue: 1, offValue: 0, on: false, color: '#8b95a5', accent: '#22c55e' };
+            case 'spdt':    return { label: '', onValue: 1, offValue: 0, on: true,  color: '#8b95a5', accent: '#22c55e' };   // on = upper position
+            case 'pushsw':  return { label: '', pressValue: 1, releaseValue: 0, color: '#8b95a5', accent: '#22c55e' };
             case 'slider':  return { label: '', min: 0, max: 1, step: 0.01, value: 0.5, vertical: false, color: '#3b82f6' };
         }
         return { label: '' };
@@ -155,9 +163,64 @@ var liveWidget = (function () {
     function applyRT(type, c, rt) {
         var o = Object.assign({}, c);
         if (type === 'led' || type === 'segment' || type === 'slider') o.value = rt.v;
-        else if (type === 'switch') o.on = !!rt.on;
-        else if (type === 'button') o.pressed = !!rt.pressed;
+        else if (TOGGLE[type]) o.on = !!rt.on;
+        else if (MOMENTARY[type]) o.pressed = !!rt.pressed;
         return o;
+    }
+
+    // ---- schematic switches: terminals, blade, contacts ------------------------------------------
+    function terminal(p, x, y, r, col) {                  // a filled terminal with a light ring
+        mk('circle', { cx: x, cy: y, r: r + 1.2, fill: '#ffffff', opacity: 0.35 }, p);
+        mk('circle', { cx: x, cy: y, r: r, fill: col }, p);
+    }
+    function lead(p, x1, y1, x2, y2, col, sw) {
+        return mk('line', { x1: x1, y1: y1, x2: x2, y2: y2, stroke: col, 'stroke-width': sw, 'stroke-linecap': 'round' }, p);
+    }
+    function blade(p, x1, y1, x2, y2, col, sw, shadow) {
+        if (shadow) lead(p, x1 + 0.8, y1 + 1.4, x2 + 0.8, y2 + 1.4, '#000000', sw + 0.6).setAttribute('opacity', 0.25);
+        lead(p, x1, y1, x2, y2, col, sw);
+    }
+
+    // single pole, single throw (knife switch)
+    function drawSpst(p, w, h, c) {
+        var pad = 5, y = h * 0.64, xp = pad + (w - 2 * pad) * 0.3, xc = w - pad - (w - 2 * pad) * 0.3, r = Math.max(2.6, Math.min(w, h) * 0.1);
+        var sw = Math.max(1.6, Math.min(w, h) * 0.07), on = !!c.on, act = on ? c.accent : c.color;
+        lead(p, pad, y, xp, y, on ? c.accent : c.color, sw);
+        lead(p, xc, y, w - pad, y, on ? c.accent : c.color, sw);
+        if (on) blade(p, xp, y, xc, y, c.accent, sw + 1, true);
+        else {
+            var L = (xc - xp) * 1.12, a = 28 * Math.PI / 180;
+            blade(p, xp, y, xp + L * Math.cos(a), y - L * Math.sin(a), c.color, sw + 1, true);
+        }
+        terminal(p, xp, y, r, act); terminal(p, xc, y, r, act);
+    }
+
+    // single pole, double throw (changeover): on = upper position
+    function drawSpdt(p, w, h, c) {
+        var pad = 5, xp = pad + (w - 2 * pad) * 0.28, xc = w - pad - (w - 2 * pad) * 0.3;
+        var ym = h / 2, yu = h * 0.2, yl = h * 0.8, r = Math.max(2.6, Math.min(w, h) * 0.085);
+        var sw = Math.max(1.6, Math.min(w, h) * 0.06), up = !!c.on;
+        lead(p, pad, ym, xp, ym, c.accent, sw);
+        lead(p, xc, yu, w - pad, yu, up ? c.accent : c.color, sw);
+        lead(p, xc, yl, w - pad, yl, up ? c.color : c.accent, sw);
+        blade(p, xp, ym, xc, up ? yu : yl, c.accent, sw + 1, true);
+        terminal(p, xp, ym, r, c.accent);
+        terminal(p, xc, yu, r, up ? c.accent : c.color);
+        terminal(p, xc, yl, r, up ? c.color : c.accent);
+    }
+
+    // momentary push switch (normally open): the plunger closes the two contacts while pressed
+    function drawPushSw(p, w, h, c) {
+        var pad = 5, y = h * 0.68, xa = w * 0.34, xb = w * 0.66, r = Math.max(2.2, Math.min(w, h) * 0.075);
+        var sw = Math.max(1.5, Math.min(w, h) * 0.06), pr = !!c.pressed, col = pr ? c.accent : c.color;
+        lead(p, pad, y, xa - r, y, col, sw);
+        lead(p, xb + r, y, w - pad, y, col, sw);
+        mk('circle', { cx: xa, cy: y, r: r, fill: pr ? c.accent : 'none', stroke: col, 'stroke-width': sw }, p);
+        mk('circle', { cx: xb, cy: y, r: r, fill: pr ? c.accent : 'none', stroke: col, 'stroke-width': sw }, p);
+        var yb = pr ? y - r - 1 : h * 0.34;                  // the bar goes down while pressed
+        var ys = pr ? h * 0.2 : h * 0.1;
+        lead(p, w / 2, ys, w / 2, yb, c.color, sw);          // plunger stem
+        lead(p, xa, yb, xb, yb, pr ? c.accent : c.color, sw + 0.8);
     }
 
     // (re)build the content of the element
@@ -173,7 +236,8 @@ var liveWidget = (function () {
         mk('rect', { x: 0, y: 0, width: w, height: h, fill: 'transparent', stroke: 'none' }, g);
         var lab = String(c.label || ''), ah = lab ? Math.max(10, h - LABEL_H) : h;
         var body = mk('g', { 'pointer-events': 'none' }, g);
-        var fn = { led: drawLed, segment: drawSegment, switch: drawSwitch, button: drawButton, slider: drawSlider }[type];
+        var fn = { led: drawLed, segment: drawSegment, switch: drawSwitch, button: drawButton, slider: drawSlider,
+                   spst: drawSpst, spdt: drawSpdt, pushsw: drawPushSw }[type];
         // the content is drawn in its own (logical) box, then turned / mirrored by the orientation matrix
         var M = getM(g), sw = isSwapped(M), la = sw ? ah : w, lb = sw ? w : ah;
         var cg = mk('g', { transform: 'translate(' + (w / 2) + ',' + (ah / 2) + ') matrix(' + M[0] + ',' + M[2] + ',' + M[1] + ',' + M[3] + ',0,0) translate(' + (-la / 2) + ',' + (-lb / 2) + ')' }, body);
@@ -288,6 +352,29 @@ function liveWidgetSelect() {
                 { label: 'Initial state', type: 'dropdown', options: ['Off', 'On'], value: c.on ? 'On' : 'Off' },
                 { label: 'On color', type: 'color', value: c.color, color: c.color }
             ]; break;
+        case 'spst':
+            rows = [
+                { label: 'Closed value', type: 'number', value: c.onValue },
+                { label: 'Open value', type: 'number', value: c.offValue },
+                { label: 'Initial state', type: 'dropdown', options: ['Open', 'Closed'], value: c.on ? 'Closed' : 'Open' },
+                { label: 'Line color', type: 'color', value: c.color, color: c.color },
+                { label: 'Active color', type: 'color', value: c.accent, color: c.accent }
+            ]; break;
+        case 'spdt':
+            rows = [
+                { label: 'Upper value', type: 'number', value: c.onValue },
+                { label: 'Lower value', type: 'number', value: c.offValue },
+                { label: 'Initial position', type: 'dropdown', options: ['Upper', 'Lower'], value: c.on ? 'Upper' : 'Lower' },
+                { label: 'Line color', type: 'color', value: c.color, color: c.color },
+                { label: 'Active color', type: 'color', value: c.accent, color: c.accent }
+            ]; break;
+        case 'pushsw':
+            rows = [
+                { label: 'Pressed value', type: 'number', value: c.pressValue },
+                { label: 'Released value', type: 'number', value: c.releaseValue },
+                { label: 'Line color', type: 'color', value: c.color, color: c.color },
+                { label: 'Active color', type: 'color', value: c.accent, color: c.accent }
+            ]; break;
         case 'button':
             rows = [
                 { label: 'Pressed value', type: 'number', value: c.pressValue },
@@ -382,6 +469,18 @@ function modifiedLiveWidget() {
                 break;
             case 'button':
                 c.pressValue = f(R[0].value, 1); c.releaseValue = f(R[1].value, 0); c.color = R[2].value;
+                break;
+            case 'spst':
+                c.onValue = f(R[0].value, 1); c.offValue = f(R[1].value, 0);
+                c.on = R[2].value === 'Closed'; c.color = R[3].value; c.accent = R[4].value;
+                break;
+            case 'spdt':
+                c.onValue = f(R[0].value, 1); c.offValue = f(R[1].value, 0);
+                c.on = R[2].value === 'Upper'; c.color = R[3].value; c.accent = R[4].value;
+                break;
+            case 'pushsw':
+                c.pressValue = f(R[0].value, 1); c.releaseValue = f(R[1].value, 0);
+                c.color = R[2].value; c.accent = R[3].value;
                 break;
             case 'slider': {
                 c.min = f(R[0].value, 0); c.max = f(R[1].value, 1);
