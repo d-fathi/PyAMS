@@ -226,6 +226,24 @@ case 'stopPyAMSAnalysis':
     break;
 
 //****************Analysis End ******************************//
+
+//****************Live simulation (pyams/liveSession.py) ****/
+case 'liveStart': {
+    if (this.liveRun) { this.liveRun.kill(); this.liveRun = null; }
+    const run = LibrarySync.startLiveSession(this.context.extensionPath, message.code, message.config,
+        (ev) => { if (this.liveRun === run) webviewPanel.webview.postMessage({ type: 'liveEvent', event: ev }); });
+    this.liveRun = run;
+    break;
+}
+
+case 'liveSend':
+    if (this.liveRun) this.liveRun.send(message.cmd);
+    break;
+
+case 'liveStop':
+    if (this.liveRun) { this.liveRun.kill(); this.liveRun = null; }
+    break;
+//****************Live simulation End ***********************//
     
     
     
@@ -313,6 +331,7 @@ case 'stopPyAMSAnalysis':
         });
 
 webviewPanel.onDidDispose(() => {
+    if (this.liveRun) { this.liveRun.kill(); this.liveRun = null; }
     msgDisposable.dispose();
     docDisposable.dispose();
     
@@ -355,6 +374,7 @@ webviewPanel.onDidDispose(() => {
         const liveScopeJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveScope.js'));
         const liveWidgetJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveWidget.js'));
         const liveWidgetRuntimeJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveWidgetRuntime.js'));
+        const liveBridgeJs = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveBridge.js'));
         const liveCss = webview.asWebviewUri(vscode.Uri.joinPath(mediaPath, 'live', 'liveSimulation.css'));
         const importCircuitJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'importCircuit.js'));
         const sh01Js= webview.asWebviewUri(vscode.Uri.joinPath(cadPath,'shapes', 'information.js'));
@@ -487,6 +507,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${liveScopeJs}"></script>
     <script nonce="${nonce}" src="${liveWidgetJs}"></script>
     <script nonce="${nonce}" src="${liveWidgetRuntimeJs}"></script>
+    <script nonce="${nonce}" src="${liveBridgeJs}"></script>
     <script nonce="${nonce}" src="${liveJs}"></script>
     <script nonce="${nonce}" src="${simulationJs}"></script>
     <script nonce="${nonce}" src="${drawingJs}"></script>

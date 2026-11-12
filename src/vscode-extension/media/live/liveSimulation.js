@@ -41,7 +41,7 @@ var liveSimulation = (function () {
         panel = document.createElement('div');
         panel.id = 'livePanel';
         panel.innerHTML =
-            '<div class="lp-head"><span class="lp-title">Live Simulation</span><span class="lp-badge">Demo</span>' +
+            '<div class="lp-head"><span class="lp-title">Live Simulation</span><span class="lp-badge" id="lpBadge">Demo</span>' +
             '<button class="lp-close" title="Close">&times;</button></div>' +
             '<div class="lp-body">' +
               '<div class="lp-row">' +
@@ -51,23 +51,64 @@ var liveSimulation = (function () {
                 '<button class="lp-btn" data-act="reset" title="Reset">' + icon('<path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/>') + '</button>' +
               '</div>' +
               '<div class="lp-switch" data-act="live" title="Re-run automatically when a control changes"><i></i><span>Live</span></div>' +
+              '<div class="lp-opts" id="lpOpts">' +
+                '<label>Step <input id="lpStep" type="text" value="1ms" size="6" title="Fixed circuit time step"></label>' +
+                '<label>Speed <select id="lpRate" title="Circuit seconds per real second">' +
+                  '<option value="1" selected>Real time</option><option value="0.1">x 0.1</option><option value="0.01">x 0.01</option>' +
+                  '<option value="0.001">x 0.001</option><option value="max">Max</option></select></label>' +
+              '</div>' +
+              '<div class="lp-status" id="lpStatus"></div>' +
               '<div class="lp-sec">Widgets</div>' +
               '<div class="lp-list" id="lpControls"></div>' +
-              '<div class="lp-note">Run feeds the scopes with demo signals.<br>Circuit simulation: Future Application (Coming Soon)</div>' +
+              '<div class="lp-note" id="lpNote"></div>' +
             '</div>';
         document.body.appendChild(panel);
 
-        // Run / Pause / Stop / Reset drive the demo source; the Live switch is not implemented yet
+        // With something to simulate (bound widgets / scope channels in a circuit page) the buttons drive the
+        // Python session (liveBridge); otherwise they drive the demo generators
+        function rateValue() {
+            var v = panel.querySelector('#lpRate').value;
+            return v === 'max' ? null : parseFloat(v);
+        }
+        function real() { return liveBridge.isActive() || liveBridge.available(); }
         var actions = {
-            run:   function () { liveScope.demo.start(); liveWidgetRT.start(); },
-            pause: function () { liveScope.demo.pause(); liveWidgetRT.pause(); },
-            stop:  function () { liveScope.demo.stop(); liveWidgetRT.stop(); },
-            reset: function () { liveScope.demo.reset(); liveWidgetRT.reset(); }
+            run: function () {
+                if (liveBridge.isActive()) { if (liveBridge.state() === 'paused') liveBridge.resume(); return; }
+                if (liveBridge.available()) { setStatus('Starting...'); liveBridge.start({ step: panel.querySelector('#lpStep').value.trim() || '1ms', rate: rateValue() }); }
+                else { liveScope.demo.start(); liveWidgetRT.start(); }
+            },
+            pause: function () { if (liveBridge.isActive()) liveBridge.pause(); else { liveScope.demo.pause(); liveWidgetRT.pause(); } },
+            stop:  function () { if (liveBridge.isActive()) liveBridge.stop(); else { liveScope.demo.stop(); liveWidgetRT.stop(); } setStatus(''); },
+            reset: function () { if (liveBridge.isActive()) liveBridge.reset(); else { liveScope.demo.reset(); liveWidgetRT.reset(); } }
         };
+        function setStatus(t, err) {
+            var el = panel.querySelector('#lpStatus'); if (!el) return;
+            el.textContent = t || ''; el.classList.toggle('err', !!err);
+        }
+        function showNote() {
+            var n = panel.querySelector('#lpNote'), r = liveBridge.available();
+            panel.querySelector('#lpBadge').textContent = r ? 'Python' : 'Demo';
+            panel.querySelector('#lpOpts').style.display = r ? '' : 'none';
+            if (n) n.innerHTML = r ? 'Run simulates the circuit with Python (PyAMS), step by step in real time.' :
+                'Nothing is bound to the model: Run feeds the widgets and scopes with demo signals.<br>Bind widgets in the symbol editor (Binding) or add scope channels.';
+        }
         function showState() {
             var run = panel.querySelector('[data-act="run"]');
-            if (run) run.classList.toggle('on', liveScope.demo.isRunning());
+            if (run) run.classList.toggle('on', liveBridge.isActive() ? liveBridge.state() === 'running' : liveScope.demo.isRunning());
+            showNote();
         }
+        api.showState = showState;
+        liveBridge.onState = function (st, info) {
+            if (st === 'running') setStatus('t = ' + (info.t !== undefined ? fmtT(info.t) : '0') + (info.speed ? '   ' + (+info.speed).toPrecision(2) + 'x' : '') + (info.late ? '   (too slow)' : ''));
+            else if (st === 'paused') setStatus('Paused  t = ' + fmtT(info.t || 0));
+            else if (st === 'error') setStatus(info.message || 'Error', true);
+            else if (st === 'idle') setStatus('');
+            showState();
+        };
+        liveBridge.onLog = function (m, level) { if (level === 'error') setStatus(m, true); try { console.log('[live ' + level + '] ' + m); } catch (e) {} };
+        function fmtT(t) { return t >= 1 ? t.toFixed(2) + ' s' : t >= 1e-3 ? (t * 1e3).toFixed(1) + ' ms' : (t * 1e6).toFixed(0) + ' us'; }
+        panel.querySelector('#lpRate').addEventListener('change', function () { if (liveBridge.isActive()) liveBridge.setRate(rateValue()); });
+        showNote();
         panel.querySelectorAll('[data-act]').forEach(function (el) {
             el.addEventListener('click', function (e) {
                 e.preventDefault(); e.stopPropagation();
@@ -115,6 +156,7 @@ var liveSimulation = (function () {
     function set(on) {
         create().classList.toggle('show', on);
         if (on && api.refresh) api.refresh();
+        if (on && api.showState) api.showState();
         if (typeof api.onChange === 'function') api.onChange(on);
         return on;
     }

@@ -2,6 +2,13 @@
 
 All notable changes to PyAMS will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Live simulation runs the circuit with Python: the Live panel starts `pyams/liveSession.py`; switches, buttons and sliders change model parameters while it runs, LEDs / 7-segments / polygon segments and scopes show the results (adjustable step and speed, Pause / Reset).
+- Optional `def live(self)` in a model: called after every accepted step to write output parameters for the widgets.
+- Demo: `demo/live/` (LiveDemo.py model, LiveDemo.sym symbol, Live Demo.dcs circuit).
+
 ## [0.3.1] - 2026-11-07
 
 ### Added

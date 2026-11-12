@@ -33,3 +33,8 @@
 #livePanel .lp-dir { font-size: 9px; opacity: .7; width: 10px; }
 #livePanel .lp-ref { flex: 1; font-family: Consolas, monospace; }
 #livePanel .lp-val { font-family: Consolas, monospace; opacity: .85; }
+
+#livePanel .lp-opts { display: flex; gap: 10px; align-items: center; justify-content: space-between; font-size: 11px; margin: 6px 0; }
+#livePanel .lp-opts input, #livePanel .lp-opts select { font-size: 11px; background: var(--vscode-input-background, #3c3c3c); color: var(--vscode-input-foreground, #ccc); border: 1px solid var(--vscode-input-border, #555); border-radius: 3px; padding: 1px 3px; }
+#livePanel .lp-status { font-size: 11px; min-height: 14px; opacity: .85; font-family: monospace; }
+#livePanel .lp-status.err { color: #ef4444; opacity: 1; white-space: normal; }

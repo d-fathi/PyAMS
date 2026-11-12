@@ -66,6 +66,8 @@ var liveWidgetRT = (function () {
             return { ref: refOf(g), type: liveWidget.getType(g), dir: isInput(g) ? 'in' : 'out', value: valueOf(g) };
         });
     };
+    api.refOf = refOf;
+    api.valueOf = function (g) { return valueOf(g); };
     api.isActive = function () { return active; };
     api.isRunning = function () { return running; };
 
