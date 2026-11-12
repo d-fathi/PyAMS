@@ -82,7 +82,7 @@ var liveWidgetRT = (function () {
             var type = liveWidget.getType(g), c = liveWidget.getCfg(g), v;
             i++;
             if (type === 'led' || type === 'polyseg') v = (Math.floor(t * 1.5 + i * 0.5) % 2) ? 1 : 0;
-            else if (type === 'segment') v = Math.floor(t * 2) % Math.pow(10, Math.max(1, c.digits || 1));
+            else if (type === 'segment') v = Math.floor(t * 2) % Math.pow(c.format === 'hex' ? 16 : 10, Math.max(1, c.digits || 1));
             else return;
             if (!g.__rt || g.__rt.v !== v) {
                 var rt = g.__rt || (g.__rt = initial(g)); rt.v = v; show(g);

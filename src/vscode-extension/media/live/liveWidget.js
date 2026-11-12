@@ -33,13 +33,13 @@ var liveWidget = (function () {
 
     function defaultCfg(type) {
         switch (type) {
-            case 'led':     return { label: '', scale: 1, offset: 0, shape: 'circle', onColor: '#22c55e', offColor: '#3b4350', threshold: 0.5, value: 1 };
-            case 'segment': return { label: '', scale: 1, offset: 0, digits: 1, dp: false, color: '#ef4444', offColor: '#3a1c1c', value: 8 };
+            case 'led':     return { label: '', scale: 1, offset: 0, activeLow: false, shape: 'circle', onColor: '#22c55e', offColor: '#3b4350', threshold: 0.5, value: 1 };
+            case 'segment': return { label: '', scale: 1, offset: 0, format: 'dec', digits: 1, dp: false, color: '#ef4444', offColor: '#3a1c1c', value: 8 };
             case 'switch':  return { label: '', onValue: 1, offValue: 0, on: false, color: '#22c55e' };
             case 'button':  return { label: '', pressValue: 1, releaseValue: 0, color: '#3b82f6' };
             case 'spst':    return { label: '', onValue: 1, offValue: 0, on: false, color: '#8b95a5', accent: '#22c55e' };
             case 'spdt':    return { label: '', onValue: 1, offValue: 0, on: true,  color: '#8b95a5', accent: '#22c55e' };   // on = upper position
-            case 'polyseg': return { onColor: '#ef4444', offColor: '#3a1c1c', threshold: 0.5, value: 1, scale: 1, offset: 0 };
+            case 'polyseg': return { onColor: '#ef4444', offColor: '#3a1c1c', threshold: 0.5, activeLow: false, value: 1, scale: 1, offset: 0 };
             case 'pushsw':  return { label: '', pressValue: 1, releaseValue: 0, color: '#8b95a5', accent: '#22c55e' };
             case 'slider':  return { label: '', min: 0, max: 1, step: 0.01, value: 0.5, vertical: false, color: '#3b82f6' };
         }
@@ -93,10 +93,12 @@ var liveWidget = (function () {
     }
 
     // ---------------------------------------------------------------- drawing
-    var SEG = { 0: 'abcdef', 1: 'bc', 2: 'abged', 3: 'abgcd', 4: 'fgbc', 5: 'afgcd', 6: 'afgedc', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg' };
+    // is a LED / polygon segment lit?  High: value >= threshold;  Low: value < threshold (0 = on, 1 = off)
+    function isLit(c, v) { var t = num(c.threshold, 0.5); return c.activeLow ? num(v, 0) < t : num(v, 0) >= t; }
+    var SEG = { 0: 'abcdef', 1: 'bc', 2: 'abged', 3: 'abgcd', 4: 'fgbc', 5: 'afgcd', 6: 'afgedc', 7: 'abc', 8: 'abcdefg', 9: 'abcdfg', A: 'abcefg', B: 'cdefg', C: 'adef', D: 'bcdeg', E: 'adefg', F: 'aefg' };
 
     function drawLed(p, w, h, c) {
-        var on = num(c.value, 0) >= num(c.threshold, 0.5);
+        var on = isLit(c, c.value);
         var col = on ? c.onColor : c.offColor;
         var s = Math.max(4, Math.min(w, h)), cx = w / 2, cy = h / 2;
         if (c.shape === 'square') {
@@ -112,8 +114,15 @@ var liveWidget = (function () {
     function drawSegment(p, w, h, c) {
         var n = Math.max(1, Math.min(8, parseInt(c.digits) || 1));
         mk('rect', { x: 0, y: 0, width: w, height: h, rx: 3, fill: '#0b0f14', stroke: '#1f2937' }, p);
-        var v = Math.max(0, Math.round(Math.abs(num(c.value, 0))));
-        var str = String(v); while (str.length < n) str = '0' + str; str = str.slice(-n);
+        var str;
+        if (c.format === 'hex') {                              // 0..15 -> 0-9 A-F ; out of range -> blank
+            var iv = Math.round(num(c.value, 0));
+            str = (iv < 0 || iv >= Math.pow(16, n)) ? null : iv.toString(16).toUpperCase();
+        } else {
+            var v = Math.max(0, Math.round(Math.abs(num(c.value, 0))));
+            str = String(v);
+        }
+        if (str !== null) { while (str.length < n) str = '0' + str; str = str.slice(-n); }
         var dw = w / n;
         for (var i = 0; i < n; i++) {
             var x0 = i * dw, t = Math.max(1.5, Math.min(dw, h) * 0.13), pad = t * 0.9 + 1, gap = t * 0.7;
@@ -124,7 +133,7 @@ var liveWidget = (function () {
                 d: [xl + gap, yb, xr - gap, yb], e: [xl, ym + gap / 2, xl, yb - gap], f: [xl, yt + gap, xl, ym - gap / 2],
                 g: [xl + gap, ym, xr - gap, ym]
             };
-            var lit = SEG[str.charAt(i)] || '';
+            var lit = (str === null) ? '' : (SEG[str.charAt(i)] || '');
             for (var k in segs) {
                 var s = segs[k];
                 mk('line', { x1: s[0], y1: s[1], x2: s[2], y2: s[3], stroke: lit.indexOf(k) >= 0 ? c.color : c.offColor,
@@ -233,7 +242,7 @@ var liveWidget = (function () {
     // a polygon used as a live segment: only its colour changes (on / off)
     function paintPoly(g) {
         var c = getCfg(g), v = g.__rt ? g.__rt.v : c.value;
-        g.style.fill = (num(v, 0) >= num(c.threshold, 0.5)) ? c.onColor : c.offColor;
+        g.style.fill = isLit(c, v) ? c.onColor : c.offColor;
     }
     // turn a normal polygon into a live segment (and back)
     function makeLive(g) {
@@ -352,7 +361,7 @@ var liveWidget = (function () {
     function bindingFits(type, bind) {                  // does the kind of binding suit the direction?
         if (!bind) return true;
         var k = String(bind).split(':')[0];
-        return isInputType(type) ? k === 'param' : (k === 'signal' || k === 'pin');
+        return isInputType(type) ? k === 'param' : (k === 'signal' || k === 'pin' || k === 'param');
     }
 
     return { isInputType: isInputType, getBinding: getBinding, bindingFits: bindingFits, TYPES: TYPES, ORDER: ORDER, defaultCfg: defaultCfg, getType: getType, getCfg: getCfg, setCfg: setCfg,
@@ -427,6 +436,22 @@ function modifedSizeLiveWidget(elem) { if (elem && elem.getAttribute && elem.get
 //   section 1  Widget           : Type, Ref, Label
 //   section 2  type settings    : depends on the type (see below)
 // ---------------------------------------------------------------------------------------------
+// read the Binding section back into the element; true when the panel has to be rebuilt
+// (the kind of binding changed: Scale / Offset are shown for signals and pins only)
+function liveWidgetApplyBinding(el, bind, c, input) {
+    var f = function (v, d) { v = parseFloat(v); return isFinite(v) ? v : d; };
+    var sel = String(bind.rows[0].value || 'None');
+    var nb = (sel === 'None') ? '' : sel.replace(/^\u26A0\s*/, '').replace(': ', ':');
+    var prev = String(el.getAttribute('wbind') || '').split(':')[0], now = nb.split(':')[0];
+    if (nb) el.setAttribute('wbind', nb); else el.removeAttribute('wbind');
+    bind.rows.forEach(function (r) {
+        if (r.label === 'Scale') c.scale = f(r.value, 1);
+        if (r.label === 'Offset') c.offset = f(r.value, 0);
+    });
+    if (now === 'param') { c.scale = 1; c.offset = 0; }
+    return !input && ((prev === 'param') !== (now === 'param'));
+}
+
 // the Binding section of the properties panel (shared by the widgets and the live polygon)
 function liveWidgetBindingSection(el, type, c, reselect) {
     var W = liveWidget, input = W.isInputType(type), saved = String(el.getAttribute('wbind') || '');
@@ -437,6 +462,9 @@ function liveWidgetBindingSection(el, type, c, reselect) {
         liveWidgetSymbolParams().forEach(function (n) { add('param', n); });
         if (info) info.params.forEach(function (n) { add('param', n); });
     } else {
+        // an output reads a parameter that the model writes (best), or a signal, or a pin voltage
+        liveWidgetSymbolParams().forEach(function (n) { add('param', n); });
+        if (info) info.params.forEach(function (n) { add('param', n); });
         if (info) info.signals.forEach(function (n) { add('signal', n); });
         liveWidgetPins().forEach(function (n) { add('pin', n); });
     }
@@ -446,8 +474,8 @@ function liveWidgetBindingSection(el, type, c, reselect) {
         if (!seen[k]) opts.push('\u26A0 ' + k);                 // saved, but not found in the model (any more)
         cur = seen[k] ? k : '\u26A0 ' + k;
     }
-    var brows = [{ label: input ? 'Model parameter' : 'Model signal', type: 'dropdown', options: opts, value: cur }];
-    if (!input) {
+    var brows = [{ label: input ? 'Model parameter' : 'Model value', type: 'dropdown', options: opts, value: cur }];
+    if (!input && !/^param/.test(cur.replace(/^\u26A0\s*/, ''))) {          // scale / offset only for signals and pins
         brows.push({ label: 'Scale', type: 'number', value: c.scale === undefined ? 1 : c.scale });
         brows.push({ label: 'Offset', type: 'number', value: c.offset === undefined ? 0 : c.offset });
     }
@@ -469,12 +497,14 @@ function liveWidgetSelect() {
                 { label: 'On color', type: 'color', value: c.onColor, color: c.onColor },
                 { label: 'Off color', type: 'color', value: c.offColor, color: c.offColor },
                 { label: 'Threshold', type: 'number', value: c.threshold },
+                { label: 'Active when', type: 'dropdown', options: ['High (value >= threshold)', 'Low (value < threshold)'], value: c.activeLow ? 'Low (value < threshold)' : 'High (value >= threshold)' },
                 { label: 'Preview value', type: 'number', value: c.value }
             ]; break;
         case 'segment':
             rows = [
                 { label: 'Digits', type: 'number', value: c.digits },
                 { label: 'Decimal point', type: 'dropdown', options: ['No', 'Yes'], value: yn(c.dp) },
+                { label: 'Format', type: 'dropdown', options: ['Decimal', 'Hex (0-15 = 0-F)'], value: c.format === 'hex' ? 'Hex (0-15 = 0-F)' : 'Decimal' },
                 { label: 'On color', type: 'color', value: c.color, color: c.color },
                 { label: 'Off color', type: 'color', value: c.offColor, color: c.offColor },
                 { label: 'Preview value', type: 'number', value: c.value }
@@ -579,7 +609,7 @@ function modifiedLiveWidget() {
         var keepLabel = c.label;
         el.setAttribute('wtype', newType);
         el.setAttribute('wm', '1,0,0,1');
-        if (!W.bindingFits(newType, el.getAttribute('wbind'))) el.removeAttribute('wbind');
+        if (!W.bindingFits(newType, el.getAttribute('wbind')) || W.isInputType(newType) !== W.isInputType(oldType)) el.removeAttribute('wbind');
         c = W.defaultCfg(newType); c.label = keepLabel;
         el.setAttribute('width', W.TYPES[newType].w);
         el.setAttribute('height', W.TYPES[newType].h);
@@ -593,13 +623,14 @@ function modifiedLiveWidget() {
             case 'led':
                 c.shape = R[0].value === 'Square' ? 'square' : 'circle';
                 c.onColor = R[1].value; c.offColor = R[2].value;
-                c.threshold = f(R[3].value, 0.5); c.value = f(R[4].value, 0);
+                c.threshold = f(R[3].value, 0.5); c.activeLow = /^Low/.test(R[4].value); c.value = f(R[5].value, 0);
                 break;
             case 'segment': {
                 var n = Math.max(1, Math.min(8, Math.round(f(R[0].value, 1))));
                 if (n !== c.digits) { W.setLogicalSize(el, W.TYPES.segment.w * n, W.TYPES.segment.h); rebuild = true; }
                 c.digits = n; c.dp = R[1].value === 'Yes';
-                c.color = R[2].value; c.offColor = R[3].value; c.value = f(R[4].value, 0);
+                c.format = /^Hex/.test(R[2].value) ? 'hex' : 'dec';
+                c.color = R[3].value; c.offColor = R[4].value; c.value = f(R[5].value, 0);
                 break; }
             case 'switch':
                 c.onValue = f(R[0].value, 1); c.offValue = f(R[1].value, 0);
@@ -634,10 +665,7 @@ function modifiedLiveWidget() {
                 break; }
         }
         // binding to the model of the symbol
-        var BR = P[3].rows, sel = String(BR[0].value || 'None');
-        var nb = (sel === 'None') ? '' : sel.replace(/^\u26A0\s*/, '').replace(': ', ':');
-        if (nb) el.setAttribute('wbind', nb); else el.removeAttribute('wbind');
-        if (!W.isInputType(oldType)) { c.scale = f(BR[1].value, 1); c.offset = f(BR[2].value, 0); }
+        if (liveWidgetApplyBinding(el, P[3], c, W.isInputType(oldType))) rebuild = true;
         // ref must be a valid, unique name
         if (!ref) ref = el.getAttribute('wref') || W.newRef(newType, el);
         var u = W.uniqueRef(ref, el);
@@ -682,6 +710,7 @@ function liveSegmentSections(el) {
         { label: 'On color', type: 'color', value: c.onColor, color: c.onColor },
         { label: 'Off color', type: 'color', value: c.offColor, color: c.offColor },
         { label: 'Threshold', type: 'number', value: c.threshold },
+        { label: 'Active when', type: 'dropdown', options: ['High (value >= threshold)', 'Low (value < threshold)'], value: c.activeLow ? 'Low (value < threshold)' : 'High (value >= threshold)' },
         { label: 'Preview value', type: 'number', value: c.value }
     ] };
     var bind = liveWidgetBindingSection(el, 'polyseg', c, function () { if (mtable.select === el && mtable.type === 'polygon') polygonSelect(); });
@@ -699,11 +728,8 @@ function liveSegmentModified(el, live, bind) {
     var u = W.uniqueRef(ref, el); if (u !== live.rows[0].value) rebuild = true;
     el.setAttribute('wref', u);
     c.onColor = live.rows[1].color || live.rows[1].value; c.offColor = live.rows[2].color || live.rows[2].value;
-    c.threshold = f(live.rows[3].value, 0.5); c.value = f(live.rows[4].value, 0);
-    var sel = String(bind.rows[0].value || 'None');
-    var nb = (sel === 'None') ? '' : sel.replace(/^\u26A0\s*/, '').replace(': ', ':');
-    if (nb) el.setAttribute('wbind', nb); else el.removeAttribute('wbind');
-    c.scale = f(bind.rows[1].value, 1); c.offset = f(bind.rows[2].value, 0);
+    c.threshold = f(live.rows[3].value, 0.5); c.activeLow = /^Low/.test(live.rows[4].value); c.value = f(live.rows[5].value, 0);
+    if (liveWidgetApplyBinding(el, bind, c, false)) rebuild = true;
     W.setCfg(el, c);
     W.redraw(el);
     return rebuild;
