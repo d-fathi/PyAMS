@@ -1,7 +1,7 @@
 /*
 #------------------------------------------------------------------------------------------------
 # Name:        liveWidgetRuntime.js
-# Purpose:     Stage 3b - the widgets (LED, 7-segment, switch, button, slider) come alive while the
+# Purpose:     Stage 3b - the widgets (LED, 7-segment, switches, buttons, slider, knob, gauge, bar, value) come alive while the
 #              live panel is running:
 #                * input widgets react to the mouse (switch toggles, button is held, slider is dragged)
 #                * output widgets are driven by a demo generator (no Python yet)
@@ -23,7 +23,7 @@ var liveWidgetRT = (function () {
     'use strict';
     var api = { onInput: null, onChange: null, demo: true };
     var active = false, running = false, timer = null, t0 = 0, tPause = 0;
-    var INPUTS = { 'switch': 1, spst: 1, spdt: 1, button: 1, pushsw: 1, slider: 1 };
+    var INPUTS = { 'switch': 1, spst: 1, spdt: 1, button: 1, pushsw: 1, slider: 1, knob: 1 };
     var TOGGLE = { 'switch': 1, spst: 1, spdt: 1 }, MOMENTARY = { button: 1, pushsw: 1 };
 
     function root() { return document.getElementById('sym') || document; }
@@ -84,6 +84,8 @@ var liveWidgetRT = (function () {
             var type = liveWidget.getType(g), c = liveWidget.getCfg(g), v;
             i++;
             if (type === 'led' || type === 'polyseg') v = (Math.floor(t * 1.5 + i * 0.5) % 2) ? 1 : 0;
+            else if (type === 'gauge' || type === 'bar') { var ph = ((t / 4 + i * 0.13) % 1), tri = ph < 0.5 ? 2 * ph : 2 - 2 * ph; v = c.min + (c.max - c.min) * tri; }
+            else if (type === 'value') v = (t % 10);
             else if (type === 'segment') v = Math.floor(t * 2) % Math.pow(c.format === 'hex' ? 16 : 10, Math.max(1, c.digits || 1));
             else return;
             if (!g.__rt || g.__rt.v !== v) {
@@ -144,6 +146,14 @@ var liveWidgetRT = (function () {
         var rt = g.__rt || (g.__rt = initial(g));
         if (rt.v !== v) { rt.v = v; show(g); changed(); emit(g, v); }
     }
+    function knobTo(g, e) {
+        var f = liveWidget.knobFraction(g, e.clientX, e.clientY); if (f === null) return;
+        var c = liveWidget.getCfg(g), v = c.min + f * (c.max - c.min);
+        v = Math.round((v - c.min) / c.step) * c.step + c.min;
+        v = parseFloat(Math.max(c.min, Math.min(c.max, v)).toFixed(9));
+        var rt = g.__rt || (g.__rt = initial(g));
+        if (rt.v !== v) { rt.v = v; show(g); changed(); emit(g, v); }
+    }
     function onDown(e) {
         if (!active || e.button !== 0) return;
         var g = target(e); if (!g) return;
@@ -157,10 +167,13 @@ var liveWidgetRT = (function () {
             drag = { g: g, kind: 'button' };
         } else if (t === 'slider') {
             drag = { g: g, kind: 'slider' }; slideTo(g, e);
+        } else if (t === 'knob') {
+            drag = { g: g, kind: 'knob' }; knobTo(g, e);
         }
     }
     function onMove(e) {
         if (drag && drag.kind === 'slider') { e.stopPropagation(); e.preventDefault(); slideTo(drag.g, e); }
+        else if (drag && drag.kind === 'knob') { e.stopPropagation(); e.preventDefault(); knobTo(drag.g, e); }
     }
     function onUp(e) {
         if (!drag) return;

@@ -24,9 +24,13 @@ var liveWidget = (function () {
         spst:    { title: 'SPST switch', prefix: 'spst', w: 70, h: 30 },
         spdt:    { title: 'SPDT switch', prefix: 'spdt', w: 70, h: 46 },
         pushsw:  { title: 'Push switch', prefix: 'psw', w: 60,  h: 30 },
-        polyseg: { title: 'Polygon segment', prefix: 'pseg', w: 40, h: 12 }     // becomes an editable polygon
+        polyseg: { title: 'Polygon segment', prefix: 'pseg', w: 40, h: 12 },    // becomes an editable polygon
+        gauge:   { title: 'Gauge',       prefix: 'gau', w: 80,  h: 56 },
+        bar:     { title: 'Bar',         prefix: 'bar', w: 26,  h: 70 },
+        value:   { title: 'Value display', prefix: 'val', w: 80, h: 28 },
+        knob:    { title: 'Rotary knob', prefix: 'knob', w: 50, h: 50 }
     };
-    var ORDER = ['led', 'segment', 'switch', 'button', 'slider', 'spst', 'spdt', 'pushsw', 'polyseg'];
+    var ORDER = ['led', 'segment', 'switch', 'button', 'slider', 'spst', 'spdt', 'pushsw', 'polyseg', 'gauge', 'bar', 'value', 'knob'];
     var TOGGLE = { 'switch': 1, spst: 1, spdt: 1 };     // keep their position (state `on`)
     var MOMENTARY = { button: 1, pushsw: 1 };           // active only while pressed
     var LABEL_H = 12;
@@ -41,6 +45,10 @@ var liveWidget = (function () {
             case 'spdt':    return { label: '', onValue: 1, offValue: 0, on: true,  color: '#8b95a5', accent: '#22c55e' };   // on = upper position
             case 'polyseg': return { onColor: '#ef4444', offColor: '#3a1c1c', threshold: 0.5, activeLow: false, value: 1, scale: 1, offset: 0 };
             case 'pushsw':  return { label: '', pressValue: 1, releaseValue: 0, color: '#8b95a5', accent: '#22c55e' };
+            case 'gauge':   return { label: '', min: 0, max: 5, value: 2.5, color: '#22c55e', needleColor: '#1f2937', decimals: 1, unit: 'V', showValue: true, scale: 1, offset: 0 };
+            case 'bar':     return { label: '', min: 0, max: 5, value: 2.5, color: '#3b82f6', vertical: true, showValue: false, decimals: 1, unit: '', scale: 1, offset: 0 };
+            case 'value':   return { label: '', value: 1.234, decimals: 3, unit: 'V', color: '#22c55e', bg: '#0b0f14', scale: 1, offset: 0 };
+            case 'knob':    return { label: '', min: 0, max: 10, step: 0.1, value: 5, color: '#3b82f6' };
             case 'slider':  return { label: '', min: 0, max: 1, step: 0.01, value: 0.5, vertical: false, color: '#3b82f6' };
         }
         return { label: '' };
@@ -175,10 +183,78 @@ var liveWidget = (function () {
         }
     }
 
+    var VALUE_TYPES = { led: 1, segment: 1, slider: 1, polyseg: 1, gauge: 1, bar: 1, value: 1, knob: 1 };
+
+    // ---- gauge, bar, value display, rotary knob -------------------------------------------------
+    function frac(c, v) {
+        var mn = num(c.min, 0), mx = num(c.max, 1); if (mx === mn) mx = mn + 1;
+        return Math.max(0, Math.min(1, (num(v, mn) - mn) / (mx - mn)));
+    }
+    function fmtVal(c, v) {
+        var d = Math.max(0, Math.min(6, parseInt(c.decimals) || 0)), u = String(c.unit || '');
+        return num(v, 0).toFixed(d) + (u ? ' ' + u : '');
+    }
+    function pol(cx, cy, r, deg) { var a = deg * Math.PI / 180; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
+    function arc(p, cx, cy, r, a0, a1, col, sw) {              // clockwise arc from angle a0 to a1 (degrees, screen)
+        if (a1 - a0 < 0.01) return;
+        var P0 = pol(cx, cy, r, a0), P1 = pol(cx, cy, r, a1);
+        mk('path', { d: 'M' + P0[0] + ' ' + P0[1] + ' A' + r + ' ' + r + ' 0 ' + ((a1 - a0) > 180 ? 1 : 0) + ' 1 ' + P1[0] + ' ' + P1[1],
+                     fill: 'none', stroke: col, 'stroke-width': sw, 'stroke-linecap': 'round' }, p);
+    }
+
+    function drawGauge(p, w, h, c) {
+        var f = frac(c, c.value), txt = c.showValue !== false, th = txt ? Math.max(9, Math.min(14, h * 0.24)) : 0;
+        var r = Math.max(8, Math.min(w / 2 - 6, h - th - 10)), cx = w / 2, cy = h - th - 5, sw = Math.max(4, r * 0.18);
+        arc(p, cx, cy, r, 180, 360, '#374151', sw);
+        arc(p, cx, cy, r, 180, 180 + f * 180, c.color, sw);
+        for (var i = 0; i <= 4; i++) {                          // ticks
+            var A = pol(cx, cy, r + sw / 2 + 1, 180 + i * 45), B = pol(cx, cy, r + sw / 2 + 3.5, 180 + i * 45);
+            mk('line', { x1: A[0], y1: A[1], x2: B[0], y2: B[1], stroke: '#6b7280', 'stroke-width': 1 }, p);
+        }
+        var N = pol(cx, cy, r - sw / 2 - 2, 180 + f * 180);
+        mk('line', { x1: cx, y1: cy, x2: N[0], y2: N[1], stroke: c.needleColor, 'stroke-width': Math.max(1.6, r * 0.07), 'stroke-linecap': 'round' }, p);
+        mk('circle', { cx: cx, cy: cy, r: Math.max(2.5, r * 0.1), fill: c.needleColor, stroke: '#111827' }, p);
+        if (txt) {
+            var t = mk('text', { x: cx, y: h - 2, 'text-anchor': 'middle', 'font-size': th, 'font-family': 'Consolas, monospace', fill: '#4b5563' }, p);
+            t.textContent = fmtVal(c, c.value);
+        }
+    }
+
+    function drawBar(p, w, h, c) {
+        var f = frac(c, c.value), pad = 2;
+        mk('rect', { x: pad, y: pad, width: w - 2 * pad, height: h - 2 * pad, rx: 3, fill: '#1f2937', stroke: '#111827', 'stroke-width': 1.2 }, p);
+        var iw = w - 2 * pad - 3, ih = h - 2 * pad - 3;
+        if (c.vertical !== false) { if (f > 0) mk('rect', { x: pad + 1.5, y: pad + 1.5 + ih * (1 - f), width: iw, height: ih * f, rx: 2, fill: c.color }, p); }
+        else if (f > 0) mk('rect', { x: pad + 1.5, y: pad + 1.5, width: iw * f, height: ih, rx: 2, fill: c.color }, p);
+        if (c.showValue) {
+            var vs = fmtVal(c, c.value), fs = Math.max(6, Math.min(12, (w - 6) / Math.max(2, vs.length) / 0.6, h * 0.45));
+            var t = mk('text', { x: w / 2, y: h / 2 + fs * 0.35, 'text-anchor': 'middle', 'font-size': fs, 'font-family': 'Consolas, monospace', fill: '#f3f4f6', stroke: '#111827', 'stroke-width': 0.4 }, p);
+            t.textContent = vs;
+        }
+    }
+
+    function drawValue(p, w, h, c) {
+        mk('rect', { x: 0.5, y: 0.5, width: w - 1, height: h - 1, rx: 3, fill: c.bg, stroke: '#1f2937' }, p);
+        var s = fmtVal(c, c.value), fs = Math.max(8, Math.min(h * 0.62, (w - 8) / Math.max(3, s.length) / 0.6));
+        var t = mk('text', { x: w - 5, y: h / 2 + fs * 0.35, 'text-anchor': 'end', 'font-size': fs, 'font-family': 'Consolas, monospace', fill: c.color }, p);
+        t.textContent = s;
+    }
+
+    function drawKnob(p, w, h, c) {
+        var f = frac(c, c.value), s = Math.min(w, h), cx = w / 2, cy = h / 2, r = Math.max(8, s / 2 - 2), sw = Math.max(2.5, r * 0.14);
+        arc(p, cx, cy, r - sw / 2, 135, 405, '#374151', sw);
+        arc(p, cx, cy, r - sw / 2, 135, 135 + f * 270, c.color, sw);
+        var rb = r - sw - 2;
+        mk('circle', { cx: cx, cy: cy, r: rb, fill: '#4b5563', stroke: '#111827', 'stroke-width': 1.2 }, p);
+        mk('ellipse', { cx: cx - rb * 0.25, cy: cy - rb * 0.3, rx: rb * 0.35, ry: rb * 0.18, fill: '#ffffff', opacity: 0.12 }, p);
+        var A = pol(cx, cy, rb * 0.25, 135 + f * 270), B = pol(cx, cy, rb * 0.9, 135 + f * 270);
+        mk('line', { x1: A[0], y1: A[1], x2: B[0], y2: B[1], stroke: '#f3f4f6', 'stroke-width': Math.max(2, rb * 0.16), 'stroke-linecap': 'round' }, p);
+    }
+
     // values of the live simulation (runtime only, never saved): {v, on, pressed}
     function applyRT(type, c, rt) {
         var o = Object.assign({}, c);
-        if (type === 'led' || type === 'segment' || type === 'slider' || type === 'polyseg') o.value = rt.v;
+        if (VALUE_TYPES[type]) o.value = rt.v;
         else if (TOGGLE[type]) o.on = !!rt.on;
         else if (MOMENTARY[type]) o.pressed = !!rt.pressed;
         return o;
@@ -277,7 +353,7 @@ var liveWidget = (function () {
         var lab = String(c.label || ''), ah = lab ? Math.max(10, h - LABEL_H) : h;
         var body = mk('g', { 'pointer-events': 'none' }, g);
         var fn = { led: drawLed, segment: drawSegment, switch: drawSwitch, button: drawButton, slider: drawSlider,
-                   spst: drawSpst, spdt: drawSpdt, pushsw: drawPushSw }[type];
+                   spst: drawSpst, spdt: drawSpdt, pushsw: drawPushSw, gauge: drawGauge, bar: drawBar, value: drawValue, knob: drawKnob }[type];
         // the content is drawn in its own (logical) box, then turned / mirrored by the orientation matrix
         var M = getM(g), sw = isSwapped(M), la = sw ? ah : w, lb = sw ? w : ah;
         var cg = mk('g', { transform: 'translate(' + (w / 2) + ',' + (ah / 2) + ') matrix(' + M[0] + ',' + M[2] + ',' + M[1] + ',' + M[3] + ',0,0) translate(' + (-la / 2) + ',' + (-lb / 2) + ')' }, body);
@@ -322,6 +398,14 @@ var liveWidget = (function () {
         var f = getCfg(g).vertical ? 1 - (L.y - pad) / Math.max(1, L.lb - 2 * pad) : (L.x - pad) / Math.max(1, L.la - 2 * pad);
         return Math.max(0, Math.min(1, f));
     }
+    // fraction 0..1 of a rotary knob for a pointer position (dial from 135 to 405 degrees, clockwise)
+    function knobFraction(g, clientX, clientY) {
+        var L = toLogical(g, clientX, clientY); if (!L) return null;
+        var a = Math.atan2(L.y - L.lb / 2, L.x - L.la / 2) * 180 / Math.PI;
+        var rel = ((a - 135) % 360 + 360) % 360;
+        if (rel > 270) rel = rel > 315 ? 0 : 270;              // the gap at the bottom: stay at the nearest end
+        return rel / 270;
+    }
     // redraw every widget found in `root` from its saved settings (after opening / pasting)
     function initAll(root) {
         var list = (root && root.querySelectorAll) ? Array.prototype.slice.call(root.querySelectorAll(SEL)) : [];
@@ -351,7 +435,7 @@ var liveWidget = (function () {
     //   wbind = "param:R"    input widget -> parameter R of the model        (set between two steps)
     //   wbind = "signal:I"   output widget <- signal I of the model          (read after every step)
     //   wbind = "pin:out"    output widget <- voltage of the pin "out"
-    function isInputType(t) { return !!(TOGGLE[t] || MOMENTARY[t] || t === 'slider'); }
+    function isInputType(t) { return !!(TOGGLE[t] || MOMENTARY[t] || t === 'slider' || t === 'knob'); }
     function getBinding(g) {
         var b = String(g.getAttribute('wbind') || ''), i = b.indexOf(':');
         if (i < 1) return null;
@@ -365,7 +449,7 @@ var liveWidget = (function () {
     }
 
     return { isInputType: isInputType, getBinding: getBinding, bindingFits: bindingFits, TYPES: TYPES, ORDER: ORDER, defaultCfg: defaultCfg, getType: getType, getCfg: getCfg, setCfg: setCfg,
-             redraw: redraw, initAll: initAll, makeLive: makeLive, makeNormal: makeNormal, isPoly: isPoly, toLogical: toLogical, sliderFraction: sliderFraction, applyOp: applyOp, setLogicalSize: setLogicalSize, create: create, cleanRef: cleanRef, uniqueRef: uniqueRef, newRef: newRef, isAutoRef: isAutoRef };
+             redraw: redraw, initAll: initAll, makeLive: makeLive, makeNormal: makeNormal, isPoly: isPoly, toLogical: toLogical, sliderFraction: sliderFraction, knobFraction: knobFraction, applyOp: applyOp, setLogicalSize: setLogicalSize, create: create, cleanRef: cleanRef, uniqueRef: uniqueRef, newRef: newRef, isAutoRef: isAutoRef };
 })();
 
 // ---------------------------------------------------------------------------------------------
@@ -545,6 +629,44 @@ function liveWidgetSelect() {
                 { label: 'Released value', type: 'number', value: c.releaseValue },
                 { label: 'Color', type: 'color', value: c.color, color: c.color }
             ]; break;
+        case 'gauge':
+            rows = [
+                { label: 'Min', type: 'number', value: c.min },
+                { label: 'Max', type: 'number', value: c.max },
+                { label: 'Preview value', type: 'number', value: c.value },
+                { label: 'Decimals', type: 'number', value: c.decimals },
+                { label: 'Unit', type: 'text', value: c.unit || '' },
+                { label: 'Show value', type: 'dropdown', options: ['Yes', 'No'], value: yn(c.showValue !== false) },
+                { label: 'Color', type: 'color', value: c.color, color: c.color },
+                { label: 'Needle color', type: 'color', value: c.needleColor, color: c.needleColor }
+            ]; break;
+        case 'bar':
+            rows = [
+                { label: 'Min', type: 'number', value: c.min },
+                { label: 'Max', type: 'number', value: c.max },
+                { label: 'Preview value', type: 'number', value: c.value },
+                { label: 'Orientation', type: 'dropdown', options: ['Vertical', 'Horizontal'], value: c.vertical !== false ? 'Vertical' : 'Horizontal' },
+                { label: 'Show value', type: 'dropdown', options: ['No', 'Yes'], value: yn(c.showValue) },
+                { label: 'Decimals', type: 'number', value: c.decimals },
+                { label: 'Unit', type: 'text', value: c.unit || '' },
+                { label: 'Color', type: 'color', value: c.color, color: c.color }
+            ]; break;
+        case 'value':
+            rows = [
+                { label: 'Preview value', type: 'number', value: c.value },
+                { label: 'Decimals', type: 'number', value: c.decimals },
+                { label: 'Unit', type: 'text', value: c.unit || '' },
+                { label: 'Color', type: 'color', value: c.color, color: c.color },
+                { label: 'Background', type: 'color', value: c.bg, color: c.bg }
+            ]; break;
+        case 'knob':
+            rows = [
+                { label: 'Min', type: 'number', value: c.min },
+                { label: 'Max', type: 'number', value: c.max },
+                { label: 'Step', type: 'number', value: c.step },
+                { label: 'Initial value', type: 'number', value: c.value },
+                { label: 'Color', type: 'color', value: c.color, color: c.color }
+            ]; break;
         case 'slider':
             rows = [
                 { label: 'Min', type: 'number', value: c.min },
@@ -650,6 +772,33 @@ function modifiedLiveWidget() {
             case 'pushsw':
                 c.pressValue = f(R[0].value, 1); c.releaseValue = f(R[1].value, 0);
                 c.color = R[2].value; c.accent = R[3].value;
+                break;
+            case 'gauge':
+                c.min = f(R[0].value, 0); c.max = f(R[1].value, 1); if (c.max <= c.min) c.max = c.min + 1;
+                c.value = f(R[2].value, c.min); c.decimals = Math.max(0, Math.min(6, Math.round(f(R[3].value, 1))));
+                c.unit = String(R[4].value || ''); c.showValue = R[5].value !== 'No';
+                c.color = R[6].value; c.needleColor = R[7].value;
+                break;
+            case 'bar': {
+                c.min = f(R[0].value, 0); c.max = f(R[1].value, 1); if (c.max <= c.min) c.max = c.min + 1;
+                c.value = f(R[2].value, c.min);
+                var bv = R[3].value !== 'Horizontal';
+                if (bv !== (c.vertical !== false)) {
+                    var bw = el.getAttribute('width'), bh = el.getAttribute('height');
+                    el.setAttribute('width', bh); el.setAttribute('height', bw); rebuild = true;
+                }
+                c.vertical = bv; c.showValue = R[4].value === 'Yes'; c.decimals = Math.max(0, Math.min(6, Math.round(f(R[5].value, 1))));
+                c.unit = String(R[6].value || ''); c.color = R[7].value;
+                break; }
+            case 'value':
+                c.value = f(R[0].value, 0); c.decimals = Math.max(0, Math.min(6, Math.round(f(R[1].value, 3))));
+                c.unit = String(R[2].value || ''); c.color = R[3].value; c.bg = R[4].value;
+                break;
+            case 'knob':
+                c.min = f(R[0].value, 0); c.max = f(R[1].value, 1); if (c.max <= c.min) c.max = c.min + 1;
+                c.step = Math.max(1e-9, f(R[2].value, 0.1));
+                c.value = Math.min(c.max, Math.max(c.min, f(R[3].value, c.min)));
+                c.color = R[4].value;
                 break;
             case 'slider': {
                 c.min = f(R[0].value, 0); c.max = f(R[1].value, 1);

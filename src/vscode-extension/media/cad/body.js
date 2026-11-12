@@ -255,7 +255,7 @@ body.innerHTML = `
        <path d="M2 20h20" stroke-width="2"/>
      </svg>
    </button>
-   <button class="toolbar-btn" id="btnWidget" title="Live widget: LED, 7-segment, switch, push button, slider (type chosen in the properties)">
+   <button class="toolbar-btn" id="btnWidget" title="Live widget: LED, 7-segment, switches, push button, slider, knob, gauge, bar, value display (type chosen in the properties)">
      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
        <circle cx="8" cy="8" r="3.5"/>
        <rect x="3" y="14" width="18" height="6" rx="3"/>
