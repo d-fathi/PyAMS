@@ -41,7 +41,9 @@ class LaplaceND(model):
         y       = sum c_i z_(i+1) + d u
 
     (time is scaled by w0, the geometric mean of the pole magnitudes, so that
-    high-order filters stay well conditioned).  Consequences:
+    high-order filters stay well conditioned).  LaplaceZP splits the function
+    into a cascade of 1st / 2nd order sections (each with its own states), which
+    keeps elliptic / Butterworth filters of high order well conditioned.  Consequences:
       * DC analysis / operating point: all derivatives are 0, so the states take
         their equilibrium values and the block gives exactly H(0) * u;
       * AC analysis gives exactly H(j w) (ddt is linearised);
@@ -50,20 +52,23 @@ class LaplaceND(model):
 
     Limits: only proper transfer functions (deg N <= deg D) are accepted;
     a pure delay e^(-sT) must be approximated by a rational (Pade) function.
-    A pole at s = 0 (an integrator) is allowed, but the DC operating point
-    of a circuit containing it is then not defined for a non-zero constant input.
+    A pole at s = 0 (an integrator) is allowed; it gets a tiny leak (Leak) so the
+    DC operating point exists (for a non-zero constant input the output is then
+    huge, as for any ideal integrator).
 
     Parameters:
         Gain   extra gain factor multiplying the output   (1)
+        Leak   relative leak of a pole at the origin      (1e-9)
     """
     def __init__(self, inp, inn, outp, outn, num=None, den=None):
         self._nodes = (inp, inn, outp, outn)
         self._ports(inp, inn, outp, outn)
         self.Gain = param(1.0, ' ', 'Output gain')
+        self.Leak = param(1e-9, ' ', 'Relative leak of a pole at the origin')
         self._tag = '_lap%d' % (_counter[0] + 1)
         _counter[0] += 1
-        self._z = []
-        self._f = []
+        self._names = []
+        self._sec = []
         self._num = np.array([1.0])
         self._den = np.array([1.0])
         self._set(num if num is not None else [1.0], den if den is not None else [1.0])
@@ -101,11 +106,12 @@ class LaplaceND(model):
         return np.polyval(self._num, s) / np.polyval(self._den, s)
 
     # -- realisation --------------------------------------------------------------
-    def _set(self, num, den):
-        num = np.atleast_1d(np.array(num, dtype=float))
-        den = np.atleast_1d(np.array(den, dtype=float))
-        num = np.trim_zeros(num, 'f')
-        den = np.trim_zeros(den, 'f')
+    @staticmethod
+    def _scaled_section(num, den):
+        """State-space data of one section num(s)/den(s) (highest power first), time
+        scaled by w0 (geometric mean of the pole magnitudes)."""
+        num = np.trim_zeros(np.atleast_1d(np.array(num, dtype=float)), 'f')
+        den = np.trim_zeros(np.atleast_1d(np.array(den, dtype=float)), 'f')
         if den.size == 0 or not np.all(np.isfinite(den)):
             raise ValueError('the denominator must be a non-zero polynomial')
         if num.size == 0:
@@ -114,57 +120,75 @@ class LaplaceND(model):
             raise ValueError('improper transfer function: degree of the numerator (%d) '
                              'is larger than the degree of the denominator (%d)'
                              % (num.size - 1, den.size - 1))
-        self._num, self._den = num, den
         n = den.size - 1
-        # drop the old state nodes
-        for nm in self._z + self._f:
-            self._signals.pop(nm, None)
-        self._z, self._f = [], []
-        # normalise the denominator
         an = den[0]
         d = den[::-1] / an                       # d[i] multiplies s^i, d[n] = 1
         nn = np.zeros(n + 1)
         nn[:num.size] = (num / an)[::-1]         # numerator coefficients, ascending
-        poles = np.roots(den) if n > 0 else np.array([])
-        mag = np.abs(poles[np.abs(poles) > 0]) if n > 0 else np.array([])
-        w0 = float(np.exp(np.mean(np.log(mag)))) if mag.size else 1.0
-        self._w0 = w0
-        self._n = n
         if n == 0:
-            self._e = np.array([])
-            self._c = np.array([])
-            self._dterm = float(nn[0])
-            return
+            return dict(n=0, w0=1.0, e=np.array([]), c=np.array([]), d=float(nn[0]))
+        poles = np.roots(den)
+        mag = np.abs(poles[np.abs(poles) > 0])
+        w0 = float(np.exp(np.mean(np.log(mag)))) if mag.size else 1.0
         i = np.arange(n)
-        self._e = d[:n] * w0 ** (i - n)                          # e_i
-        self._dterm = float(nn[n])                               # direct term (m = n)
-        self._c = (nn[:n] - self._dterm * d[:n]) * w0 ** (i - n)  # output weights
-        for k in range(n):
-            node = '%s_x%d' % (self._tag, k + 1)
-            zs = signal('in', voltage, node, '0')
-            fs = signal('out', current, node, '0')
-            setattr(self, '%s_z%d' % (self._tag, k), zs)
-            setattr(self, '%s_f%d' % (self._tag, k), fs)
-            self._z.append('%s_z%d' % (self._tag, k))     # attribute names: while a
-            self._f.append('%s_f%d' % (self._tag, k))     # run is active the signals are plain floats
+        dterm = float(nn[n])
+        return dict(n=n, w0=w0, e=d[:n] * w0 ** (i - n), d=dterm,
+                    c=(nn[:n] - dterm * d[:n]) * w0 ** (i - n))
+
+    def _set(self, num, den):
+        """Single section (numerator / denominator)."""
+        self._num = np.trim_zeros(np.atleast_1d(np.array(num, dtype=float)), 'f')
+        self._den = np.trim_zeros(np.atleast_1d(np.array(den, dtype=float)), 'f')
+        self._build([(num, den)])
+
+    def _build(self, sections):
+        """Create the state nodes of a cascade of (num, den) sections."""
+        self._sec = [self._scaled_section(nu, de) for nu, de in sections]
+        for nm in self._names:                           # drop the old state nodes
+            self._signals.pop(nm, None)
+        self._names = []
+        K = len(self._sec)
+        for k, sec in enumerate(self._sec):
+            sec['x'] = []; sec['f'] = []
+            if k > 0:                                    # input of this section = output of the previous
+                nm = '%s_u%d' % (self._tag, k)
+                setattr(self, nm, signal('in', voltage, '%s_y%d' % (self._tag, k - 1), '0'))
+                self._names.append(nm); sec['u'] = nm
+            for i in range(sec['n']):
+                node = '%s_s%d_%d' % (self._tag, k, i + 1)
+                xn, fn = '%s_z%d_%d' % (self._tag, k, i), '%s_f%d_%d' % (self._tag, k, i)
+                setattr(self, xn, signal('in', voltage, node, '0'))
+                setattr(self, fn, signal('out', current, node, '0'))
+                sec['x'].append(xn); sec['f'].append(fn)
+                self._names += [xn, fn]                  # attribute names: while a run is
+            if k < K - 1:                                # active the signals are plain floats
+                nm = '%s_y%d' % (self._tag, k)
+                setattr(self, nm, signal('out', voltage, '%s_y%d' % (self._tag, k), '0'))
+                self._names.append(nm); sec['y'] = nm
 
     def analog(self):
-        u = self._read_in()
         g = float(self.Gain)
-        n = self._n
-        if n == 0:
-            self._write_out(g * self._dterm * u)
-            return
-        z = [float(getattr(self, nm)) for nm in self._z]
-        w0 = self._w0
-        fn = self._f
-        for k in range(n - 1):                         # dz_k/dt = w0 z_(k+1)
-            setattr(self, fn[k], getattr(self, fn[k]) + ddt(z[k]) - w0 * z[k + 1])
-        acc = u
-        for i in range(n):
-            acc -= self._e[i] * z[i]
-        setattr(self, fn[n - 1], getattr(self, fn[n - 1]) + ddt(z[n - 1]) - w0 * acc)   # last state
-        y = self._dterm * u
-        for i in range(n):
-            y += self._c[i] * z[i]
-        self._write_out(g * y)
+        leak = float(self.Leak)
+        K = len(self._sec)
+        for k, sec in enumerate(self._sec):
+            u = self._read_in() if k == 0 else float(getattr(self, sec['u']))
+            n, w0 = sec['n'], sec['w0']
+            y = sec['d'] * u
+            if n:
+                z = [float(getattr(self, nm)) for nm in sec['x']]
+                fn = sec['f']
+                for i in range(n):
+                    y += sec['c'][i] * z[i]
+                for i in range(n - 1):                   # dz_i/dt = w0 z_(i+1)
+                    setattr(self, fn[i], getattr(self, fn[i]) + ddt(z[i]) - w0 * z[i + 1])
+                e = list(sec['e'])
+                if e[0] == 0.0:                          # pole at the origin: tiny leak
+                    e[0] = leak
+                acc = u
+                for i in range(n):
+                    acc -= e[i] * z[i]
+                setattr(self, fn[n - 1], getattr(self, fn[n - 1]) + ddt(z[n - 1]) - w0 * acc)
+            if k == K - 1:
+                self._write_out(g * y)
+            else:
+                setattr(self, sec['y'], getattr(self, sec['y']) + y)

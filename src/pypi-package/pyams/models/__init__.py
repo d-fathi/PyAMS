@@ -1,4 +1,5 @@
 from .Resistor import Resistor
+from .Switch import Switch
 from .Conductor import Conductor
 from .VCVS import VCVS
 from .VCCS import VCCS
@@ -6,7 +7,6 @@ from .CCVS import CCVS
 from .CCCS import CCCS
 from .Capacitor import Capacitor
 from .Inductor import Inductor
-from .Laplace import LaplaceND, LaplaceZP
 from .CapacitorIc import CapacitorIc
 from .InductorIc import InductorIc
 from .NonlinearResistance import NonlinearResistance
@@ -15,6 +15,14 @@ from .LaplaceZP import LaplaceZP
 from .LaplaceNDII import LaplaceNDII, LaplaceZPII
 from .LaplaceNDIV import LaplaceNDIV, LaplaceZPIV
 from .LaplaceNDVI import LaplaceNDVI, LaplaceZPVI
+from .DigitalClock import DigitalClock
+from .Gates import NOT, AND, OR, NAND, NOR, XOR, XNOR
+from .Latches import SRLatch, DLatch
+from .FlipFlops import DFF, JKFF
+from .Counter import Counter
+from .ShiftRegister import ShiftRegister
+from .DAC import DAC
+from .ADC import ADC
 from .Transformer import Transformer
 from .SinVoltage import SinVoltage
 from .DCVoltage import DCVoltage
@@ -54,9 +62,11 @@ from .Comparator import Comparator
 from .Timer555 import Timer555
 
 __all__ = [
-    "Resistor", "Conductor", "VCVS", "VCCS", "CCVS", "CCCS",
+    "Resistor", "Switch", "Conductor", "VCVS", "VCCS", "CCVS", "CCCS",
     "Capacitor", "Inductor", "LaplaceND", "LaplaceZP", "LaplaceNDII", "LaplaceZPII",
-    "LaplaceNDIV", "LaplaceZPIV", "LaplaceNDVI", "LaplaceZPVI", "CapacitorIc", "InductorIc",
+    "LaplaceNDIV", "LaplaceZPIV", "LaplaceNDVI", "LaplaceZPVI",
+    "DigitalClock", "NOT", "AND", "OR", "NAND", "NOR", "XOR", "XNOR", "SRLatch", "DLatch", "DFF", "JKFF",
+    "Counter", "ShiftRegister", "DAC", "ADC", "CapacitorIc", "InductorIc",
     "NonlinearResistance", "Transformer", "SinVoltage", "DCVoltage", "ACVoltage", "ACCurrent",
     "TrapezoidVoltage", "DCCurrent", "SinCurrent", "ExpVoltage", "ExpCurrent", "PWLVoltage",
     "PWLCurrent", "TrapezoidCurrent", "TransmissionLine", "Diode", "Diac", "ZenerDiode",

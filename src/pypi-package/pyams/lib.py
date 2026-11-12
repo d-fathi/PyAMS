@@ -72,9 +72,39 @@ frequency.  The stimulus comes from the sources that define ``ac()``
 / octave; "lin": ``step`` points in all.  ``run()`` returns
 ``{'freq': f, node_or_signal: complex phasors}``: with Vac = 1 the node
 phasor is the transfer function (``20*log10(abs(x))``, ``angle(x, deg=True)``).
+
+Digital models (binary, dsignal)
+--------------------------------
+Digital pins are ``dsignal`` objects (1 bit or a bus of ``width`` bits; bit 0 =
+LSB) and the logic is written in ``digital()`` like Verilog, in an ordinary
+``class name(model)``:
+
+    class Counter4(model):
+        def __init__(self, clk, q):
+            self.clk = dsignal('in',  clk)
+            self.q   = dsignal('out', q, width=4)       # nodes q[0] .. q[3]
+        def digital(self):
+            if self.clk.rising:                         # also .falling / .changed
+                self.q <<= self.q + 1                   # non-blocking, after Tpd, wraps
+
+  * 'in' bits are read from the analog nodes with the thresholds Vil / Vih
+    (hysteresis); 'out' bits are driven automatically after analog() through
+    a Thevenin stage (Rout, Cout towards Vol / Voh), so a digital output can
+    drive resistors, diodes ... and an analog node can drive a digital input.
+  * Expressions use plain integers (+ - * % & | ^ ~ << >>, slices ds[lo:hi],
+    bits ds[i]); results are truncated to the width of the target.
+  * ds.set(value, delay=0) zero-delay assignment; ds.reset(v) immediate (used in
+    digital_reset); inertial delay: a newer assignment replaces a pending one.
+  * The first dsignal gives the model the parameters Voh, Vol, Vil, Vih, Rout,
+    Cout, Tpd.  self.after(delay, fn) / self.at(t, fn) schedule functions
+    (clocks).  Events are breakpoints (option ``event_step``, default 1e-9 s).
+  * Probes: setOutPuts("Elem.q") records the integer value of a dsignal.
+  * Limits: binary only (no X / Z, no 'inout'), logic referenced to node "0",
+    analog-driven inputs are detected with one step of latency.
 """
 
 import builtins
+import heapq
 import math
 import operator
 import re
@@ -84,7 +114,7 @@ from time import perf_counter as _clock     # wall clock ('time' is sim. time)
 
 import numpy as np
 
-__all__ = ['signal', 'param', 'model', 'voltage', 'current', 'time', 'ddt', 'idt',
+__all__ = ['signal', 'dsignal', 'param', 'model', 'voltage', 'current', 'time', 'ddt', 'idt',
            'accepting', 'circuit', 'SimulationError']
 
 
@@ -338,6 +368,312 @@ def _split_assignments(text):
 
 
 # ------------------------------------------------------------------------------
+# dsignal: digital (bit / bus) signals
+# ------------------------------------------------------------------------------
+_LOGIC_FAMILY = (('Voh', 5.0, 'V', 'Output high level'),
+                 ('Vol', 0.0, 'V', 'Output low level'),
+                 ('Vil', 0.3, ' ', 'Input low threshold (fraction of Voh - Vol)'),
+                 ('Vih', 0.7, ' ', 'Input high threshold (fraction of Voh - Vol)'),
+                 ('Rout', 100.0, 'Ω', 'Output resistance'),
+                 ('Cout', 10e-12, 'F', 'Output capacitance'),
+                 ('Tpd', 10e-9, 's', 'Propagation delay'))
+
+
+class _DOps:
+    """Integer arithmetic / logic on a digital value (like Verilog expressions)."""
+
+    def __int__(self):
+        return int(self._val())
+
+    __index__ = __int__
+
+    def __float__(self):
+        return float(self._val())
+
+    def __bool__(self):
+        return self._val() != 0
+
+    __hash__ = object.__hash__
+
+    def __len__(self):
+        return self._n
+
+    def __invert__(self):
+        return (~self._val()) & ((1 << self._n) - 1)
+
+    def __neg__(self):
+        return -self._val()
+
+    def __pos__(self):
+        return self._val()
+
+    def __abs__(self):
+        return abs(self._val())
+
+
+def _make_ops():
+    import operator
+    table = {'add': operator.add, 'sub': operator.sub, 'mul': operator.mul,
+             'floordiv': operator.floordiv, 'mod': operator.mod,
+             'and': operator.and_, 'or': operator.or_, 'xor': operator.xor,
+             'lshift': operator.lshift, 'rshift': operator.rshift,
+             'pow': operator.pow}
+    for nm, f in table.items():
+        setattr(_DOps, '__%s__' % nm, lambda self, o, f=f: f(self._val(), int(o)))
+        setattr(_DOps, '__r%s__' % nm, lambda self, o, f=f: f(int(o), self._val()))
+    for nm, f in (('eq', operator.eq), ('ne', operator.ne), ('lt', operator.lt),
+                  ('le', operator.le), ('gt', operator.gt), ('ge', operator.ge)):
+        setattr(_DOps, '__%s__' % nm, lambda self, o, f=f: f(self._val(), int(o)))
+
+
+_make_ops()
+
+
+class _DView(_DOps):
+    """A slice ``ds[a:b]`` or a bit ``ds[i]`` of a dsignal (bit 0 = LSB)."""
+
+    def __init__(self, ds, lo, n):
+        self._ds, self._lo, self._n = ds, lo, n
+
+    def _val(self):
+        return (int(self._ds) >> self._lo) & ((1 << self._n) - 1)
+
+    value = property(_val)
+
+    def set(self, value, delay=None):
+        self._ds._set_bits(self._lo, self._n, int(value), delay)
+
+    def __ilshift__(self, value):
+        self.set(value)
+        return self
+
+    @property
+    def rising(self):
+        return self._ds._edge(self._lo, self._n, +1)
+
+    @property
+    def falling(self):
+        return self._ds._edge(self._lo, self._n, -1)
+
+    def __repr__(self):
+        return '<bits %d..%d of %r = %d>' % (self._lo, self._lo + self._n - 1,
+                                            self._ds, self._val())
+
+
+class dsignal(_DOps):
+    """A digital (binary) signal of one bit or of a bus of ``width`` bits.
+
+        clk = dsignal('in',  'clk')                     # 1 bit
+        d   = dsignal('in',  'd', width=8)              # nodes d[0] .. d[7]
+        q   = dsignal('out', ['q0', 'q1', 'q2', 'q3'])  # explicit node names
+
+    Bit 0 is the least significant bit.  Every bit is an analog node of the
+    circuit, so digital models connect to resistors, diodes, op-amps ...
+    Inside ``digital()`` the signal behaves like a Verilog integer:
+
+        if self.clk.rising:             # also .falling, .changed (1-bit or bus)
+            self.q <<= self.q + 1       # non-blocking assignment, after Tpd
+        self.y <<= (self.a & self.b) | self.c[0:2]
+        self.q.set(5, delay=0)          # zero-delay assignment
+        n = int(self.d)                 # integer value of an 'in' bus
+        self.d[3]; self.d[0:4]          # bit / slice (Python convention: [lo:hi))
+
+    Results are truncated to the width (like Verilog), so ``q <<= q + 1`` wraps.
+    'in' bits are read with the thresholds Vil / Vih (with hysteresis); 'out'
+    bits are driven through a Thevenin stage Rout, Cout towards Vol / Voh, from
+    ``analog()`` automatically.  The model gets the parameters Voh, Vol, Vil,
+    Vih, Rout, Cout and Tpd of the logic family when it declares its first
+    dsignal.  ``init`` is the initial value of an 'out' signal.  The value of
+    an output can be recorded with ``setOutPuts("Element.name")``.
+    """
+
+    def __init__(self, direction, nodes, width=None, init=0, length=None):
+        if direction == 'inout':
+            raise NotImplementedError("dsignal 'inout' is not available yet "
+                                      "(binary logic has no tri-state)")
+        if direction not in ('in', 'out'):
+            raise ValueError("dsignal direction must be 'in' or 'out', got %r"
+                             % (direction,))
+        if width is None:
+            width = length
+        if isinstance(nodes, (list, tuple)):
+            names = [str(x) for x in nodes]
+            if width not in (None, len(names)):
+                raise ValueError('dsignal: width %s does not match %d node names'
+                                 % (width, len(names)))
+        else:
+            width = 1 if width is None else int(width)
+            if width < 1:
+                raise ValueError('dsignal width must be at least 1')
+            names = [str(nodes)] if width == 1 else ['%s[%d]' % (nodes, i)
+                                                     for i in range(width)]
+        self.direction = direction
+        self.nodes = names
+        self._n = len(names)
+        self._mask = (1 << self._n) - 1
+        self.init = int(init) & self._mask
+        self._owner = None
+        self._name = None
+
+    # -- binding to the model ---------------------------------------------------
+    def _bind(self, owner, name):
+        if self._owner is owner and self._name == name:
+            return
+        if self._owner is not None:
+            raise ValueError('a dsignal can belong to one model only')
+        self._owner, self._name = owner, name
+        for key, default, unit, text in _LOGIC_FAMILY:
+            if key not in owner._params:
+                p = param(default, unit, text)
+                owner._params[key] = p
+                object.__setattr__(owner, key, p)
+        self._hid = []
+        self._vol = []
+        self._cur = []
+        for i, node in enumerate(self.nodes):
+            hv = '_ds_%s_%d' % (name, i)
+            owner._signals[hv] = signal('in', voltage, node, '0')
+            object.__setattr__(owner, hv, 0.0)
+            self._hid.append(hv)
+            if self.direction == 'out':
+                hc = hv + '_i'
+                owner._signals[hc] = signal('out', current, node, '0')
+                object.__setattr__(owner, hc, 0.0)
+                self._cur.append(hc)
+        if self.direction == 'out':
+            self._attr = '_dv_%s' % name
+            object.__setattr__(owner, self._attr, self.init)
+            object.__setattr__(owner, 'digital_state',
+                               tuple(owner.digital_state) + (self._attr,))
+
+    def _levels(self):
+        o = self._owner
+        vol, voh = float(o.Vol), float(o.Voh)
+        span = voh - vol
+        return vol, voh, vol + float(o.Vil) * span, vol + float(o.Vih) * span
+
+    def _bit(self, i):
+        o = self._owner
+        _, _, lo, hi = self._levels()
+        key = self._hid[i]
+        return o.bit(getattr(o, key), key, lo, hi)
+
+    # -- value -------------------------------------------------------------------
+    def _val(self):
+        if self.direction == 'out':
+            return getattr(self._owner, self._attr)
+        v = 0
+        for i in range(self._n):
+            v |= self._bit(i) << i
+        return v
+
+    @property
+    def value(self):
+        return self._val()
+
+    @value.setter
+    def value(self, v):
+        """Immediate (zero-delay, unscheduled) assignment of an 'out' signal."""
+        self._check_out()
+        setattr(self._owner, self._attr, int(v) & self._mask)
+
+    def _check_out(self):
+        if self.direction != 'out':
+            raise TypeError("cannot assign to the 'in' dsignal %r" % self._name)
+
+    # -- assignment ----------------------------------------------------------------
+    def set(self, value, delay=None):
+        """Schedule ``value`` (truncated to the width) after ``delay`` seconds
+        (default Tpd).  Inertial delay: a newer assignment replaces a pending one."""
+        self._check_out()
+        o = self._owner
+        d = float(o.Tpd) if delay is None else float(delay)
+        o.after(d, self._attr, int(value) & self._mask)
+
+    def _set_bits(self, lo, n, value, delay):
+        self._check_out()
+        o = self._owner
+        pend = o._pending.get(self._attr)
+        base = pend[0] if pend is not None else getattr(o, self._attr)
+        m = ((1 << n) - 1) << lo
+        self.set((base & ~m) | ((value << lo) & m), delay)
+
+    def __ilshift__(self, value):
+        self.set(value)
+        return self
+
+    def reset(self, value=0):
+        """Put an 'out' signal at ``value`` at once (used by digital_reset)."""
+        self.value = value
+
+    # -- edges ---------------------------------------------------------------------
+    def _edge(self, lo, n, sense):
+        o = self._owner
+        for i in range(lo, lo + n):
+            cur = self._bit(i)
+            prev = o._bprev.get(self._hid[i], cur)
+            if (sense > 0 and cur == 1 and prev == 0) or \
+                    (sense < 0 and cur == 0 and prev == 1):
+                return True
+        return False
+
+    @property
+    def rising(self):
+        """True if the (1-bit) signal went 0 -> 1 since the previous point."""
+        if self._n != 1:
+            raise ValueError('.rising is defined for a 1-bit signal; use a bit, '
+                             'e.g. bus[0].rising')
+        return self._edge(0, 1, +1)
+
+    @property
+    def falling(self):
+        if self._n != 1:
+            raise ValueError('.falling is defined for a 1-bit signal; use a bit, '
+                             'e.g. bus[0].falling')
+        return self._edge(0, 1, -1)
+
+    @property
+    def changed(self):
+        """True if any bit changed since the previous accepted point."""
+        return self._edge(0, self._n, +1) or self._edge(0, self._n, -1)
+
+    # -- slices --------------------------------------------------------------------
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            lo, hi, step = key.indices(self._n)
+            if step != 1 or hi <= lo:
+                raise IndexError('dsignal slices are ds[lo:hi] with lo < hi')
+            return _DView(self, lo, hi - lo)
+        i = int(key)
+        if i < 0:
+            i += self._n
+        if not 0 <= i < self._n:
+            raise IndexError('bit %d of a %d-bit dsignal' % (key, self._n))
+        return _DView(self, i, 1)
+
+    def __setitem__(self, key, value):
+        pass            # ``ds[1:3] <<= x`` ends here after _DView.__ilshift__
+
+    # -- analog side ---------------------------------------------------------------
+    def _drive(self):
+        """Thevenin output stage of every bit (called from the simulator)."""
+        o = self._owner
+        vol, voh = float(o.Vol), float(o.Voh)
+        rout, cout = float(o.Rout), float(o.Cout)
+        word = getattr(o, self._attr)
+        for i in range(self._n):
+            v = float(getattr(o, self._hid[i]))
+            tgt = voh if (word >> i) & 1 else vol
+            name = self._cur[i]
+            setattr(o, name, getattr(o, name) + (v - tgt) / rout + cout * ddt(v))
+
+    def __repr__(self):
+        return 'dsignal(%r, %r)' % (self.direction, self.nodes if self._n > 1
+                                    else self.nodes[0])
+
+
+
+# ------------------------------------------------------------------------------
 # model
 # ------------------------------------------------------------------------------
 class model:
@@ -351,11 +687,19 @@ class model:
         obj = super().__new__(cls)
         object.__setattr__(obj, '_signals', {})
         object.__setattr__(obj, '_params', {})
+        object.__setattr__(obj, '_bmem', {})      # digital(): last bit of each input (hysteresis)
+        object.__setattr__(obj, '_bcur', {})      # ... bit seen at this accepted point
+        object.__setattr__(obj, '_bprev', {})     # ... bit seen at the previous accepted point
+        object.__setattr__(obj, '_pending', {})   # digital(): output changes already scheduled
+        object.__setattr__(obj, '_dsigs', {})     # dsignal attributes of the model
         return obj
 
     def __setattr__(self, name, value):
         if isinstance(value, signal):
             self._signals[name] = value
+        elif isinstance(value, dsignal):
+            value._bind(self, name)
+            self._dsigs[name] = value
         elif isinstance(value, param):
             self._params[name] = value
         elif name in self._params and isinstance(value, (int, float)) \
@@ -366,7 +710,71 @@ class model:
         object.__setattr__(self, name, value)
 
     def analog(self):
+        if self._dsigs:                  # a purely digital model: the outputs are driven
+            return                       # automatically after analog()
         raise NotImplementedError('%s must define analog()' % type(self).__name__)
+
+    # -- digital models ----------------------------------------------------------
+    digital_state = ()          # names of the attributes that hold the logic state
+
+    def digital(self):
+        """Optional.  Called by the simulator at every accepted time point (and
+        at the events it schedules) to update the logic state of the element.
+        The 'in' signals hold the analog values of that point.  Use bit(),
+        rising(), falling() to read logic levels and after() / at() to change
+        a state variable later (propagation delay).  analog() then drives the
+        analog outputs from the state (see pyams/models/_digital.py)."""
+
+    def digital_reset(self):
+        """Optional: put the logic state back to its initial value (called at
+        the start of every run)."""
+
+    def bit(self, x, key, lo, hi):
+        """Logic level (0/1) of the analog value x with hysteresis: 1 above hi,
+        0 below lo, unchanged in between.  ``key`` names the input."""
+        x = float(x)
+        mem = self._bmem
+        if x >= hi:
+            b = 1
+        elif x <= lo:
+            b = 0
+        else:
+            b = mem.get(key)
+            if b is None:
+                b = 1 if x >= 0.5 * (lo + hi) else 0
+        mem[key] = b
+        self._bcur[key] = b
+        return b
+
+    def rising(self, x, key, lo, hi):
+        """True if the input went from 0 to 1 since the previous accepted point."""
+        cur = self.bit(x, key, lo, hi)
+        return cur == 1 and self._bprev.get(key, cur) == 0
+
+    def falling(self, x, key, lo, hi):
+        """True if the input went from 1 to 0 since the previous accepted point."""
+        cur = self.bit(x, key, lo, hi)
+        return cur == 0 and self._bprev.get(key, cur) == 1
+
+    def after(self, delay, target, value=None):
+        """Schedule a change ``delay`` seconds from now: setattr(self, target,
+        value) when ``target`` is an attribute name (inertial delay: a newer
+        change of the same attribute cancels one that has not happened yet, so
+        pulses shorter than the delay are filtered out), or the call
+        target(t) when it is a function (used by clocks)."""
+        sim = _active['circuit']
+        if sim is None:
+            raise SimulationError('after() can only be called while a circuit '
+                                  'is being solved')
+        sim._schedule(self, float(time) + float(delay), target, value)
+
+    def at(self, t, target, value=None):
+        """Like after() but at the absolute time t."""
+        sim = _active['circuit']
+        if sim is None:
+            raise SimulationError('at() can only be called while a circuit is '
+                                  'being solved')
+        sim._schedule(self, float(t), target, value)
 
     def getParams(self):
         """Return {name: param} for every declared parameter."""
@@ -532,6 +940,7 @@ class circuit:
                             lte_abs=1e-6,     # absolute local-error tolerance (V)
                             max_step=None,    # largest internal step (20*step)
                             scale='dec',      # AC frequency sweep: dec / oct / lin
+                            event_step=1e-9,  # digital models: step right after an event
                             order=1)          # ddt(): 1 = backward Euler,
                                               #        2 = variable-step BDF2
         self.stats = {}
@@ -552,6 +961,15 @@ class circuit:
         self._committing = False
         self._ac = None             # AC linearisation record (see _ac_call)
         self._last_error = ''
+        # digital models: elements with digital(), event queue, bookkeeping
+        self._dig = []
+        self._events = []           # heap of (time, seq, id, callback)
+        self._dead = set()          # ids of cancelled events
+        self._eseq = 0
+        self._t_ev = None           # time of the last event (limits the next steps)
+        self._dinit = False         # settling the initial state (operating point)
+        self._immediate = []        # changes with zero delay, applied after the pass
+        self._dtol = 1e-12
 
     # -- description ---------------------------------------------------------
     def addElements(self, elements):
@@ -752,7 +1170,12 @@ class circuit:
             d[name] = 0.0
         self._cur_el = el
         self._cidx = 0
-        el.model.analog()
+        mdl = el.model
+        mdl.analog()
+        if mdl._dsigs:                   # digital outputs -> analog nodes
+            for ds in mdl._dsigs.values():
+                if ds.direction == 'out':
+                    ds._drive()
         return [d[name] for name in el.out_names]
 
     def _ddt(self, x):
@@ -1026,18 +1449,167 @@ class circuit:
         return name, 'V', lambda sol, w, i=idx: sol[i]
 
     def _commit(self, x, t):
-        """Accept the solution x at time t: it becomes the ddt() history."""
-        if not self._dyn:
+        """Accept the solution x at time t: it becomes the ddt() history
+        (and the logic of the digital models is updated)."""
+        if self._dyn:
+            time.value = t
+            xl = x.tolist()
+            self._committing = True
+            try:
+                for el in self._dyn:
+                    self._eval(el, [self._in_value(xl, s) for s in el.in_specs])
+            finally:
+                self._committing = False
+            self._h1 = self._h                 # the step just accepted
+        if self._dig:
+            self._digital_step(x, t)
+
+    # -- digital models: events, logic update, breakpoints ---------------------
+    def _schedule(self, mdl, t, target, value):
+        if callable(target):
+            self._eseq += 1
+            heapq.heappush(self._events, (t, self._eseq, self._eseq,
+                                          lambda te, f=target: f(te)))
             return
+        name = target
+        pend = mdl._pending.get(name)
+        if pend is not None:
+            if pend[0] == value:               # already on its way
+                return
+            self._dead.add(pend[1])            # inertial delay: cancel it
+            del mdl._pending[name]
+        if getattr(mdl, name) == value:        # nothing to change
+            return
+        if self._dinit:                        # settling the initial state
+            setattr(mdl, name, value)
+            self._immediate.append(None)
+            return
+        if t <= float(time) + self._dtol:      # zero delay: after this pass
+            self._immediate.append((mdl, name, value))
+            return
+        self._eseq += 1
+        eid = self._eseq
+        mdl._pending[name] = (value, eid)
+
+        def apply(te, mdl=mdl, name=name, value=value, eid=eid):
+            if mdl._pending.get(name, (None, None))[1] == eid:
+                del mdl._pending[name]
+            setattr(mdl, name, value)
+        heapq.heappush(self._events, (t, eid, eid, apply))
+
+    def _digital_step(self, x, t):
+        """At an accepted point: apply the events that are due, then let every
+        digital model look at its inputs (all of them see the same point)."""
         time.value = t
+        ev = self._events
+        tol = self._dtol
+        changed = False
+        while ev and ev[0][0] <= t + tol:
+            te, _, eid, fn = heapq.heappop(ev)
+            if eid in self._dead:
+                self._dead.discard(eid)
+                continue
+            fn(te)
+            changed = True
         xl = x.tolist()
-        self._committing = True
+        self._immediate = []
+        for el in self._dig:
+            d = el.d
+            for name, spec in zip(el.in_names, el.in_specs):
+                d[name] = self._in_value(xl, spec)
+            self._cur_el = el
+            el.model.digital()
+        for item in self._immediate:           # zero-delay changes
+            if item is not None:
+                mdl, name, value = item
+                setattr(mdl, name, value)
+                changed = True
+        self._immediate = []
+        for el in self._dig:
+            mdl = el.model
+            mdl._bprev.update(mdl._bcur)
+        if changed:
+            self._t_ev = t
+
+    def _digital_state(self):
+        return [tuple(getattr(el.model, n) for n in el.model.digital_state)
+                for el in self._dig]
+
+    def _digital_settle(self, x, t0):
+        """Initial state: let the logic follow its inputs at the operating
+        point, solving the operating point again after every change.  Every
+        element changes at once for the first passes; if the logic does not
+        settle (a ring of inverters has no stable state) one element changes
+        per pass, which gives the oscillation its asymmetric start."""
+        self._dinit = True
+        n_el = len(self._dig)
         try:
-            for el in self._dyn:
-                self._eval(el, [self._in_value(xl, s) for s in el.in_specs])
+            for k in range(8 + 3 * n_el):
+                before = self._digital_state()
+                self._immediate = []
+                time.value = t0
+                xl = x.tolist()
+                for el in self._dig:
+                    d = el.d
+                    for name, spec in zip(el.in_names, el.in_specs):
+                        d[name] = self._in_value(xl, spec)
+                    self._cur_el = el
+                    el.model.digital()
+                for el in self._dig:
+                    el.model._bprev.update(el.model._bcur)
+                after = self._digital_state()
+                if after == before:
+                    break
+                if k >= 8:                       # one change per pass
+                    first = None
+                    for i, el in enumerate(self._dig):
+                        if after[i] != before[i]:
+                            if first is None:
+                                first = i
+                            else:                # undo the others
+                                for n, v in zip(el.model.digital_state, before[i]):
+                                    setattr(el.model, n, v)
+                nx = self._solve_op(x, t0)
+                if nx is None:
+                    break
+                x = nx
         finally:
-            self._committing = False
-        self._h1 = self._h                 # the step just accepted
+            self._dinit = False
+            self._immediate = []
+        return x
+
+    def _next_break(self, t):
+        """Time of the next scheduled event after t (None if there is none)."""
+        ev = self._events
+        while ev and ev[0][2] in self._dead:
+            self._dead.discard(heapq.heappop(ev)[2])
+        if ev and ev[0][0] > t + self._dtol:
+            return ev[0][0]
+        return None
+
+    def _event_cap(self, t):
+        """Largest step allowed at t: small right after an event (the digital
+        outputs are switching), growing with the time since the event."""
+        if self._t_ev is None:
+            return math.inf
+        return max(self.options['event_step'], t - self._t_ev)
+
+    def _advance_dig(self, x, t0, t1, record):
+        """Fixed-grid step t0 -> t1 with digital models: split at the events."""
+        t = t0
+        while t < t1 - self._dtol:
+            tgt = t1
+            tb = self._next_break(t)
+            if tb is not None and tb < tgt:
+                tgt = tb
+            cap = self._event_cap(t)
+            if t + cap < tgt:
+                tgt = t + cap
+            if t1 - tgt < 0.01 * self.options['event_step']:
+                tgt = t1
+            x = self._advance(x, t, tgt, record if tgt >= t1 else None)
+            t = tgt
+        return x
 
     def _stamp(self, el, x, F, J, want_jac):
         """Add the contribution of one element to F (and J) -- plain lists."""
@@ -1308,6 +1880,11 @@ class circuit:
         after_reject = False
         while t < t_stop - 1e-12 * self.step:
             h = min(h, h_max, t_stop - t)
+            if self._dig:                    # digital events: land on them
+                h = min(h, self._event_cap(t))
+                tb = self._next_break(t)
+                if tb is not None and t + h > tb:
+                    h = tb - t
             t_new = t + h
             self._h = h
             bdf2 = want2 and h1 is not None and h <= 2.0 * h1
@@ -1407,6 +1984,10 @@ class circuit:
                                       '(elements: %s)' % (
                                           ename, name, ', '.join(self._by_name)))
             sig = el.model._signals.get(sname)
+            if sig is None and sname in el.model._dsigs:             # digital signal
+                return name, ' ', (lambda x, ds=el.model._dsigs[sname]: float(ds._val()))
+            if sig is None and sname in el.model.digital_state:      # logic state
+                return name, ' ', (lambda x, m=el.model, n=sname: float(getattr(m, n)))
             if sig is None:
                 raise SimulationError('element %r has no signal %r (signals: %s)'
                                       % (ename, sname,
@@ -1479,6 +2060,21 @@ class circuit:
                 col.append(fn(xl))
 
         self._dyn = []
+        self._dig = [el for el in self._elems
+                     if type(el.model).digital is not model.digital]
+        self._events = []
+        self._dead = set()
+        self._t_ev = None
+        self._dinit = False
+        self._immediate = []
+        self._dtol = 1e-3 * self.options['event_step']
+        for el in self._dig:
+            mdl = el.model
+            mdl._bmem.clear(); mdl._bcur.clear(); mdl._bprev.clear(); mdl._pending.clear()
+            for ds in mdl._dsigs.values():
+                if ds.direction == 'out':
+                    setattr(mdl, ds._attr, ds.init)
+            mdl.digital_reset()
         self._h = None                       # ddt() = 0 at the operating point
         self._h1 = None
         self._bdf2 = False
@@ -1508,6 +2104,8 @@ class circuit:
                 if self._last_error:
                     msg += '. Last model error: ' + self._last_error
                 raise SimulationError(msg)
+            if self._dig and not (self.mode == 'tran' and self.options['uic']):
+                x = self._digital_settle(x, times[0])
             record(x, times[0])
             self._commit(x, times[0])
             acc_t = None
@@ -1516,8 +2114,9 @@ class circuit:
                 self._run_adaptive(x, times[0], times[-1], record, acc_t, prog)
             else:
                 n_steps = len(times) - 1
+                step_fn = self._advance_dig if self._dig else self._advance
                 for k, (t0, t1) in enumerate(zip(times[:-1], times[1:]), 1):
-                    x = self._advance(x, t0, t1, record)
+                    x = step_fn(x, t0, t1, record)
                     if prog is not None:
                         prog.update(k / n_steps, t1)
             ok = True

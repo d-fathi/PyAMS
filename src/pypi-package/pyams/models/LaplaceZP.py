@@ -8,6 +8,17 @@ import numpy as np
 from .LaplaceND import LaplaceND
 
 
+def _groups(vals, tol=1e-9):
+    """Split roots into real singles and complex-conjugate pairs."""
+    vals = [complex(v) for v in vals]
+    big = lambda v: abs(v.imag) > tol * max(abs(v), 1.0)
+    reals = [[v.real] for v in vals if not big(v)]
+    cplx = [v for v in vals if big(v) and v.imag > 0]
+    if len([v for v in vals if big(v) and v.imag < 0]) != len(cplx):
+        raise ValueError('complex roots must come in conjugate pairs')
+    return reals + [[v, v.conjugate()] for v in cplx]
+
+
 def _real_poly(roots, what):
     roots = np.array(roots, dtype=complex)
     p = np.poly(roots)
@@ -34,7 +45,10 @@ class LaplaceZP(LaplaceND):
         # or  H.setDcGain(1.0)       # choose K so that H(0) = 1
 
     or   LaplaceZP("in", "0", "out", "0", zeros=[], poles=[...], gain=5e6).
-    Everything else (realisation, DC / AC / transient behaviour, limits) is
+    The function is realised as a cascade of first / second order sections (real
+    poles alone, complex pairs together; each zero group is attached to the
+    nearest pole section), so high orders (elliptic, Butterworth ...) stay well
+    conditioned.  Everything else (DC / AC / transient behaviour, limits) is
     described in LaplaceND.
     """
     def __init__(self, inp, inn, outp, outn, zeros=None, poles=None, gain=1.0, dc_gain=None):
@@ -67,4 +81,27 @@ class LaplaceZP(LaplaceND):
             k = self._dc * d0 / n0
         else:
             k = self._K
-        self._set(k * num, den)
+        self._num, self._den = k * num, den             # for poles() / zeros() / response()
+        zg = _groups(self._zeros)
+        pg = sorted(_groups(self._poles), key=lambda g: abs(g[0]))
+        if len(num) > len(den):
+            raise ValueError('improper transfer function: more zeros than poles')
+        if not pg:
+            self._build([([k], [1.0])])
+            return
+        cap = [len(g) for g in pg]
+        assign = [[] for _ in pg]
+        for g in sorted(zg, key=lambda g: abs(g[0])):    # nearest pole section with room
+            order = sorted(range(len(pg)), key=lambda i: abs(abs(pg[i][0]) - abs(g[0])))
+            for i in order:
+                if cap[i] >= len(g):
+                    assign[i].append(g); cap[i] -= len(g); break
+            else:
+                raise ValueError('cannot distribute the zeros over the pole sections')
+        secs = []
+        for i, g in enumerate(pg):
+            zs = [v for grp in assign[i] for v in grp]
+            nu = np.real(np.poly(zs)) if zs else np.array([1.0])
+            secs.append([nu, np.real(np.poly(g))])
+        secs[0][0] = secs[0][0] * k
+        self._build([(nu, de) for nu, de in secs])
