@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        555 timer, monostable (one-shot)
-# Created:     19/10/2026
+# Updated:     19/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 # TRIG is held at Vcc; a negative pulse below Vcc/3 sets the flip-flop: the output
 # goes high, the discharge transistor opens and C charges from 0 through R towards

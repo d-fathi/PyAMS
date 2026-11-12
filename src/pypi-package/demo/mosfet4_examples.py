@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        MOSFET4: 4-terminal MOSFET, body effect
-# Created:     20/10/2026
+# Updated:     20/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 # MOSFET4(d, g, s, b): level-1 MOSFET with the body effect
 #       Vth = Vth0 + Gamma (sqrt(Phi - vbs) - sqrt(Phi))

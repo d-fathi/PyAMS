@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        Current sources: DCCurrent, SinCurrent, TrapezoidCurrent
-# Created:     18/10/2026
+# Updated:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 # Each source feeds a parallel R || C (R = 1 kOhm, C = 1 uF, tau = 1 ms).
 # A positive current flows through the source from p ("0") to n, so it is

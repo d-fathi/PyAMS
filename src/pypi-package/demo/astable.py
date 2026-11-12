@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        Astable multivibrator (two NPN BJT transistors)
-# Created:     15/10/2026
+# Updated:     15/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 #
 #                    Vcc

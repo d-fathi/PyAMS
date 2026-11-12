@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        Charge and discharge of a capacitor (RC circuit)
-# Created:     15/10/2026
+# Updated:     15/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 #
 #   In ──[ R1 ]── Out

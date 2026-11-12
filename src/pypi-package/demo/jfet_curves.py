@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        JFET output characteristics (Id versus Vds for several Vgs)
-# Created:     18/10/2026
+# Updated:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "GPLv3"
+# Licence:     free  "MIT  "
 #-------------------------------------------------------------------------------
 # Inner loop : DC sweep of Vd (Vds) from 0 to 10 V       -> analysis(param=...)
 # Outer loop : one curve for every Vgs in the list       -> sweep(param, list)
