@@ -29,8 +29,8 @@ var liveWidget = (function () {
         bar:     { title: 'Bar',         prefix: 'bar', w: 26,  h: 70 },
         value:   { title: 'Value display', prefix: 'val', w: 80, h: 28 },
         knob:    { title: 'Rotary knob', prefix: 'knob', w: 50, h: 50 },
-        autosw:  { title: 'Automatic switch', prefix: 'asw', w: 40, h: 60 },        // relay contact (output)
-        ats:     { title: 'Automatic transfer switch', prefix: 'ats', w: 60, h: 60 }   // changeover relay contact (output)
+        autosw:  { title: 'Automatic switch', prefix: 'asw', w: 54, h: 60 },        // relay contact (output)
+        ats:     { title: 'Automatic transfer switch', prefix: 'ats', w: 74, h: 60 }   // changeover relay contact (output)
     };
     var ORDER = ['led', 'segment', 'switch', 'button', 'slider', 'spst', 'spdt', 'pushsw', 'polyseg', 'gauge', 'bar', 'value', 'knob', 'autosw', 'ats'];
     var TOGGLE = { 'switch': 1, spst: 1, spdt: 1 };     // keep their position (state `on`)
@@ -50,8 +50,8 @@ var liveWidget = (function () {
             case 'gauge':   return { label: '', min: 0, max: 5, value: 2.5, color: '#22c55e', needleColor: '#1f2937', decimals: 1, unit: 'V', showValue: true, scale: 1, offset: 0 };
             case 'bar':     return { label: '', min: 0, max: 5, value: 2.5, color: '#3b82f6', vertical: true, showValue: false, decimals: 1, unit: '', scale: 1, offset: 0 };
             case 'value':   return { label: '', value: 1.234, decimals: 3, unit: 'V', color: '#22c55e', bg: '#0b0f14', scale: 1, offset: 0 };
-            case 'autosw':  return { label: '', contact: 'NO', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', value: 0, scale: 1, offset: 0 };
-            case 'ats':     return { label: '', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', value: 0, scale: 1, offset: 0 };
+            case 'autosw':  return { label: '', contact: 'NO', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', actuator: true, value: 0, scale: 1, offset: 0 };
+            case 'ats':     return { label: '', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', actuator: true, value: 0, scale: 1, offset: 0 };
             case 'knob':    return { label: '', min: 0, max: 10, step: 0.1, value: 5, color: '#3b82f6' };
             case 'slider':  return { label: '', min: 0, max: 1, step: 0.01, value: 0.5, vertical: false, color: '#3b82f6' };
         }
@@ -259,6 +259,15 @@ var liveWidget = (function () {
     function ring(p, x, y, r, col, sw, filled) {
         mk('circle', { cx: x, cy: y, r: r, fill: filled ? col : '#ffffff', stroke: col, 'stroke-width': sw }, p);
     }
+    // dashed line with an arrow from the left to the blade: the contact is moved by an actuator (coil)
+    function actuator(p, w, ym, xb, col, sw) {
+        var x0 = 2, x1 = xb - 3, a = Math.max(3.5, sw * 2.4), lw = Math.max(1, sw * 0.65);
+        if (x1 - x0 < a + 3) return;
+        var ln = lead(p, x0, ym, x1 - a, ym, col, lw);
+        ln.setAttribute('stroke-dasharray', (lw * 3) + ' ' + (lw * 2.2));
+        ln.setAttribute('stroke-linecap', 'butt');
+        mk('polygon', { points: x1 + ',' + ym + ' ' + (x1 - a) + ',' + (ym - a * 0.55) + ' ' + (x1 - a) + ',' + (ym + a * 0.55), fill: col }, p);
+    }
     // automatic switch: one contact (normally open or normally closed); the pivot is at the bottom
     function drawAutoSwitch(p, w, h, c) {
         var act = isLit(c, c.value), closed = (c.contact === 'NC') ? !act : act;
@@ -274,6 +283,12 @@ var liveWidget = (function () {
             lead(p, x - r * 0.4, yp - r * 0.9, x - L * Math.cos(a) * 0.6 - r * 0.4, yp - L * Math.sin(a) - r * 0.4, c.color, sw + 0.4);
         }
         ring(p, x, yt, r, col, sw, false);                          // fixed contact
+        if (c.actuator !== false) {
+            var ym = (yt + yp) / 2, xb = x;                         // blade position at mid height
+            if (!closed) { var L2 = (yp - yt) * 0.92, a2 = 62 * Math.PI / 180, ex = x - L2 * Math.cos(a2) * 0.6 - r * 0.4, ey = yp - L2 * Math.sin(a2) - r * 0.4, sx = x - r * 0.4, sy = yp - r * 0.9;
+                           xb = sx + (ex - sx) * (sy - ym) / (sy - ey); }
+            actuator(p, w, ym, xb, c.color, sw);
+        }
     }
     // automatic transfer switch: changeover contact; at rest the common terminal is joined to the left
     // contact, when the value is active to the right one
@@ -288,6 +303,10 @@ var liveWidget = (function () {
         ring(p, xc, yp, r, c.accent, sw, true);
         ring(p, xl, yt, r, cl, sw, !act);
         ring(p, xr, yt, r, cr, sw, !!act);
+        if (c.actuator !== false) {
+            var ym = (yt + yp) / 2, xe = act ? xr : xl;
+            actuator(p, w, ym, xc + (xe - xc) * (yp - ym) / (yp - yt - r), c.color, sw);
+        }
     }
 
     // values of the live simulation (runtime only, never saved): {v, on, pressed}
@@ -675,7 +694,8 @@ function liveWidgetSelect() {
                 { label: 'Active when', type: 'dropdown', options: ['High (value >= threshold)', 'Low (value < threshold)'], value: c.activeLow ? 'Low (value < threshold)' : 'High (value >= threshold)' },
                 { label: 'Preview value', type: 'number', value: c.value },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
-                { label: 'Active color', type: 'color', value: c.accent, color: c.accent }
+                { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Actuator arrow', type: 'dropdown', options: ['Yes', 'No'], value: yn(c.actuator !== false) }
             ]; break;
         case 'ats':
             rows = [
@@ -683,7 +703,8 @@ function liveWidgetSelect() {
                 { label: 'Active when', type: 'dropdown', options: ['High (value >= threshold)', 'Low (value < threshold)'], value: c.activeLow ? 'Low (value < threshold)' : 'High (value >= threshold)' },
                 { label: 'Preview value', type: 'number', value: c.value },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
-                { label: 'Active color', type: 'color', value: c.accent, color: c.accent }
+                { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Actuator arrow', type: 'dropdown', options: ['Yes', 'No'], value: yn(c.actuator !== false) }
             ]; break;
         case 'gauge':
             rows = [
@@ -832,11 +853,11 @@ function modifiedLiveWidget() {
             case 'autosw':
                 c.contact = R[0].value === 'Normally closed' ? 'NC' : 'NO';
                 c.threshold = f(R[1].value, 0.5); c.activeLow = /^Low/.test(R[2].value); c.value = f(R[3].value, 0);
-                c.color = R[4].value; c.accent = R[5].value;
+                c.color = R[4].value; c.accent = R[5].value; c.actuator = R[6].value !== 'No';
                 break;
             case 'ats':
                 c.threshold = f(R[0].value, 0.5); c.activeLow = /^Low/.test(R[1].value); c.value = f(R[2].value, 0);
-                c.color = R[3].value; c.accent = R[4].value;
+                c.color = R[3].value; c.accent = R[4].value; c.actuator = R[5].value !== 'No';
                 break;
             case 'gauge':
                 c.min = f(R[0].value, 0); c.max = f(R[1].value, 1); if (c.max <= c.min) c.max = c.min + 1;
