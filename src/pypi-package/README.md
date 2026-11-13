@@ -14,7 +14,7 @@
 </a>
 
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.3.1-blue" alt="v0.3.1">
+    <img src="https://img.shields.io/badge/Version-0.4.0-blue" alt="v0.4.0">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -349,7 +349,7 @@ an AC run gives magnitude and phase against frequency, and a parametric sweep ov
 
 | Transient (series RLC, `rlc.py`) | AC (series RLC band-pass, `ac_analysis.py`) |
 |:--:|:--:|
-| ![Transient](docs/images/rlc_result.png) | ![AC](docs/images/ac_rlc.png) |
+| ![Transient](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/rlc_result.png) | ![AC](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/ac_rlc.png) |
 
 ### Your own plots and post-processing
 

@@ -17,6 +17,7 @@ var mtable = {};
 function showDescriptionElemSelectInPanel(select) {
 
     mtable.resize = drawing.resize;
+    try { if (typeof syncListElementsSelection === 'function') syncListElementsSelection(select); } catch (e) { console.error(e); }
 
     drawing.selectPart= false;
     drawing.selectAnalysis= false;
@@ -108,8 +109,12 @@ function showDescriptionElemSelectInPanel(select) {
                 probeSelect();
              break;
 
-			 case "oscilloscope":
-                oscilloscopeSelect();
+			 case "liveScope":
+                liveScopeSelect();
+             break;
+
+			 case "liveWidget":
+                liveWidgetSelect();
              break;
 
             default:
@@ -219,8 +224,12 @@ function changeSelect() {
 	      probeModified();
         break;
 
-	case 'oscilloscope':
-	      oscilloscopeModified();
+	case 'liveScope':
+	      modifiedLiveScope();
+        break;
+
+	case 'liveWidget':
+	      modifiedLiveWidget();
         break;
     }
   // drawing.saveData('Changed property of ' + mtable.typeSelect);

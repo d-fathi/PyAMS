@@ -2,6 +2,15 @@
 
 All notable changes to PyAMS will be documented in this file.
 
+## [0.4.0] - 2026-11-13
+
+### Added
+- Live simulation runs the circuit with Python: the Live panel starts `pyams/liveSession.py`; switches, buttons and sliders change model parameters while it runs, LEDs / 7-segments / polygon segments and scopes show the results (adjustable step and speed, Pause / Reset).
+- Optional `def live(self)` in a model: called after every accepted step to write output parameters for the widgets.
+- New live widgets: Gauge, Bar, Value display (outputs) and Rotary knob (input).
+- New output widgets for relay circuits: Automatic switch (NO / NC contact) and Automatic transfer switch (changeover), driven by a bound parameter, signal or pin, with an optional dashed actuator arrow.
+- Demo: `demo/live/` (LiveDemo, LiveSwitch, Relay and RelayNO models and symbols; Live Demo.dcs and Relay Circuit.dcs circuits).
+
 ## [0.3.1] - 2026-11-07
 
 ### Added

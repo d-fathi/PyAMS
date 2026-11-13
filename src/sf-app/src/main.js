@@ -85,6 +85,7 @@ class Doc {
         this.pos = null;
         this.zoom = null;
         this.pyamsOpRun = null;
+        this.liveRun = null;
         this.pyamsRun = null;
     }
 
@@ -256,6 +257,7 @@ function ensureMainWindow() {
 function disposeTab(t) {
     if (t.doc) {
         if (t.doc.pyamsOpRun) { try { t.doc.pyamsOpRun.kill(); } catch (e) { /* ignore */ } }
+        if (t.doc.liveRun) { try { t.doc.liveRun.kill(); } catch (e) { /* ignore */ } }
         if (t.doc.pyamsRun) { try { t.doc.pyamsRun.kill(); } catch (e) { /* ignore */ } }
     }
     const wcId = t.view.webContents.id;
@@ -408,6 +410,15 @@ function openFilePath(filePath) {
 /** Open one of the bundled examples as an untitled copy (the install folder may be read-only). */
 function openExample(filePath) {
     try {
+        const demoRoot = path.join(DATA_ROOT, 'demo');
+        if (path.dirname(path.resolve(filePath)) !== demoRoot) {
+            // An example folder (circuit + its models and symbols): work on a copy in the user-data
+            // folder, so the models are found as a project and the install folder stays untouched.
+            const src = path.dirname(path.resolve(filePath));
+            const dest = path.join(app.getPath('userData'), 'examples', app.getVersion(), path.basename(src));
+            if (!fs.existsSync(dest)) fs.cpSync(src, dest, { recursive: true });
+            return openFilePath(path.join(dest, path.basename(filePath)));
+        }
         const content = fs.readFileSync(filePath, 'utf8');
         const type = typeOfFile(filePath) || 'dcs';
         return openDocument(type, null, content, path.basename(filePath, path.extname(filePath)));
@@ -682,6 +693,23 @@ async function handleMessage(doc, message) {
                 (ev) => post({ type: 'pyamsOpEvent', event: ev }));
             break;
 
+        // ---------------------------------- Live simulation (pyams/liveSession.py) ----------------
+        case 'liveStart': {
+            if (doc.liveRun) { doc.liveRun.kill(); doc.liveRun = null; }
+            const run = LibrarySync.startLiveSession(DATA_ROOT, message.code, message.config,
+                (ev) => { if (doc.liveRun === run) post({ type: 'liveEvent', event: ev }); });
+            doc.liveRun = run;
+            break;
+        }
+
+        case 'liveSend':
+            if (doc.liveRun) doc.liveRun.send(message.cmd);
+            break;
+
+        case 'liveStop':
+            if (doc.liveRun) { doc.liveRun.kill(); doc.liveRun = null; }
+            break;
+
         case 'stopPyAMSOp':
             if (doc.pyamsOpRun) { doc.pyamsOpRun.kill(); doc.pyamsOpRun = null; }
             break;
@@ -730,13 +758,27 @@ ipcMain.on('host:openPaths', (_event, paths) => {
 // ---------------------------------------------------------------------------------------------
 // Start (welcome) window
 // ---------------------------------------------------------------------------------------------
+/** Circuits (.dcs) inside sub folders of demo/, shown as "folder / name". */
+function listExampleFolders(dir) {
+    const out = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (!entry.isDirectory()) continue;
+        const sub = path.join(dir, entry.name);
+        for (const f of fs.readdirSync(sub).sort((a, b) => a.localeCompare(b))) {
+            if (f.toLowerCase().endsWith('.dcs')) out.push({ name: entry.name + ' / ' + path.basename(f, '.dcs'), path: path.join(sub, f) });
+        }
+    }
+    return out;
+}
+
 function listExamples() {
     const dir = path.join(DATA_ROOT, 'demo');
     try {
         return fs.readdirSync(dir)
             .filter((f) => typeOfFile(f))
             .sort((a, b) => a.localeCompare(b))
-            .map((f) => ({ name: path.basename(f, path.extname(f)), path: path.join(dir, f) }));
+            .map((f) => ({ name: path.basename(f, path.extname(f)), path: path.join(dir, f) }))
+            .concat(listExampleFolders(dir));
     } catch (e) {
         return [];
     }
@@ -754,7 +796,7 @@ ipcMain.on('start:action', (_event, { action, arg }) => {
         case 'new-symbol': newDocument('sym'); break;
         case 'open': openFileDialog(mainWin); break;
         case 'open-recent': if (typeof arg === 'string') openFilePath(arg); break;
-        case 'open-example': if (typeof arg === 'string' && isInside(path.join(DATA_ROOT, 'demo'), path.resolve(arg))) openExample(arg); break;
+        case 'open-example': if (typeof arg === 'string' && isInside(path.join(DATA_ROOT, 'demo'), path.resolve(arg)) && typeOfFile(arg)) openExample(arg); break;
         case 'docs': shell.openExternal('https://pyams-lib.readthedocs.io'); break;
         case 'website': shell.openExternal('https://pyams.sf.net/'); break;
         default: break;

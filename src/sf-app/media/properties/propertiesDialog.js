@@ -263,6 +263,7 @@ function fpropertiesPanel(self) {
             header.addEventListener('click', function() {
                 header.classList.toggle('collapsed');
                 content.classList.toggle('hidden');
+                if (section.collapseKey) { try { propSectionState[section.collapseKey] = header.classList.contains('collapsed'); } catch (e) {} }
             });
             sectionDiv.appendChild(header);
 
@@ -430,7 +431,14 @@ function fpropertiesPanel(self) {
                              updatePreview();
                         });
 
-                        axisWrapper.appendChild(axisColorPicker);
+                        if (row.noColor) {
+                            // name only (no colour picker): used by the X axis
+                            axisColorText.textContent = row.value;
+                            axisColorText.className = '';
+                            axisColorText.style.fontSize = '12px';
+                        } else {
+                            axisWrapper.appendChild(axisColorPicker);
+                        }
                         axisWrapper.appendChild(axisColorText);
                         axisWrapper.appendChild(deleteBtn);
                         control.appendChild(axisWrapper);
@@ -592,6 +600,20 @@ function updatePreview() {
     if (typeof changeSelect === 'function') {
         changeSelect();
     }
+    scheduleSavePropertyChange();
+}
+
+// Save the document after a property change (debounced: one save per burst of edits)
+var _propSaveTimer = null;
+function scheduleSavePropertyChange() {
+    clearTimeout(_propSaveTimer);
+    _propSaveTimer = setTimeout(function () {
+        _propSaveTimer = null;
+        try {
+            var t = (typeof mtable !== 'undefined' && mtable.type) ? mtable.type : 'element';
+            drawing.saveData('Changed property of ' + t);
+        } catch (e) { console.log('saveData failed', e); }
+    }, 300);
 }
 
 // clik button in properties to open dialog (for example for signal selection or model selection)
@@ -605,6 +627,7 @@ function getDialog(setClick) {
             'css',
             function (result) {
                 mtable.select.setAttribute('style', result);
+                scheduleSavePropertyChange();
             },
             function () {
                 console.log('Cancelled');
@@ -622,6 +645,7 @@ function getDialog(setClick) {
             'html',
             function (result) {
                 setHtmlCode(result);
+                scheduleSavePropertyChange();
             },
             function () {
                 console.log('Cancelled');
@@ -693,6 +717,7 @@ drawing.getListParameter(code)
                     mtable.select.textContent = result.model;
                    
                     modelSelected();
+                    scheduleSavePropertyChange();
                 },
                 function () {
                     console.log('Cancelled');
@@ -714,6 +739,7 @@ drawing.getListParameter(code)
                     drawing.symbol.model.local = true;
                  
                     pageSelect();
+                    scheduleSavePropertyChange();
                 },
                 function () {
                     console.log('Cancelled');
@@ -733,6 +759,7 @@ drawing.getListParameter(code)
                                 console.log('Models:', result.models[0].setParams);
                                 setParamSym(result.models[0].setParams);
                             }
+                            scheduleSavePropertyChange();
                             
                            
                        
@@ -762,6 +789,7 @@ drawing.getListParameter(code)
                     mtable.sym.model.local = true;
                     setPartModel(mtable.select, mtable.sym);
                     partSelect();
+                    scheduleSavePropertyChange();
                 },
                 function () {
                     console.log('Cancelled');
@@ -780,6 +808,7 @@ drawing.getListParameter(code)
                                 console.log('Models:', result.models[0].setParams);
                                 setParamPart(result.models[0].setParams,mtable.select);
                             }
+                            scheduleSavePropertyChange();
                             
                            
                        
@@ -834,7 +863,8 @@ drawing.getListParameter(code)
                 mtable.select.setAttribute("description", JSON.stringify(analy));
                 mtable.typeUsedDC=null;
                 analysisSelect();
-                console.log(info);       // {element, class, param, value, default, unit, description}
+                scheduleSavePropertyChange();
+                console.log(info);
             },
             function () { console.log('Cancelled'); }
         );
@@ -857,6 +887,7 @@ drawing.getListParameter(code)
                 analy.sweep.param=selected; 
                 mtable.select.setAttribute("description", JSON.stringify(analy));
                 analysisSelect();
+                scheduleSavePropertyChange();
                 console.log(info);       // {element, class, param, value, default, unit, description}
             },
             function () { console.log('Cancelled'); }
@@ -913,11 +944,16 @@ drawing.getListParameter(code)
                         analy.options = options;
                         mtable.select.setAttribute("description", JSON.stringify(analy));
                         analysisSelect();
+                        scheduleSavePropertyChange();
                     },
                     function () { console.log('Cancelled'); });
                 });
             break;
     
+
+        case 'addScopeChannel':
+            liveScopeAddChannel();
+            break;
 
         case 'runAnalysis':
             runSimulation();
@@ -948,6 +984,7 @@ function ioSetPosProbe(pos,name,func) {
       mtable.select.setAttribute("description", JSON.stringify(analy));
       mtable.typeUsedYOutput=null;
       analysisSelect();
+      scheduleSavePropertyChange();
       return;
     }
   
@@ -959,6 +996,7 @@ function ioSetPosProbe(pos,name,func) {
       mtable.select.setAttribute("description", JSON.stringify(analy));
       mtable.typeUsedXOutput=null;
       analysisSelect();
+      scheduleSavePropertyChange();
       return;
     }
   

@@ -30,6 +30,7 @@ function getPartForList(self, part) {
         switch (elem.getAttribute("name")) {
         case "rect":
         case "image":
+        case "liveWidget":
             var x = parseInt(elem.getAttribute("x"));
             var y = parseInt(elem.getAttribute("y"));
             var w = parseInt(elem.getAttribute("width"));
@@ -102,6 +103,11 @@ function getPartForList(self, part) {
     for (var i = 0; i <= collection.length - 1; i++) {
         var elem = collection[i];
         switch (elem.getAttribute("name")) {
+        case "liveWidget":
+            elem.setAttribute("x", parseInt(elem.getAttribute("x")) - xmin);
+            elem.setAttribute("y", parseInt(elem.getAttribute("y")) - ymin);
+            modifedSizeLiveWidget(elem);
+            break;
         case "rect":
         case "image":
             var x = parseInt(elem.getAttribute("x"));

@@ -23,6 +23,7 @@ function newPart(self, part) {
         switch (elem.getAttribute("name")) {
         case "rect":
         case "image":
+        case "liveWidget":
             var x = parseInt(elem.getAttribute("x"));
             var y = parseInt(elem.getAttribute("y"));
             var w = parseInt(elem.getAttribute("width"));
@@ -100,6 +101,14 @@ function newPart(self, part) {
             var y = parseFloat(elem.getAttribute("y"));
             elem.setAttribute("x", x - xmin);
             elem.setAttribute("y", y - ymin);
+            break;
+
+        case "liveWidget":
+            var x = parseFloat(elem.getAttribute("x"));
+            var y = parseFloat(elem.getAttribute("y"));
+            elem.setAttribute("x", x - xmin);
+            elem.setAttribute("y", y - ymin);
+            modifedSizeLiveWidget(elem);
             break;
 
         case "ellipse":
@@ -328,6 +337,7 @@ function rotatePart() {
 
                 case "rect":
                 case "image":
+                case "liveWidget":
                     var x = e.getAttribute("x");
                     var y = e.getAttribute("y");
                     var w = e.getAttribute("width");
@@ -337,6 +347,7 @@ function rotatePart() {
                     e.setAttribute("y", x);
                     e.setAttribute("width", h);
                     e.setAttribute("height", w);
+                    liveWidgetOp(e, 'T');       // the content turns with the symbol
 
                     break;
 
@@ -471,10 +482,12 @@ function flipHorizontalPart() {
 
                 case "rect":
                 case "image":
+                case "liveWidget":
                     var x = parseInt(e.getAttribute("x"));
                     var width = parseInt(e.getAttribute("width"));
 
                     e.setAttribute("x", Math.abs(x - w + width));
+                    liveWidgetOp(e, 'H');
 
                     break;
 
@@ -584,10 +597,12 @@ function flipVerticallyPart() {
 
                 case "rect":
                 case "image":
+                case "liveWidget":
                     var y = parseInt(e.getAttribute("y"));
                     var height = parseInt(e.getAttribute("height"));
 
                     e.setAttribute("y", Math.abs(y - h + height));
+                    liveWidgetOp(e, 'V');
 
                     break;
 

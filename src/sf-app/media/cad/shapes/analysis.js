@@ -21,7 +21,7 @@ var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'foreign
     newElement.setAttribute("y", 0);
     newElement.setAttribute("width", 440);
     newElement.setAttribute("height", 360);
-    newElement.innerHTML = "<div name='plots' style='border-style:double; zoom:60%;'  ondblclick='showPlotInModel(this)'></div>";
+    newElement.innerHTML = "<div name='plots' style='border-style:double; transform-origin:0 0; transform:scale(0.6);'  ondblclick='showPlotInModel(this)'></div>";
     elem.appendChild(newElement);
 }
 
@@ -43,16 +43,29 @@ function modifedSizeAnalysis(element) {
         var e = element.lastChild.firstChild;
         var gd = e;
 
-        Plotly.redraw(e);
-        e.style.width = a*(w-6);
-        e.style.height =a*(h-6);
+        // The plot is drawn at 100/60 of its size and shown at 60 %. This is done with a transform and
+        // not with the CSS "zoom" property: browsers disagree on the mouse coordinates inside "zoom",
+        // so hover labels and the zoom box of the plot were far from the pointer.
+        // (files saved by older versions still carry zoom:60%: it is converted here)
+        e.style.zoom = '';
+        e.style.transformOrigin = '0 0';
+        e.style.transform = 'scale(' + (1 / a) + ')';
 
-        update = {
-            width:a*(w-8),
-            height:a*(h-8)
+        // the frame (3px double border) is inside the box, so that once scaled the box is exactly w x h
+        e.style.boxSizing = 'border-box';
+        e.style.borderWidth = '3px';
+        e.style.margin = '0';
+        e.style.padding = '0';
+        e.style.width = a*w + 'px';
+        e.style.height = a*h + 'px';
+
+        // one relayout draws the plot again at its new size (a redraw before it was a second, useless rendering);
+        // a plot that was not drawn yet (no data) only gets its size
+        var update = {
+            width: a*w - 6,
+            height: a*h - 6
         };
-
-        Plotly.relayout(e,update);
+        if (e.data) Plotly.relayout(e, update);
     }
 }
 

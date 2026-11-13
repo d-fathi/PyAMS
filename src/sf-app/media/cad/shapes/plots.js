@@ -17,40 +17,6 @@ it used in this project for plotting graphs and visualizing data. It provides a 
 */
 
 
-function plots() {
-    var npoints = 10000;
-    var y = [];
-    for (var i = 0, l = npoints; i < l; i++) {
-        y.push(Math.random())
-    };
-
-    var x = [];
-    for (var i = 0, l = npoints; i < l; i++) {
-        x.push(i);
-    };
-
-    var listForPlot = document.getElementsByName('plots');
-    for (var i = 0; i < listForPlot.length; i++) {
-        Plotly.plot(listForPlot[i], [{
-                    type: 'scatter',
-                    x: x,
-                    y: y
-                }
-            ], {
-            margin: {
-                l: 5,
-                r: 5,
-                b: 5,
-                t: 5,
-                pad: 4
-            },
-            paper_bgcolor: '#7f7f7f',
-            plot_bgcolor: '#c7c7c7'
-        });
-        Plotly.redraw(listForPlot[i]);
-    }
-
-}
 /*
 
 var plotConfig = {
@@ -187,8 +153,9 @@ function plotsSaveDataLayoutInDiv() {
     var listForPlot = document.querySelectorAll('[name="plots"]');
     for (var i = 0; i < listForPlot.length; i++) {
         var gd = listForPlot[i];
-        layout = JSON.stringify(gd.layout);
-        data = JSON.stringify(gd.data);
+        if (!gd.data || !gd.layout) continue;      // not drawn (yet): keep the attributes it was loaded with
+        var layout = JSON.stringify(gd.layout);
+        var data = JSON.stringify(gd.data);
         //alert(data);
         listForPlot[i].setAttribute("layout", layout);
         listForPlot[i].setAttribute("data", data);
@@ -203,14 +170,40 @@ function plotsOpenDataLayoutInDiv() {
     var listForPlot = document.querySelectorAll('[name="plots"]');
     for (var i = 0; i < listForPlot.length; i++) {
 
-        layout = JSON.parse(listForPlot[i].getAttribute("layout"));
-        data = JSON.parse(listForPlot[i].getAttribute("data"));
+        var layout = JSON.parse(listForPlot[i].getAttribute("layout"));
+        var data = JSON.parse(listForPlot[i].getAttribute("data"));
         Plotly.plot(listForPlot[i], data, layout, plotConfig);
     }
 
   var listAnalysis = document.getElementsByClassName("analysis");
     for (var i = 0; i < listAnalysis.length; i++)
          modifedSizeAnalysis(listAnalysis[i]);
+}
+
+// A plot that was copied (copy / paste, duplicate) is only a dead snapshot of the drawing: the copy has no
+// Plotly state, so hover, zoom, the toolbar buttons and the dialog did not work. This draws it again from the
+// layout and data stored in its attributes (plotsSaveDataLayoutInDiv) and fits it to its frame.
+// root: a pasted node (or the drawing); the promise ends when all its plots are drawn.
+function plotsRestoreIn(root) {
+    var jobs = [];
+    var list = (root && root.querySelectorAll) ? root.querySelectorAll('[name="plots"]') : [];
+    for (var i = 0; i < list.length; i++) {
+        (function (div) {
+            var l = div.getAttribute('layout'), d = div.getAttribute('data');
+            if (!l || !d) return;
+            var layout, data;
+            try { layout = JSON.parse(l); data = JSON.parse(d); } catch (e) { return; }
+            div.innerHTML = '';                      // drop the dead copy (its svg ids would also clash with the original)
+            jobs.push(Promise.resolve(Plotly.plot(div, data, layout, plotConfig)));
+        })(list[i]);
+    }
+    return Promise.all(jobs).then(function () {
+        // size and 60 % scale of the analysis frames
+        var frames = [];
+        if (root && root.getAttribute && root.getAttribute('name') === 'analysis') frames.push(root);
+        if (root && root.querySelectorAll) frames = frames.concat(Array.prototype.slice.call(root.querySelectorAll('[name="analysis"]')));
+        frames.forEach(function (f) { try { modifedSizeAnalysis(f); } catch (e) { console.error(e); } });
+    });
 }
 
 function showPlotInModel(self) {
@@ -224,55 +217,8 @@ function showPlotInModel(self) {
 
 
 
-// ============================================
-// Mouse-position correction for scaled plots (hover, zoom box, pan)
-// The plots live inside an SVG <foreignObject> (scaled by the editor zoom) and use CSS "zoom".
-// Plotly 1.58 only knows about CSS transforms, so it mis-reads the mouse position in that case.
-// We replace its "inverse transform" computation with the real rendered scale of the plot.
-// ============================================
-function dsFixPlotScale(gd) {
-    var fl = gd && gd._fullLayout;
-    if (!fl) return;
-    fl._calcInverseTransform = function (g) {
-        var f = g._fullLayout;
-        var svg = g.querySelector('.main-svg');
-        if (!f || !svg) return;
-        var r = svg.getBoundingClientRect();
-        var w = parseFloat(svg.getAttribute('width')) || f.width;
-        var h = parseFloat(svg.getAttribute('height')) || f.height;
-        var kx = (r.width > 0 && w > 0) ? w / r.width : 1;
-        var ky = (r.height > 0 && h > 0) ? h / r.height : 1;
-        f._invTransform = [[kx, 0, 0, 0], [0, ky, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
-        f._invScaleX = kx;
-        f._invScaleY = ky;
-        f._lastBBox = r;
-    };
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    if (typeof Plotly === 'undefined') return;
-    ['plot', 'newPlot', 'react'].forEach(function (name) {
-        var orig = Plotly[name];
-        if (typeof orig !== 'function') return;
-        Plotly[name] = function (gd) {
-            var el = (typeof gd === 'string') ? document.getElementById(gd) : gd;
-            var res = orig.apply(this, arguments);
-            var apply = function () {
-                if (!el) return;
-                dsFixPlotScale(el);
-                if (!el._dsScaleHooked && el.on) {
-                    el._dsScaleHooked = true;
-                    // Plotly resets the function after a re-layout, so re-apply it
-                    el.on('plotly_afterplot', function () { dsFixPlotScale(el); });
-                    el.on('plotly_relayout', function () { dsFixPlotScale(el); });
-                }
-            };
-            apply();
-            if (res && res.then) res.then(function (r) { apply(); return r; });
-            return res;
-        };
-    });
-});
+// The mouse-position correction for plots in the scaled schematic is in plotlyScaleFix.js
+// (loaded right after plotly.js).
 
 
 // ============================================
@@ -293,6 +239,9 @@ var dsPlotDialogCss = [
 '#plotViewDialog input:focus,#plotViewDialog select:focus{outline:1px solid var(--vscode-focusBorder,#0078d4);outline-offset:-1px;}',
 '#plotViewDialog .pv-btn{padding:4px 12px;border:0;border-radius:3px;background:var(--vscode-button-background,#0078d4);color:var(--vscode-button-foreground,#fff);cursor:pointer;font-family:inherit;font-size:inherit;}',
 '#plotViewDialog .pv-btn:hover{background:var(--vscode-button-hoverBackground,#026ec1);}',
+'#plotViewDialog .pv-btn:active{transform:translateY(1px);filter:brightness(0.85);box-shadow:inset 0 2px 4px rgba(0,0,0,.35);}',
+'#plotViewDialog .pv-btn:focus-visible{outline:2px solid var(--vscode-focusBorder,#007fd4);outline-offset:1px;}',
+'#plotViewDialog .pv-btn.done{background:#2e7d32;color:#fff;}',
 '#plotViewDialog .pv-btn.sec{background:var(--vscode-button-secondaryBackground,#e1e4e8);color:var(--vscode-button-secondaryForeground,#222);}',
 '#plotViewDialog .pv-btn.sec:hover{background:var(--vscode-button-secondaryHoverBackground,#d0d4d9);}',
 '#plotViewDialog .pv-plot{flex:1;min-height:0;}',
@@ -307,6 +256,17 @@ function dsThemeColors() {
     var fg = v('--vscode-editor-foreground', '#444444');
     var grid = v('--vscode-editorWidget-border', v('--vscode-panel-border', '#bdbdbd'));
     return { paper: bg, plot: bg, font: fg, grid: grid };
+}
+
+// Background mode of a plot in the schematic: 'auto' (VS Code theme), 'light' or 'dark'.
+// It is stored in the plotbg attribute (saved with the file); for older plots it is guessed from the colors.
+function dsPlotBgMode(gd) {
+    var m = gd.getAttribute && gd.getAttribute('plotbg');
+    if (m === 'auto' || m === 'light' || m === 'dark') return m;
+    var c = String((gd.layout && gd.layout.paper_bgcolor) || '').toLowerCase();
+    if (c === '#ffffff' || c === '#fff' || c === 'white') return 'light';
+    if (c === '#1e1e1e') return 'dark';
+    return 'auto';
 }
 
 function dsOpenPlotDialog(srcGd) {
@@ -366,6 +326,8 @@ function dsOpenPlotDialog(srcGd) {
     var $ = function (id) { return overlay.querySelector('#' + id); };
     var plotDiv = $('pvPlot');
 
+    var initialBg = dsPlotBgMode(srcGd);
+
     function fillControls() {
         $('pvTitle').value = titleText(layout.title);
         $('pvXTitle').value = titleText(x0.title);
@@ -376,7 +338,7 @@ function dsOpenPlotDialog(srcGd) {
         $('pvLegend').checked = (layout.showlegend !== false);
         $('pvLine').value = lw0;
         $('pvFont').value = (layout.font && layout.font.size) || 12;
-        $('pvBg').value = 'auto';
+        $('pvBg').value = initialBg;
         $('pvHover').value = layout.hovermode || 'closest';
     }
     fillControls();
@@ -394,7 +356,7 @@ function dsOpenPlotDialog(srcGd) {
         });
         Plotly.relayout(plotDiv, u);
     }
-    themeUpdate('auto');
+    themeUpdate($('pvBg').value);
     // follow VS Code theme changes while the dialog is open
     var themeObserver = new MutationObserver(function () {
         if ($('pvBg') && $('pvBg').value === 'auto') themeUpdate('auto');
@@ -449,12 +411,27 @@ function dsOpenPlotDialog(srcGd) {
         x0 = layout[xs[0]] || {}; y0 = layout[ys[0]] || {};
         fillControls();
         $('pvLegendPos').value = 'right';
-        themeUpdate('auto');
+        themeUpdate($('pvBg').value);
     });
 
+    // visible feedback of a click on the buttons of the footer: the label changes for a moment
+    function flash(btn, text) {
+        if (!btn) return;
+        if (!btn._label) btn._label = btn.textContent;
+        btn.textContent = text;
+        btn.classList.add('done');
+        clearTimeout(btn._flashTimer);
+        btn._flashTimer = setTimeout(function () {
+            btn.textContent = btn._label;
+            btn.classList.remove('done');
+        }, 1400);
+    }
+
     $('pvPng').addEventListener('click', function () {
+        flash($('pvPng'), 'Saving…');
         Plotly.toImage(plotDiv, { format: 'png', width: plotDiv.offsetWidth, height: plotDiv.offsetHeight, scale: 2 })
             .then(function (url) {
+                flash($('pvPng'), 'PNG sent ✓');
                 var t = titleText(plotDiv.layout.title);
                 vscode.postMessage({ type: 'savePng', dataUrl: url, name: t || 'plot' });
             })
@@ -462,6 +439,7 @@ function dsOpenPlotDialog(srcGd) {
     });
 
     $('pvCsv').addEventListener('click', function () {
+        flash($('pvCsv'), 'Saving…');
         var text = dsPlotToCsv(plotDiv);
         if (!text) { vscode.postMessage({ type: 'savePngError', error: 'No data to export' }); return; }
         var t = titleText(plotDiv.layout.title);
@@ -474,6 +452,8 @@ function dsOpenPlotDialog(srcGd) {
         if (srcGd.layout) { l.width = srcGd.layout.width; l.height = srcGd.layout.height; }
         else { delete l.width; delete l.height; }
         l.autosize = false;
+        flash($('pvApply'), 'Applied ✓');
+        srcGd.setAttribute('plotbg', $('pvBg').value);          // remember Light / Dark / VS Code theme
         Plotly.react(srcGd, JSON.parse(JSON.stringify(plotDiv.data)), l, plotConfig);
         try { plotsSaveDataLayoutInDiv(); } catch (e) {}
         try { if (typeof drawing !== 'undefined' && drawing.saveData) drawing.saveData('Plot layout'); } catch (e) {}

@@ -23,7 +23,8 @@ function evtDown(self) {
     switch (self.selectedElement.getAttribute("name")) {
         case "rect":
         case "image":
-	    case "oscilloscope":
+	    case "liveScope":
+	    case "liveWidget":
 	    case "codePy":
         case "codeHTML":
       	case "analysis":
@@ -98,17 +99,10 @@ function evtMouve(self) {
         self.selectedElement.setAttribute("y", y);
         break;
 
-	case "oscilloscope":
-	    self.px = self.pr;
-        self.selectedElement.setAttribute("x",x);
-        self.selectedElement.setAttribute("y",y);
-		self.selectedElement.setAttribute("transform", "translate(" + x + "," + y + ")");
-		movePartWithConnectNets(self);
-        findPosProb();
-		break;
-
 	case "analysis":
         appDscription = false;
+    case "liveScope":
+    case "liveWidget":
     case "codeHTML":
 	case "codePy":
         self.selectedElement.setAttribute("x", x);
@@ -477,28 +471,30 @@ function fshapes(svg, setDrawing, width, height) {
 
 
 
-        case 'oscilloscope':
-		    self.px = self.pr;
+        case 'liveWidget':
             var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'g');
-			      newElement.setAttribute('transform', "translate(10,10)");
+            newElement.setAttribute('transform', "translate(10,10)");
             newElement.setAttribute("x", 10);
             newElement.setAttribute("y", 10);
-			      newElement.setAttribute("title", "Plotly");
-            newElement.setAttribute("width", 145);
-            newElement.setAttribute("height", 145);
-            newElement.setAttribute("class", "oscilloscope");
-            newElement.setAttribute("name", "oscilloscope");
-			      newElement.setAttribute("rot", "0");
-			      newElement.setAttribute("typeanalysis", "interactive");
-			      newElement.setAttribute("fx", "A|B");
-
-            addPlot(newElement);
+            newElement.setAttribute("class", "liveWidget");
+            newElement.setAttribute("name", "liveWidget");
+            addLiveWidget(newElement);
             svg.appendChild(newElement);
-		      	newPlots(newElement);
-		      	modifedSizeDivByoscilloscope(newElement);
             break;
 
-
+        case 'liveScope':
+            var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'g');
+            newElement.setAttribute('transform', "translate(10,10)");
+            newElement.setAttribute("x", 10);
+            newElement.setAttribute("y", 10);
+            newElement.setAttribute("width", 200);
+            newElement.setAttribute("height", 150);
+            newElement.setAttribute("class", "liveScope");
+            newElement.setAttribute("name", "liveScope");
+            addLiveScope(newElement);
+            svg.appendChild(newElement);
+            modifedSizeLiveScope(newElement);
+            break;
 
         case "codeHTML":
             self.px = self.pr;
@@ -516,7 +512,6 @@ function fshapes(svg, setDrawing, width, height) {
             svg.appendChild(newElement);
             modifedSizeCodeHtml(newElement);
       //newPlots(newElement);
-      //modifedSizeDivByoscilloscope(newElement);
             break;
 
         case 'codePy':
@@ -538,7 +533,6 @@ function fshapes(svg, setDrawing, width, height) {
 			addCodeMirror();
 			modifedSizeCodePy(newElement);
 			//newPlots(newElement);
-			//modifedSizeDivByoscilloscope(newElement);
             break;
 
 		case 'analysis':
@@ -850,6 +844,22 @@ function fshapes(svg, setDrawing, width, height) {
 
 
 		var els = document.querySelectorAll('[name="analysis"]');
+        for (var i = els.length-1; i >=0 ; i--)
+            if (pointInRect(els[i], self.offset)) {
+                self.setCritElem = els[i];
+                return true;
+            }
+
+		// live widget (LED, switch, ...): found by position
+		var els = document.querySelectorAll('[name="liveWidget"]');
+        for (var i = els.length-1; i >=0 ; i--)
+            if (pointInRect(els[i], self.offset)) {
+                self.setCritElem = els[i];
+                return true;
+            }
+
+		// live scope: found by position (the canvas inside the foreignObject is the event target)
+		var els = document.querySelectorAll('[name="liveScope"]');
         for (var i = els.length-1; i >=0 ; i--)
             if (pointInRect(els[i], self.offset)) {
                 self.setCritElem = els[i];

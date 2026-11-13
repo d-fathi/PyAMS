@@ -7,7 +7,7 @@ long_description = (HERE / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="pyams_lib",
-    version="0.3.1",
+    version="0.4.0",
     author="Dhiabi.Fathi",
     author_email="dhiabi.fathi@gmail.com",
     maintainer="Dhiabi.Fathi",

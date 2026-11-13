@@ -255,6 +255,77 @@ static startPyAMSAnalysis(extensionPath, code, analysis, onEvent) {
     };
 }
 
+
+/**
+ * Start a live (interactive) simulation session (pyams/liveSession.py): a long-running Python
+ * process that talks JSON lines.  Events come back through onEvent (see liveSession.py); commands
+ * go in with send({cmd: 'input'|'pause'|'resume'|'reset'|'rate'|'stop', ...}).
+ * @returns {{send: function, kill: function, done: Promise}}
+ */
+static startLiveSession(extensionPath, code, config, onEvent) {
+    const script = path.join(extensionPath, 'pyams', 'liveSession.py');
+    const base = path.join(os.tmpdir(), 'pyams_live_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+    const codeFile = base + '.py';
+    const configFile = base + '.json';
+    let child = null;
+    let killed = false;
+    let ended = false;         // an 'end' or 'error' event was delivered
+
+    const send = (ev) => {
+        if (killed) return;
+        if (ev.event === 'end' || ev.event === 'error') ended = true;
+        try { onEvent(ev); } catch (e) { /* ignore */ }
+    };
+
+    let buffer = '';
+    const onStdout = (text) => {
+        buffer += text;
+        let nl;
+        while ((nl = buffer.indexOf('\n')) >= 0) {
+            const line = buffer.slice(0, nl).trim();
+            buffer = buffer.slice(nl + 1);
+            if (!line) continue;
+            try { send(JSON.parse(line)); }
+            catch (e) { send({ event: 'log', message: line, level: 'info' }); }
+        }
+    };
+
+    const done = (async () => {
+        try {
+            if (!fs.existsSync(script)) {
+                send({ event: 'error', message: 'Script not found: ' + script });
+                return;
+            }
+            fs.writeFileSync(codeFile, String(code || ''), 'utf8');
+            fs.writeFileSync(configFile, JSON.stringify(config || {}), 'utf8');
+            const run = await LibrarySync.runPython([script, extensionPath, codeFile, configFile], {
+                cwd: os.tmpdir(),
+                env: LibrarySync.envForRun(extensionPath),
+                timeout: 24 * 60 * 60 * 1000,
+                onSpawn: (c) => { child = c; c.stdin.on('error', () => { /* the process ended */ }); },
+                onStdout
+            });
+            if (buffer.trim()) onStdout('\n');
+            if (!ended) {
+                send({ event: 'error', message: run.error || run.stderr.trim() ||
+                    ('Python exited with code ' + run.code) });
+            }
+        } finally {
+            try { fs.unlinkSync(codeFile); } catch (e) { /* ignore */ }
+            try { fs.unlinkSync(configFile); } catch (e) { /* ignore */ }
+        }
+    })();
+
+    return {
+        send: (cmd) => {
+            if (killed || !child || !child.stdin || !child.stdin.writable) return false;
+            try { child.stdin.write(JSON.stringify(cmd) + '\n'); return true; } catch (e) { return false; }
+        },
+        kill: () => { killed = true; if (child) child.kill(); },
+        done
+    };
+}
+
 }
 
 module.exports = LibrarySync;

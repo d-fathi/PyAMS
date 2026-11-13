@@ -90,11 +90,8 @@ width: fit-content;
 #btnZoomIn { --icon-color: #35f37b; }
 #btnZoomOut { --icon-color: #25e79a; }
 #btnGrid { --icon-color: #cbd5e1; }
-#btnSnap { --icon-color: #94a3b8; }
-#btnRunAnalysis { --icon-color: #4ade80; }
 #btnHTML { --icon-color: #fb923c; }
 #btnAnalysis { --icon-color: #f472b6; }
-#btnRunAV { --icon-color: #f472b6; }
 #btnAV { --icon-color: #f472b6; }
 #btnReference { --icon-color: #06836ae0 } 
 #btnParameter  { --icon-color: #06836ae0 } 
@@ -103,8 +100,15 @@ width: fit-content;
 #btnModel  { --icon-color: #06836ae0 } 
 #btnCommand  { --icon-color: #06836ae0 } 
 #btnPin  { --icon-color: #06836ae0 } 
+#btnListElements  { --icon-color: #555 } 
+#btnLive  { --icon-color: #e11d48 } 
+#btnScope  { --icon-color: #22c55e }
+#btnWidget { --icon-color: #f59e0b }
 #btnSubBlock  { --icon-color: #06836ae0 } 
 
+
+/* param / init / method buttons: larger text icon */
+#btnParameter svg, #btnParamInit svg, #btnParamMethod svg { width: 21px; height: 21px; }
 
 .toolbar-btn svg {
   color: var(--icon-color);
@@ -241,19 +245,27 @@ body.innerHTML = `
    </button>
    <button class="toolbar-btn" id="btnParameter" title="Add Parameter (J)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-       <text x="12" y="17" text-anchor="middle" font-size="11" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">P=1</text>
+       <text x="12" y="16" text-anchor="middle" font-size="13" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none" textLength="23" lengthAdjust="spacingAndGlyphs">P=1</text>
      </svg>
    </button>
    <button class="toolbar-btn" id="btnParamInit" title="Add Init parameter (constructor argument: Model(a, b, name=value))">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-       <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">n=1</text>
-       <path d="M4 20h16" stroke-width="2"/>
+       <text x="12" y="16" text-anchor="middle" font-size="13" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none" textLength="23" lengthAdjust="spacingAndGlyphs">n=1</text>
+       <path d="M2 20h20" stroke-width="2"/>
      </svg>
    </button>
    <button class="toolbar-btn" id="btnParamMethod" title="Add Method parameter (El.setName(&quot;value&quot;), e.g. setPoints)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-       <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">f()</text>
-       <path d="M4 20h16" stroke-width="2"/>
+       <text x="12" y="16" text-anchor="middle" font-size="13" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none" textLength="19" lengthAdjust="spacingAndGlyphs">f()</text>
+       <path d="M2 20h20" stroke-width="2"/>
+     </svg>
+   </button>
+   <button class="toolbar-btn" id="btnWidget" title="Live widget: LED, 7-segment, switches, push button, slider, knob, gauge, bar, value display (type chosen in the properties)">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+       <circle cx="8" cy="8" r="3.5"/>
+       <rect x="3" y="14" width="18" height="6" rx="3"/>
+       <circle cx="17" cy="17" r="1.5" fill="currentColor"/>
+       <path d="M14 6h7M14 10h7"/>
      </svg>
    </button>
  </div>
@@ -315,30 +327,16 @@ body.innerHTML = `
 
 
  <div class="toolbar-group">
-   <button class="toolbar-btn" id="btnBringToFront" title="Bring to Front (Ctrl+Shift+])">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect x="10" y="10" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/>
-       <rect x="4" y="4" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/>
+   <button class="toolbar-btn" id="btnListElements" title="List of drawing elements / change order">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+       <polygon points="12 3 21 8 12 13 3 8"/>
+       <polyline points="3 12 12 17 21 12"/>
+       <polyline points="3 16 12 21 21 16"/>
      </svg>
    </button>
-   <button class="toolbar-btn" id="btnSendToBack" title="Send to Back (Ctrl+Shift+[)">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect x="4" y="4" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/>
-       <rect x="10" y="10" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/>
-     </svg>
-   </button>
-   <button class="toolbar-btn" id="btnBringForward" title="Bring Forward (Ctrl+])">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect x="6" y="6" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/>
-       <rect x="10" y="10" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/>
-       <path d="M8 4 L8 2 M8 2 L6 4 M8 2 L10 4" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-     </svg>
-   </button>
-   <button class="toolbar-btn" id="btnSendBackward" title="Send Backward (Ctrl+[)">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-       <rect x="4" y="4" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/>
-       <rect x="8" y="8" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/>
-       <path d="M16 20 L16 22 M16 22 L14 20 M16 22 L18 20" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+   <button class="toolbar-btn" id="btnLive" title="Live (interactive) simulation panel">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+       <polyline points="2 12 6 12 9 4 14 20 17 12 22 12"/>
      </svg>
    </button>
  </div>
@@ -363,22 +361,11 @@ body.innerHTML = `
        <text x="17.5" y="17" text-anchor="middle" font-size="12" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">V</text>
      </svg>
    </button>  
- </div>
- <div class="toolbar-group" id="grpRun">
-   <button class="toolbar-btn" id="btnRunAnalysis" title="Run Analysis (F9)">
-     <svg viewBox="0 0 24 28" fill="none" stroke="currentColor" stroke-width="2">
-       <rect x="3" y="2" width="18" height="16" rx="2"/>
-       <path d="M3 10 C 6 4, 9 4, 12 10 C 15 16, 18 16, 21 10"/>
-       <polygon points="9,20 15,23 9,26" fill="currentColor" stroke="currentColor" stroke-width="1" opacity="0.7"/>
-     </svg>
-   </button>
-   <button class="toolbar-btn" id="btnRunAV" title="Run AV Measurement (F10)">
-     <svg viewBox="0 0 24 28" xmlns="http://www.w3.org/2000/svg">
-       <rect x="1" y="2" width="11" height="16" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-       <rect x="12" y="2" width="11" height="16" fill="#ffffff" stroke="currentColor" stroke-width="1"/>
-       <text x="6.5" y="15" text-anchor="middle" font-size="11" font-weight="bold" font-family="Arial, sans-serif" fill="#ffffff" stroke="none">A</text>
-       <text x="17.5" y="15" text-anchor="middle" font-size="11" font-weight="bold" font-family="Arial, sans-serif" fill="currentColor" stroke="none">V</text>
-       <polygon points="9,20 15,23 9,26" fill="currentColor" stroke="currentColor" stroke-width="1" opacity="0.7"/>
+   <button class="toolbar-btn" id="btnScope" title="Live scope (oscilloscope for the live simulation)">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+       <rect x="2.5" y="3.5" width="19" height="14" rx="2"/>
+       <path d="M5 11 C 7 5, 9 5, 11 11 C 13 17, 15 17, 17 11 L 19 11"/>
+       <path d="M8 21h8"/>
      </svg>
    </button>
  </div>
@@ -412,9 +399,6 @@ body.innerHTML = `
  <div class="toolbar-group">
    <button class="toolbar-btn active" id="btnGrid" title="Toggle Grid (G)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-   </button>
-   <button class="toolbar-btn" id="btnSnap" title="Snap to Grid (S)">
-     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
    </button>
  </div>
 </div>
@@ -456,11 +440,11 @@ function updateToolbarVisibility(self) {
         'btnVCC', 'btnGND', 'btnPort',
         'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
         'btnCommand', 'btnHTML', 'btnAnalysis', 'btnAV',    
-        'btnRunAnalysis', 'btnRunAV', 'btnSubBlock'
+        'btnLive', 'btnScope', 'btnSubBlock'
     ];
     
     const dcsOnlyButtons = [
-        'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod', 'btnPin', 'btnModel'
+        'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod', 'btnPin', 'btnModel', 'btnWidget'
     ];
     
     symOnlyButtons.forEach(id => {
@@ -488,11 +472,10 @@ function updateToolbarVisibility(self) {
     const groups = [
         { id: 'grpWire', buttons: ['btnWire', 'btnBus'] },
         { id: 'grpPower', buttons: ['btnVCC', 'btnGND', 'btnPort'] },
-        { id: 'grpSymProps', buttons: ['btnPin', 'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod'] },
+        { id: 'grpSymProps', buttons: ['btnPin', 'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod', 'btnWidget'] },
         { id: 'grpTransform', buttons: ['btnRotate', 'btnFlipVertical', 'btnFlipHorizontal'] },
         { id: 'grpModel', buttons: ['btnModel', 'btnCommand'] },
-        { id: 'grpAnalysis', buttons: ['btnHTML', 'btnAnalysis', 'btnAV'] },
-        { id: 'grpRun', buttons: ['btnRunAnalysis', 'btnRunAV'] },
+        { id: 'grpAnalysis', buttons: ['btnHTML', 'btnAnalysis', 'btnAV', 'btnScope'] },
         { id: 'grpSubBlock', buttons: ['btnSubBlock'] }
     ];
     
@@ -544,24 +527,6 @@ function updateButtonsState(self) {
         }
     });
     
-  
-    const btnRunAnalysis = document.getElementById('btnRunAnalysis');
-    const isSelectAnalysis = !!self.selectAnalysis;
-    
-    if (btnRunAnalysis) {
-        if (isSelectAnalysis) {
-            btnRunAnalysis.classList.remove('disabled-btn');
-            btnRunAnalysis.disabled = false;
-        } else {
-            btnRunAnalysis.classList.add('disabled-btn');
-            btnRunAnalysis.disabled = true;
-            if (btnRunAnalysis.classList.contains('active')) {
-                btnRunAnalysis.classList.remove('active');
-                const selectBtn = document.getElementById('btnSelect');
-                if (selectBtn) selectBtn.classList.add('active');
-            }
-        }
-    }
 }
 
 function initToolbar(self) {
@@ -579,7 +544,6 @@ document.getElementById('btnSelect').addEventListener('click',  () =>{self.activ
 document.getElementById('btnZoomIn').addEventListener('click', () => {colorThemes(); self.zoomIn(); });
 document.getElementById('btnZoomOut').addEventListener('click', () => { self.zoomOut(); });
 document.getElementById('btnGrid').addEventListener('click', (e) => {  self.showGrid(!self.grid.showGrid); e.currentTarget.classList.toggle('active'); });
-document.getElementById('btnSnap').addEventListener('click', (e) => { e.currentTarget.classList.toggle('active'); });
 
 document.getElementById('btnEllipse').addEventListener('click',  () =>{self.activeBtnById('btnEllipse'); addShape('ellipse'); });
 document.getElementById('btnRectangle').addEventListener('click',  () =>{self.activeBtnById('btnRectangle'); addShape('rect'); });
@@ -596,7 +560,8 @@ document.getElementById('btnParamMethod').addEventListener('click',  () =>{self.
 document.getElementById('btnHTML').addEventListener('click',  () =>{self.activeBtnById('btnHTML'); addShape('codeHTML'); });
 document.getElementById('btnModel').addEventListener('click',  () =>{self.activeBtnById('btnModel'); addShape('modelSpice'); });
 document.getElementById('btnAnalysis').addEventListener('click',  () =>{self.activeBtnById('btnAnalysis'); addShape("analysis"); });
-document.getElementById('btnRunAV').addEventListener('click',  () =>{ opAnalysis(); });
+document.getElementById('btnWidget').addEventListener('click',  () =>{self.activeBtnById('btnWidget'); addShape("liveWidget"); });
+document.getElementById('btnScope').addEventListener('click',  () =>{self.activeBtnById('btnScope'); addShape("liveScope"); });
 
 document.getElementById('btnWire').addEventListener('click',  () =>{self.activeBtnById('btnWire'); addShape('net'); });
 document.getElementById('btnPlaceComponent').addEventListener('click',  () =>{ showSymbolPanel() });
@@ -608,18 +573,13 @@ document.getElementById('btnRotate').addEventListener('click',  () =>{  rotatePa
 document.getElementById('btnFlipVertical').addEventListener('click',  () =>{ flipVerticallyPart(); });
 document.getElementById('btnFlipHorizontal').addEventListener('click',  () =>{  flipHorizontalPart(); });
 
-document.getElementById('btnBringToFront').addEventListener('click', () => {  
+document.getElementById('btnListElements').addEventListener('click', () => {
     start_listElements();
 });
-document.getElementById('btnSendToBack').addEventListener('click', () => {
-    if (self.drawing && self.drawing.sendToBack) self.drawing.sendToBack();
-});
-document.getElementById('btnBringForward').addEventListener('click', () => {
-    
-});
-document.getElementById('btnSendBackward').addEventListener('click', () => {
-    if (self.drawing && self.drawing.sendBackward) self.drawing.sendBackward();
-});
+
+// Live (interactive) simulation: everything lives in its own module (media/live/liveSimulation.js)
+liveSimulation.onChange = (on) => { document.getElementById('btnLive').classList.toggle('active', on); };
+document.getElementById('btnLive').addEventListener('click', () => { liveSimulation.toggle(); });
 document.getElementById('btnShowPanel').addEventListener('click', (e) => {  const isActive=e.currentTarget.classList.toggle('active'); if(!propertiesData)  pageSelect();  
           if (isActive) {
                 propertiesPanel.show(propertiesData);
@@ -634,8 +594,8 @@ const toolButtons = [
   'btnPin', 'btnReference', 'btnParameter', 'btnParamInit', 'btnParamMethod',
   'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
   'btnModel', 'btnCommand',
-  'btnHTML', 'btnAnalysis', 'btnAV',
-  'btnSubBlock'
+  'btnHTML', 'btnAnalysis', 'btnAV', 'btnScope',
+  'btnSubBlock', 'btnWidget'
 ];   
 
 const toolNames = [
@@ -645,8 +605,7 @@ const toolNames = [
   'pin', 'reference', 'parameter', 'paramInit', 'paramMethod',
   'rotate', 'flipVertical', 'flipHorizontal',
   'model', 'command',
-  'html', 'analysis', 'av',
-  'runAnalysis', 'runAV',
+  'html', 'analysis', 'av', 'liveScope',
   'subblock'
 ];
 
@@ -683,22 +642,22 @@ document.addEventListener('keydown', (e) => {
     };
     
     if (isCtrl && isShift && key === ']') {
-        if (self.drawing && self.drawing.bringToFront) self.drawing.bringToFront();
+        orderSelectedElement('front');
         e.preventDefault();
         return;
     }
     if (isCtrl && isShift && key === '[') {
-        if (self.drawing && self.drawing.sendToBack) self.drawing.sendToBack();
+        orderSelectedElement('back');
         e.preventDefault();
         return;
     }
     if (isCtrl && key === ']') {
-        if (self.drawing && self.drawing.bringForward) self.drawing.bringForward();
+        orderSelectedElement('forward');
         e.preventDefault();
         return;
     }
     if (isCtrl && key === '[') {
-        if (self.drawing && self.drawing.sendBackward) self.drawing.sendBackward();
+        orderSelectedElement('backward');
         e.preventDefault();
         return;
     }
@@ -713,15 +672,6 @@ document.addEventListener('keydown', (e) => {
             if (self.drawing && self.drawing.setTool) self.drawing.setTool(toolNames[keyMap[key]]);
         }
     }
-    if (e.key === 'F9') {
-        if (isButtonEnabled('btnRunAnalysis')) {
-            toolButtons.forEach(b => document.getElementById(b).classList.remove('active'));
-            document.getElementById('btnRunAnalysis').classList.add('active');
-            if (self.drawing && self.drawing.setTool) self.drawing.setTool('runAnalysis');
-        }
-        e.preventDefault();
-    }
-    if (e.key === 'F10') { opAnalysis(); }
     if(!isCtrl && !isShift){
     if (key === '+') { self.zoomIn(); pageSelect()}
     if (key === '-') {  self.zoomOut(); }
@@ -793,8 +743,7 @@ document.getElementById("btnBus").style.display = "none";
 
     // --- Future Application Buttons Logic ---'btnAnalysis',, 'btnHTML'
     const futureButtons = [
-          'btnRunAnalysis','btnCommand','btnSubBlock',
-          'btnSendToBack','btnBringForward','btnSendBackward'
+          'btnCommand','btnSubBlock'
     ];
     
     futureButtons.forEach(id => {

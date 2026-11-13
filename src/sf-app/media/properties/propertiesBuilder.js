@@ -262,7 +262,7 @@ function polylineSelect() {
 
 function polylineModified() {
     mtable.select.style.stroke = propertiesData.sections[0].rows[0].color;
-    modifiedEvent();
+    if (typeof modifiedEvent === 'function') modifiedEvent();
     deleteEllipseMS(mtable.resize);
     mtable.resize.updateSlect();
 }
@@ -271,21 +271,14 @@ function polylineModified() {
 
 
 function polygonSelect() {
-    defaultData = {
-        header: { title: "Polygon", subtitle: "Selected" },
-        sections: [
-            {
-                title: "Basic Properties",
-                collapsed: false,
-                showReset: true,
-                rows: [
-                    { label: "Stroke", type: "color", value: rgb2hex(mtable.select.style.stroke), color: rgb2hex(mtable.select.style.stroke) },
-                    { label: "Fill", type: "color", value: rgb2hex(mtable.select.style.fill), color: rgb2hex(mtable.select.style.fill) },
-                    { label: "Style", type: "Button", value: 'CSS Code', setClick:'openEditCSS' }
-                ]
-            }
-        ]
-    };
+    var el = mtable.select, live = el.hasAttribute('wlive');
+    var rows = [{ label: "Stroke", type: "color", value: rgb2hex(el.style.stroke), color: rgb2hex(el.style.stroke) }];
+    if (!live) rows.push({ label: "Fill", type: "color", value: rgb2hex(el.style.fill), color: rgb2hex(el.style.fill) });
+    rows.push({ label: "Live segment", type: "dropdown", options: ["No", "Yes"], value: live ? "Yes" : "No" });
+    rows.push({ label: "Style", type: "Button", value: 'CSS Code', setClick:'openEditCSS' });
+    var sections = [{ title: "Basic Properties", collapsed: false, showReset: true, rows: rows }];
+    if (live) { try { sections = sections.concat(liveSegmentSections(el)); } catch (e) { console.error(e); } }
+    defaultData = { header: { title: live ? "Polygon segment" : "Polygon", subtitle: live ? (el.getAttribute('wref') || '') : "Selected" }, sections: sections };
 
     mtable.type = "polygon";
     propertiesData = JSON.parse(JSON.stringify(defaultData));
@@ -293,11 +286,18 @@ function polygonSelect() {
 }
 
 function polygonModified() {
-    mtable.select.style.stroke = propertiesData.sections[0].rows[0].color;
-    mtable.select.style.fill = propertiesData.sections[0].rows[1].color;
-    modifiedEvent();
+    var el = mtable.select, P = propertiesData.sections, B = P[0].rows;
+    var row = function (l) { for (var i = 0; i < B.length; i++) if (B[i].label === l) return B[i]; return null; };
+    el.style.stroke = row("Stroke").color;
+    var fill = row("Fill"); if (fill) el.style.fill = fill.color;
+    var want = row("Live segment") ? row("Live segment").value === "Yes" : false, rebuild = false;
+    if (want && !el.hasAttribute('wlive')) { try { liveWidget.makeLive(el); } catch (e) { console.error(e); } rebuild = true; }
+    else if (!want && el.hasAttribute('wlive')) { liveWidget.makeNormal(el); rebuild = true; }
+    else if (want && P.length >= 3) { try { rebuild = liveSegmentModified(el, P[1], P[2]); } catch (e) { console.error(e); } }
+    if (typeof modifiedEvent === 'function') modifiedEvent();
     deleteEllipseMS(mtable.resize);
     mtable.resize.updateSlect();
+    if (rebuild) polygonSelect();
 }
 //--Net description ---------------------------------------------------
 
@@ -1093,16 +1093,22 @@ function analysisSelect() {
 
     
     // X axe prpperty-----------------------------------------------------------------------------------
+    // (no X axis in AC analysis: the x axis is always the frequency)
+    var hasX = (analy.type != 'AC Analysis');
+    if(hasX){
     defaultData.sections.push({ title: "X axe output", collapsed: false, showReset: true, rows: [] });
 
-    if(x.used)defaultData.sections[3].rows.push({ label: x.name, type: "axeproperty", value: x.color, color: x.color, setChange: 'colorOutput(-1,this)' , setClick: 'removeOutput(-1)' });
+    // the X axis has no colour: only its name (with delete); "Modify" below changes the signal
+    if(x.used)defaultData.sections[3].rows.push({ label: 'Signal', type: "axeproperty", noColor: true, value: x.name, color: x.color, delete: false });
     defaultData.sections[3].rows.push({ label: 'Add X axe', type: "Button", value: x.used?'Modify':'Add', setClick: 'addOutputX' });
+    }
 
     //Second sweep property------------------------------------------------------------------------
    if(analy.options.second_sweep && analy.options.second_sweep==true){
     defaultData.sections.push({ title: "Second sweep", collapsed: false, showReset: true, rows: [] });
-    defaultData.sections[4].rows.push( { label: 'Parameter', type: "Button", value: sweep.param, setClick: 'sweepAnalysis' });
-    defaultData.sections[4].rows.push( { label: 'Values', type: "text", value: sweep.values});
+    var sw=defaultData.sections.length-1;
+    defaultData.sections[sw].rows.push( { label: 'Parameter', type: "Button", value: sweep.param, setClick: 'sweepAnalysis' });
+    defaultData.sections[sw].rows.push( { label: 'Values', type: "text", value: sweep.values});
    }
 
 
@@ -1139,7 +1145,7 @@ function modifiedAnalysis() {
         }
 
         if(analy.options.second_sweep && analy.options.second_sweep==true)
-            analy.sweep.values=propertiesData.sections[4].rows[1].value;
+            analy.sweep.values=propertiesData.sections[propertiesData.sections.length-1].rows[1].value;
 
 
 
@@ -1161,7 +1167,8 @@ function modifiedAnalysis() {
             return;
     }
 
-  for(var i=0;i<propertiesData.sections[3].rows.length;i++)
+  if(propertiesData.sections[3] && propertiesData.sections[3].title=="X axe output")
+    for(var i=0;i<propertiesData.sections[3].rows.length;i++)
          if(propertiesData.sections[3].rows[i].delete){
             removeOutput(-1);
     }

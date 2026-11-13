@@ -19,7 +19,15 @@
 
 ## What’s New 
 
-**v0.3.1 (Current)** 
+**v0.4.0 (Current)**
+
+### Added
+- **Live simulation:** run a circuit with Python while you operate it. Switches, push buttons, sliders and rotary knobs change model parameters; LEDs, 7-segments, gauges, bars, value displays, polygon segments and scopes show the results. Step and speed (real time) are adjustable, with Pause and Reset.
+- **Live widgets** drawn in the symbol editor and bound to a parameter, signal or pin of the model, including SPST / SPDT / push switches and the automatic switch and automatic transfer switch for relay circuits.
+- Optional `def live(self)` in a model, called after every accepted step to write output parameters for the widgets.
+- Demos in `demo/live/`: Live Demo and Relay Circuit.
+
+**v0.3.1** 
 
 1. Updated PyAMS extension for VS Code.
 1. Updated **PyAMS software** ([pyams.sf.net](https://pyams.sf.net)).

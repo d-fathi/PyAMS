@@ -18,7 +18,8 @@ function getType(self) {
     switch (self.setElement.getAttribute("name")) {
     case "rect":
     case "image":
-	case "oscilloscope":
+	case "liveScope":
+	case "liveWidget":
 	case "analysis":
     case "ellipse":
 	case "codePy":
@@ -79,7 +80,8 @@ function setInitPos(self) {
     switch (self.setElement.getAttribute("name")) {
        case "rect":
        case "image":
-	   case "oscilloscope":
+	   case "liveScope":
+	   case "liveWidget":
        case "analysis":
        case "codeHTML":
 	   case "codePy":
@@ -151,6 +153,8 @@ function setPosSize(self) {
       case "rect":
       case "image":
       case "analysis":
+      case "liveScope":
+      case "liveWidget":
       case "codeHTML":
 	  case "codePy":
         el.setAttribute("width", Math.abs(self.ellps[0].x - self.ellps[2].x));
@@ -158,6 +162,8 @@ function setPosSize(self) {
         el.setAttribute("x", Math.min(self.ellps[0].x, self.ellps[2].x));
         el.setAttribute("y", Math.min(self.ellps[0].y, self.ellps[3].y));
 		    modifedSizeAnalysis(self.setElement);
+		    modifedSizeLiveScope(self.setElement);
+		    modifedSizeLiveWidget(self.setElement);
 		    modifedSizeCodePy(self.setElement);
 		    modifedSizeCodeHtml(self.setElement);
 		    findPosProb();
@@ -165,17 +171,6 @@ function setPosSize(self) {
 
 
 
-
-	case "oscilloscope":
-        el.setAttribute("width", Math.abs(self.ellps[0].x - self.ellps[2].x));
-        el.setAttribute("height", Math.abs(self.ellps[0].y - self.ellps[3].y));
-		x=parseInt(Math.min(self.ellps[0].x, self.ellps[2].x)/5)*5;
-		y=parseInt(Math.min(self.ellps[0].y, self.ellps[3].y)/5)*5;
-        el.setAttribute("x", x);
-        el.setAttribute("y", y);
-		modifedSizeDivByoscilloscope(self.setElement);
-		findPosProb();
-        break;
 
     case "ellipse":
         el.setAttribute("rx", Math.abs((self.ellps[0].x - self.ellps[2].x) / 2));

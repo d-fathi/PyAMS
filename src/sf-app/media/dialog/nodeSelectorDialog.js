@@ -98,6 +98,19 @@ function fNodeSelectorDialog(self) {
 }
 
 /* Tree container */
+#nodeSelectorDialogOrderBar {
+    display: flex; gap: 4px; padding: 6px 12px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border, #ddd));
+}
+.nodeselect-order-btn {
+    width: 28px; height: 28px; padding: 0; cursor: pointer; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--vscode-button-secondaryBackground, #aaa);
+    background: var(--vscode-editorWidget-background, #fff);
+}
+.nodeselect-order-btn:hover { background: var(--vscode-list-hoverBackground, #e8e8ff); }
+.nodeselect-order-btn:disabled { opacity: 0.4; cursor: default; }
+.nodeselect-order-btn svg { width: 20px; height: 20px; pointer-events: none; }
 #nodeSelectorDialogTreeContainer {
     flex: 1;
     overflow-y: auto;
@@ -204,8 +217,22 @@ function fNodeSelectorDialog(self) {
         <button id="nodeSelectorDialogClose" title="Close">×</button>
     </div>
     <div id="nodeSelectorDialogSelectedBar">
-        <h2>Selected node</h2>
+        <h2 id="nodeSelectorDialogSelectedLabel">Selected node</h2>
         <span id="nodeSelectorDialogSelectedDisplay">No selection</span>
+    </div>
+    <div id="nodeSelectorDialogOrderBar">
+        <button class="nodeselect-order-btn" id="nodeSelBtnBringToFront" title="Bring to Front">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/><rect x="4" y="4" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/></svg>
+        </button>
+        <button class="nodeselect-order-btn" id="nodeSelBtnSendToBack" title="Send to Back">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/><rect x="10" y="10" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/></svg>
+        </button>
+        <button class="nodeselect-order-btn" id="nodeSelBtnBringForward" title="Bring Forward">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/><rect x="10" y="10" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/><path d="M8 4 L8 2 M8 2 L6 4 M8 2 L10 4" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="nodeselect-order-btn" id="nodeSelBtnSendBackward" title="Send Backward">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="10" height="10" fill="#fde047" stroke="#333" stroke-width="1"/><rect x="8" y="8" width="10" height="10" fill="#808080" stroke="#333" stroke-width="1"/><path d="M16 20 L16 22 M16 22 L14 20 M16 22 L18 20" fill="none" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
     </div>
     <div id="nodeSelectorDialogTreeContainer"></div>
 </div>
@@ -257,7 +284,11 @@ function fNodeSelectorDialog(self) {
         selfDialog.treeData = data || [];
         selfDialog.preSelectedValue = preSelected || null;
         selfDialog.selectedNode = selfDialog.preSelectedValue;
+        selfDialog.selectedInfo = null;
         selfDialog.renderTree();
+        var pre = document.querySelector('#nodeSelectorDialog .nodeselect-row.selected');
+        if (pre) selfDialog.selectedInfo = { groupIndex: +pre.dataset.groupIndex, nodeIndex: +pre.dataset.nodeIndex };
+        selfDialog.updateOrderButtons();
         if (selfDialog.selectedNode) {
             var display = document.getElementById('nodeSelectorDialogSelectedDisplay');
             if (display) display.textContent = selfDialog.selectedNode;
@@ -364,6 +395,7 @@ function fNodeSelectorDialog(self) {
 
         rowElement.classList.add('selected');
         selfDialog.selectedNode = value;
+        selfDialog.selectedInfo = { groupIndex: groupIndex, nodeIndex: nodeIndex };
 
         var display = document.getElementById('nodeSelectorDialogSelectedDisplay');
         if (display) display.textContent = value;
@@ -388,8 +420,16 @@ function fNodeSelectorDialog(self) {
     };
 
     // Promise-based open (يدعم onSelect callback)
-    this.open = function(data, preSelected, onSelectCallback) {
+    // texts: optional { title, selectedLabel } (default: 'Node selection' / 'Selected node')
+    this.open = function(data, preSelected, onSelectCallback, onReorderCallback, texts) {
+        texts = texts || {};
+        var t = document.getElementById('nodeSelectorDialogTitle');
+        var l = document.getElementById('nodeSelectorDialogSelectedLabel');
+        if (t) t.textContent = texts.title || 'Node selection';
+        if (l) l.textContent = texts.selectedLabel || 'Selected node';
         selfDialog.onSelect = typeof onSelectCallback === 'function' ? onSelectCallback : null;
+        selfDialog.onReorder = typeof onReorderCallback === 'function' ? onReorderCallback : null;
+        document.getElementById('nodeSelectorDialogOrderBar').style.display = selfDialog.onReorder ? 'flex' : 'none';
 
         return new Promise(function(resolve) {
             selfDialog.onSubmit = function(result) {
@@ -405,6 +445,40 @@ function fNodeSelectorDialog(self) {
             };
             selfDialog.initData(data, preSelected);
             selfDialog.show();
+        });
+    };
+
+    // Select a row from outside (e.g. the element selected in the drawing); onSelect is NOT called.
+    // nodeIndex = null/-1 clears the selection.
+    this.selectByIndex = function(groupIndex, nodeIndex) {
+        var rows = document.querySelectorAll('#nodeSelectorDialog .nodeselect-row');
+        var found = null;
+        rows.forEach(function(r) {
+            r.classList.remove('selected');
+            if (nodeIndex !== null && nodeIndex >= 0 &&
+                +r.dataset.groupIndex === groupIndex && +r.dataset.nodeIndex === nodeIndex) found = r;
+        });
+        var display = document.getElementById('nodeSelectorDialogSelectedDisplay');
+        if (found) {
+            found.classList.add('selected');
+            selfDialog.selectedNode = found.dataset.value;
+            selfDialog.selectedInfo = { groupIndex: groupIndex, nodeIndex: nodeIndex };
+            if (display) display.textContent = found.dataset.value;
+            if (found.scrollIntoView) found.scrollIntoView({ block: 'nearest' });
+        } else {
+            selfDialog.selectedNode = null;
+            selfDialog.selectedInfo = null;
+            if (display) display.textContent = 'No selection';
+        }
+        selfDialog.updateOrderButtons();
+    };
+
+    // enable the order buttons only when an element is selected
+    this.updateOrderButtons = function() {
+        var on = !!selfDialog.selectedInfo;
+        ['nodeSelBtnBringToFront', 'nodeSelBtnSendToBack', 'nodeSelBtnBringForward', 'nodeSelBtnSendBackward'].forEach(function(id) {
+            var b = document.getElementById(id);
+            if (b) b.disabled = !on;
         });
     };
 
@@ -434,6 +508,19 @@ function fNodeSelectorDialog(self) {
                 selfDialog.cancelDialog();
             });
         }
+
+        // Order buttons
+        var orderBtns = { nodeSelBtnBringToFront: 'front', nodeSelBtnSendToBack: 'back',
+                          nodeSelBtnBringForward: 'forward', nodeSelBtnSendBackward: 'backward' };
+        Object.keys(orderBtns).forEach(function(id) {
+            var b = document.getElementById(id);
+            if (!b) return;
+            b.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (typeof selfDialog.onReorder === 'function' && selfDialog.selectedInfo)
+                    selfDialog.onReorder(orderBtns[id], selfDialog.selectedInfo);
+            });
+        });
 
         // Drag functionality from header
         header.addEventListener('mousedown', function(e) {
@@ -484,7 +571,7 @@ function fNodeSelectorDialog(self) {
 var nodeSelectorDialog;
 
 // Convenience function (يدعم onSelect callback)
-function openNodeSelector(data, preSelected, onSelectCallback) {
+function openNodeSelector(data, preSelected, onSelectCallback, onReorderCallback, texts) {
     if (!nodeSelectorDialog) nodeSelectorDialog = new fNodeSelectorDialog(null);
-    return nodeSelectorDialog.open(data, preSelected, onSelectCallback);
+    return nodeSelectorDialog.open(data, preSelected, onSelectCallback, onReorderCallback, texts);
 }
