@@ -2,7 +2,7 @@
 
 All notable changes to PyAMS will be documented in this file.
 
-## [Unreleased]
+## [0.4.0] - 2026-11-13
 
 ### Added
 - Live simulation runs the circuit with Python: the Live panel starts `pyams/liveSession.py`; switches, buttons and sliders change model parameters while it runs, LEDs / 7-segments / polygon segments and scopes show the results (adjustable step and speed, Pause / Reset).

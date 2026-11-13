@@ -1,7 +1,7 @@
 {
   "name": "PyAMS",
   "displayName": "PyAMS - Python for Analog and Mixed Signals",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "publisher": "PyAMS",
   "icon": "image/logo.png",
   "engines": {
