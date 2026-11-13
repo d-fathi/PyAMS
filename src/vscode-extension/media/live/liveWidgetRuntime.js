@@ -83,7 +83,7 @@ var liveWidgetRT = (function () {
             if (isInput(g)) return;
             var type = liveWidget.getType(g), c = liveWidget.getCfg(g), v;
             i++;
-            if (type === 'led' || type === 'polyseg') v = (Math.floor(t * 1.5 + i * 0.5) % 2) ? 1 : 0;
+            if (type === 'led' || type === 'polyseg' || type === 'autosw' || type === 'ats') v = (Math.floor(t * 1.5 + i * 0.5) % 2) ? 1 : 0;
             else if (type === 'gauge' || type === 'bar') { var ph = ((t / 4 + i * 0.13) % 1), tri = ph < 0.5 ? 2 * ph : 2 - 2 * ph; v = c.min + (c.max - c.min) * tri; }
             else if (type === 'value') v = (t % 10);
             else if (type === 'segment') v = Math.floor(t * 2) % Math.pow(c.format === 'hex' ? 16 : 10, Math.max(1, c.digits || 1));
