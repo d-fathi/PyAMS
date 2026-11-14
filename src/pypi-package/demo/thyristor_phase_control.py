@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Thyristor phase control (half-wave, resistive load)
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # A 220 V / 50 Hz mains (311 V peak) feeds a 50 Ohm load through an SCR.  A
 # 200 us gate pulse (5 V through 100 Ohm) fires the SCR at the angle alpha of

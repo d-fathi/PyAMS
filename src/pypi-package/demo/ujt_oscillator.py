@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        UJT relaxation oscillator
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # R3 charges C1 from Vs until the emitter voltage reaches the peak voltage
 # Vp ~ Eta VBB + Vd; the UJT then conducts, discharges C1 through the emitter

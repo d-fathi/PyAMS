@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Thyristor I(V) characteristic in the textbook form
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # The classic SCR curve: reverse blocking and reverse breakdown (-V, -I),
 # forward blocking up to the breakover voltage, the (unmeasurable) negative

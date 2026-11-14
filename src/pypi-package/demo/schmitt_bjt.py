@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Schmitt trigger with two BJT transistors (emitter coupled)
-# Updated:     17/10/2026
+# Author:      d.fathi
+# Created:     17/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 #
 #                 Vcc (12 V)

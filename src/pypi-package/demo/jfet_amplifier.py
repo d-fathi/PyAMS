@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        JFET common-source amplifier (self bias)
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 #
 #                         Vdd (12 V)

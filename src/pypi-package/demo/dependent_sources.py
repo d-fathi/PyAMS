@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Dependent (controlled) sources: VCVS, CCVS, VCCS, CCCS
-# Updated:     20/10/2026
+# Author:      d.fathi
+# Created:     20/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 #   VCVS(p, n, cp, cn)  v(p,n) = Gain * v(cp,cn)        (SPICE E)
 #   VCCS(p, n, cp, cn)  i(p->n) = Gm   * v(cp,cn)       (SPICE G)

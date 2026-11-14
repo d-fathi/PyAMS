@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Zener diode: I(V) characteristic and shunt regulator
-# Updated:     19/10/2026
+# Author:      d.fathi
+# Created:     19/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # 1) I(V) of the zener: forward knee at ~0.6 V and reverse breakdown at -Vz.
 # 2) Shunt regulator  Vin -- Rs -- (zener || RL):

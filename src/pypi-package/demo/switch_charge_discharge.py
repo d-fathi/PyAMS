@@ -1,7 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        Capacitor charge / discharge controlled by a switch
-# Updated:     12/11/2026
-# Licence:     free  "MIT  "
+# Author:      d.fathi
+# Created:     12/11/2026
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 #
 #   Vs ──[ SW ]──[ R1 ]──┬── Out        SW closed (Vc > Vt)  -> C charges from Vs through R1

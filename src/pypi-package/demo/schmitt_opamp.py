@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Schmitt trigger with an op-amp (inverting)
-# Updated:     17/10/2026
+# Author:      d.fathi
+# Created:     17/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 #
 #   Vin ── In ──(-)\

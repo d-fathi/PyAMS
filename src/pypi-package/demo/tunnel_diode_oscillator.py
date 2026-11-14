@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Tunnel diode oscillator
-# Updated:     19/10/2026
+# Author:      d.fathi
+# Created:     19/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # The tunnel diode is biased in the middle of its negative-resistance region
 # through Rl and L; C is in parallel with the diode.  The negative conductance

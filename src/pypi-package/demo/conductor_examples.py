@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Conductor: resistance from geometry, temperature and self-heating
-# Updated:     21/10/2026
+# Author:      d.fathi
+# Created:     21/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 #   R = Rho Len / Area (1 + Alpha (T - T0)),   T = Tamb (+ DT with thermal=True)
 #   Cth d(DT)/dt = V^2 / R - DT / Rth

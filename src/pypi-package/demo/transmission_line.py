@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Transmission line: pulse, reflections and the load resistance
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # A 3.3 V pulse (Rs = 20 Ohm) drives a 50 Ohm line with a delay of 1 ns.
 # The load resistance RL is swept with sweep(): matched (50 Ohm, no echo),

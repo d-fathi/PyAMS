@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Elliptic (Cauer) RLC low-pass filter
-# Updated:     19/10/2026
+# Author:      d.fathi
+# Created:     19/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # Passive doubly-terminated LC ladder with an elliptic (Cauer) response:
 # equal ripple in the passband AND in the stopband, and transmission zeros

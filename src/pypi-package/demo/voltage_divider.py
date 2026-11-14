@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Voltage divider with a constant voltage source
-# Updated:     17/10/2026
+# Author:      d.fathi
+# Created:     17/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 #
 #   In ──[ R1 ]── Out ──[ R2 ]── gnd

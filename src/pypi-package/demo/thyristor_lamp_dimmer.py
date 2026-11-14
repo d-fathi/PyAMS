@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Thyristor lamp dimmer (half-wave phase control, three angles)
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # VAC -> lamp load -> SCR (anode a, cathode k = common return), gate pulse g.
 # The pulse fires the SCR at the angle theta after the start of every positive

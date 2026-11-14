@@ -1,9 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Half wave rectification circuit
 # Author:      d.fathi
-# Updated:     28/03/2025
+# Created:     28/03/2025
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 

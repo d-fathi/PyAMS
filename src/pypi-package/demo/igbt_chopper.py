@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        IGBT chopper (low-side switch, inductive load, freewheel diode)
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # A 100 V bus feeds an R-L load (5 Ohm, 0.5 mH) through an IGBT that is
 # switched at 20 kHz, duty cycle ~50 %, by a 15 V gate driver (Rg = 10 Ohm).

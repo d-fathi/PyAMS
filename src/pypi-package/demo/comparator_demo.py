@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Comparator: hysteresis loop and RC relaxation oscillator
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # 1) Hysteresis loop: a DC sweep of the input up and then down.  With
 #    Vhys = 0.4 V the output switches high at +0.2 V and low at -0.2 V.

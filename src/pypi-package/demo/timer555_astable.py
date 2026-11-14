@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        555 timer, astable multivibrator
-# Updated:     19/10/2026
+# Author:      d.fathi
+# Created:     19/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # C charges from Vcc/3 to 2Vcc/3 through R1 + R2 (output high) and discharges
 # through R2 into the discharge pin (output low).  THRES and TRIG are tied.

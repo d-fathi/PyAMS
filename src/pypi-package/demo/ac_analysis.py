@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        AC analysis (small-signal frequency response)
-# Updated:     19/10/2026
+# Author:      d.fathi
+# Created:     19/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # analysis(mode="ac", start=f1, stop=f2, step=points_per_decade) solves the DC
 # operating point, linearises the circuit around it and solves the complex

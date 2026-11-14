@@ -1,7 +1,8 @@
 #-------------------------------------------------------------------------------
 # Name:        switch_example
-# Updated:     12/11/2026
-# Licence:     free  "MIT  "
+# Author:      d.fathi
+# Created:     12/11/2026
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # IdealSwitch: a 0 V source between p and n while Vc > Vt, removed (I = 0) otherwise.
 # A 1 kHz sine Vc (amplitude 2 V, threshold Vt = 0.5 V) closes the switch while it is above

@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Thyristor characteristics I(V)
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # A DC source with a 10 Ohm series resistor is swept from -50 V up to 200 V and
 # back (analysis(mode="dc", param=...)); the thyristor current is plotted

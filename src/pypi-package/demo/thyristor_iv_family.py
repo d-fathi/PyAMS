@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Thyristor I(V) with several gate currents (IG0 ... IG3)
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # The textbook characteristic of an SCR with a family of gate currents:
 #   forward blocking (blocage direct), reverse blocking (blocage inverse),

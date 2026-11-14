@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        idt() example: an inductor written with the integral
-# Updated:     18/10/2026
+# Author:      d.fathi
+# Created:     18/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 # idt(x, ic) = ic + integral of x dt.   The inductor  v = L di/dt  can be
 # written either with the derivative  (Inductor model: v = L ddt(i))  or with

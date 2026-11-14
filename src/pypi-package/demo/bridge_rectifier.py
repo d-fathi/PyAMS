@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Full-wave bridge rectifier fed by a transformer
-# Updated:     17/10/2026
+# Author:      d.fathi
+# Created:     17/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 #
 #                  T1 (2:1 step-down)                D1        Out
