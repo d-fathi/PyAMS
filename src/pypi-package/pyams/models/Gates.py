@@ -1,9 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        Logic gates NOT AND OR NAND NOR XOR XNOR
-# Updated:     12/11/2026
+# Author:      d.fathi
+# Created:     02/05/2025
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
+
 from pyams.lib import model, dsignal
 
 

@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Laplace block, voltage in -> current out
-# Updated:     11/11/2026
+# Author:      d.fathi
+# Created:     11/11/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 from .LaplaceND import LaplaceND
 from .LaplaceZP import LaplaceZP

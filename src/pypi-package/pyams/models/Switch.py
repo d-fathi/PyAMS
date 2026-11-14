@@ -1,9 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        Switch (voltage-controlled switch)
-# Updated:     12/11/2026
+# Author:      d.fathi
+# Created:     10/09/2020
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
+
 from math import tanh, log, exp
 from pyams.lib import model, signal, param, voltage, current
 

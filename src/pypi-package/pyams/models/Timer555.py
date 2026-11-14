@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Timer555 (NE555 timer, behavioural model)
-# Updated:     19/10/2026
+# Author:      d.fathi
+# Created:     19/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 from pyams.lib import model, signal, param

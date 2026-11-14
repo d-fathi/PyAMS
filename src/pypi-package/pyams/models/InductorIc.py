@@ -1,7 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        Inductor with initial current
-# Licence:     free  "MIT  "
+# Author:      d.fathi
+# Created:     25/06/2015
+# Copyright:   (c) PyAMS
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
+
 from pyams.lib import signal, param, model
 from pyams.lib import voltage, current
 from pyams.lib import idt

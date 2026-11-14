@@ -1,7 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        Capacitor with initial voltage
-# Licence:     free  "MIT  "
+# Author:      d.fathi
+# Created:     16/01/2024
+# Copyright:   (c) PyAMS
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
+
 from pyams.lib import signal, param, model
 from pyams.lib import voltage, current
 from pyams.lib import idt

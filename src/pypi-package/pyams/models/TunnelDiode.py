@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Tunnel diode (Esaki diode)
-# Updated:     19/10/2026
+# Author:      d.fathi
+# Created:     10/05/2015
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 from math import exp

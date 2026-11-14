@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Ports of the current-mode Laplace blocks (shared by LaplaceNDII / IV / VI)
-# Updated:     11/11/2026
+# Author:      d.fathi
+# Created:     11/11/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 from pyams.lib import signal
 from pyams.lib import voltage, current

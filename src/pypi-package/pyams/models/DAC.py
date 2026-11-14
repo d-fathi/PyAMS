@@ -1,9 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        N-bit digital-to-analog converter
-# Updated:     12/11/2026
+# Author:      d.fathi
+# Created:     02/05/2025
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
+
 from pyams.lib import model, param, signal, dsignal, voltage, current, ddt
 from ._digital import pins
 

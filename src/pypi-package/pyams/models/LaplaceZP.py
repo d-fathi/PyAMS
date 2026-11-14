@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Laplace transfer function in zero-pole form
-# Updated:     11/11/2026
+# Author:      d.fathi
+# Created:     11/11/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 import numpy as np
 from .LaplaceND import LaplaceND

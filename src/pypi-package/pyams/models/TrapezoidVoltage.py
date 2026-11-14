@@ -1,10 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Trapezoid voltage Source
-# Author:      D.Fathi
-# Updated:     14/03/2017
-# Modified:    23/03/2025
+# Author:      d.fathi
+# Created:     20/03/2015
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 from pyams.lib import model, signal, param, time

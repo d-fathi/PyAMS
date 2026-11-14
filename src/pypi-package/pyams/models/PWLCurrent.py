@@ -1,7 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        Piece-wise linear current source (SPICE PWL)
-# Licence:     free  "MIT  "
+# Author:      d.fathi
+# Created:     20/03/2015
+# Copyright:   (c) PyAMS
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
+
 from pyams.lib import signal, param, model, time
 from pyams.lib import current
 from .PWLVoltage import parse_points, pwl_eval
