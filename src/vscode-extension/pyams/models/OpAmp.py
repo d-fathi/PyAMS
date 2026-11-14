@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        OpAmp (operational amplifier)
-# Updated:     17/10/2026
+# Author:      d.fathi
+# Created:     17/10/2026
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 from math import tanh

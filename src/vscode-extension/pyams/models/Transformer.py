@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Transformer (two magnetically coupled inductors)
-# Updated:     17/10/2026
+# Author:      d.fathi
+# Created:     06/03/2017
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 from math import sqrt

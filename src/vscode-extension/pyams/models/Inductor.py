@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Inductor
-# Updated:     17/10/2026
+# Author:      d.fathi
+# Created:     25/06/2015
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 from pyams.lib import model, signal, param

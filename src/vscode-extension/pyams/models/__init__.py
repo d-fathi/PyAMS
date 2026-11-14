@@ -1,4 +1,12 @@
 from .Resistor import Resistor
+from .Switch import Switch
+from .SwitchV import SwitchV
+from .Relay import Relay
+from .Combinational import (Multiplexer, Demultiplexer, Decoder, PriorityEncoder, MagnitudeComparator,
+                            ParityGenerator, BinaryToGray, GrayToBinary, SevenSegmentDecoder)
+from .Arithmetic import Adder
+from .Registers import Register, TFF, LFSR
+from .IdealSwitch import IdealSwitch
 from .Conductor import Conductor
 from .VCVS import VCVS
 from .VCCS import VCCS
@@ -9,6 +17,19 @@ from .Inductor import Inductor
 from .CapacitorIc import CapacitorIc
 from .InductorIc import InductorIc
 from .NonlinearResistance import NonlinearResistance
+from .LaplaceND import LaplaceND
+from .LaplaceZP import LaplaceZP
+from .LaplaceNDII import LaplaceNDII, LaplaceZPII
+from .LaplaceNDIV import LaplaceNDIV, LaplaceZPIV
+from .LaplaceNDVI import LaplaceNDVI, LaplaceZPVI
+from .DigitalClock import DigitalClock
+from .Gates import NOT, AND, OR, NAND, NOR, XOR, XNOR
+from .Latches import SRLatch, DLatch
+from .FlipFlops import DFF, JKFF
+from .Counter import Counter
+from .ShiftRegister import ShiftRegister
+from .DAC import DAC
+from .ADC import ADC
 from .Transformer import Transformer
 from .SinVoltage import SinVoltage
 from .DCVoltage import DCVoltage
@@ -47,7 +68,16 @@ from .OpAmp import OpAmp
 from .Comparator import Comparator
 from .Timer555 import Timer555
 
-__all__ = ["Resistor", "Conductor", "VCVS", "VCCS", "CCVS", "CCCS", "Capacitor", "Inductor", "CapacitorIc", "InductorIc", "NonlinearResistance", "Transformer", "SinVoltage",
-           "DCVoltage", "ACVoltage", "ACCurrent", "TrapezoidVoltage", "DCCurrent", "VCVS", "VCCS", "CCVS", "CCCS", "SinCurrent", "ExpVoltage", "ExpCurrent", "PWLVoltage", "PWLCurrent",
-           "TrapezoidCurrent", "TransmissionLine", "VCVS", "VCCS", "CCVS", "CCCS", "Diode", "Diac", "ZenerDiode", "TunnelDiode", "Thyristor", "UJT", "BJT", "MOSFET", "MOSFET4",
-           "JFET", "IGBT", "OpAmp", "Comparator", "Timer555"]
+__all__ = [
+    "Resistor", "Switch", "SwitchV", "Relay", "Multiplexer", "Demultiplexer", "Decoder", "PriorityEncoder", "MagnitudeComparator",
+    "ParityGenerator", "BinaryToGray", "GrayToBinary", "SevenSegmentDecoder", "Adder", "Register", "TFF", "LFSR", "IdealSwitch", "Conductor", "VCVS", "VCCS", "CCVS", "CCCS",
+    "Capacitor", "Inductor", "LaplaceND", "LaplaceZP", "LaplaceNDII", "LaplaceZPII",
+    "LaplaceNDIV", "LaplaceZPIV", "LaplaceNDVI", "LaplaceZPVI",
+    "DigitalClock", "NOT", "AND", "OR", "NAND", "NOR", "XOR", "XNOR", "SRLatch", "DLatch", "DFF", "JKFF",
+    "Counter", "ShiftRegister", "DAC", "ADC", "CapacitorIc", "InductorIc",
+    "NonlinearResistance", "Transformer", "SinVoltage", "DCVoltage", "ACVoltage", "ACCurrent",
+    "TrapezoidVoltage", "DCCurrent", "SinCurrent", "ExpVoltage", "ExpCurrent", "PWLVoltage",
+    "PWLCurrent", "TrapezoidCurrent", "TransmissionLine", "Diode", "Diac", "ZenerDiode",
+    "TunnelDiode", "Thyristor", "UJT", "BJT", "MOSFET", "MOSFET4",
+    "JFET", "IGBT", "OpAmp", "Comparator", "Timer555",
+]

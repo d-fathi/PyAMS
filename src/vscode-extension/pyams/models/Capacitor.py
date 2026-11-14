@@ -1,9 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        Capacitor
-# Author:      D.Fathi
-# Updated:     25/06/2015
-# Modified:    24/03/2025
+# Author:      d.fathi
+# Created:     25/06/2015
 # Copyright:   (c) PyAMS
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 from pyams.lib import model,signal,param
