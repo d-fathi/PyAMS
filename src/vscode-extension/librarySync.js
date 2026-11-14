@@ -99,16 +99,35 @@ static workspaceFolders() {
  * PYTHONPATH when a circuit is run, so that `from MyResistor import MyResistor` works.
  */
 static projectPythonPaths(extensionPath) {
-    const skip = new Set(['__pycache__', 'node_modules', '.git', '.vscode', '.venv', 'venv', 'site-packages']);
+    const skip = new Set(['__pycache__', 'node_modules', '.git', '.vscode', '.venv', 'venv', 'env', 'site-packages',
+                          'dist-packages', 'lib-python', 'lib_pypy', 'dlls', 'scripts', 'tcl', 'include']);
     const found = [];
+    let visited = 0;
+    // A Python installation (CPython / PyPy) or any copy of the standard library must never be put on
+    // PYTHONPATH: its sub-folders (Lib/collections, Lib/importlib ...) contain modules such as abc.py that
+    // would shadow the real standard-library modules and break the interpreter.
+    const isPythonHome = (entries) => {
+        const files = new Set(entries.filter((e) => e.isFile()).map((e) => e.name.toLowerCase()));
+        return (files.has('os.py') && files.has('site.py')) ||
+               ['python.exe', 'pythonw.exe', 'pypy.exe', 'pypy3.exe', 'pyvenv.cfg'].some((n) => files.has(n)) ||
+               entries.some((e) => e.isDirectory() && ['site-packages', 'lib-python', 'lib_pypy'].includes(e.name.toLowerCase()));
+    };
+    // returns true when `dir` is a Python package (has __init__.py): its inner folders are never added,
+    // the folder that holds the package is (so `import package` works)
     const walk = (dir, depth) => {
-        if (depth > 8) return;
+        if (depth > 8 || visited++ > 20000) return false;
         let entries;
-        try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return; }
-        if (entries.some((e) => e.isFile() && e.name.toLowerCase().endsWith('.py'))) found.push(dir);
+        try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return false; }
+        if (isPythonHome(entries)) return false;
+        if (entries.some((e) => e.isFile() && e.name === '__init__.py')) return true;
+        let holdsPackage = false;
         for (const e of entries) {
-            if (e.isDirectory() && !skip.has(e.name) && !e.name.startsWith('.')) walk(path.join(dir, e.name), depth + 1);
+            if (e.isDirectory() && !skip.has(e.name.toLowerCase()) && !e.name.startsWith('.')) {
+                if (walk(path.join(dir, e.name), depth + 1)) holdsPackage = true;
+            }
         }
+        if (holdsPackage || entries.some((e) => e.isFile() && e.name.toLowerCase().endsWith('.py'))) found.push(dir);
+        return false;
     };
     LibrarySync.workspaceFolders().forEach((f) => walk(f.path, 0));
     // only the extension's own python package (pyams/) is not a project model folder;
