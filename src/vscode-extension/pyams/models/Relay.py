@@ -44,6 +44,11 @@ class Relay(model):
     position (1 = energized position: no closed, nc open),  "K1.Ino", "K1.Inc"
     contact currents (com -> no, com -> nc).
 
+    Live simulation:  live() writes the armature position to the parameter `act`
+    (1 = energized), so that the widgets of the symbol (Automatic switch /
+    Automatic transfer switch) can follow the contacts.  It is only called by the
+    Live simulation and does not change the result of any other analysis.
+
     The coil current is an unknown of the circuit (like an inductor).  When a relay
     coil is switched by a transistor, add a freewheeling diode across the coil,
     as in a real circuit, because the inductive current cannot stop at once.
@@ -67,8 +72,12 @@ class Relay(model):
         self.Toff = param(3e-3, 's', 'Release time')
         self.Ron = param(0.05, 'Ω', 'Closed contact resistance')
         self.Roff = param(1e9, 'Ω', 'Open contact resistance')
+        self.act = param(0.0, '', 'State for the Live widgets: 1 = energized (written by live())')
         self.pos = 0                                     # armature: 1 = energized position
         self.coil = 0                                    # coil state with hysteresis
+
+    def live(self):
+        self.act = 1.0 if self.pos == 1 else 0.0
 
     def digital_reset(self):
         self.pos = 0

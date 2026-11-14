@@ -4,7 +4,12 @@ All notable changes to PyAMS will be documented in this file.
 
 ## [0.5.0] - Unreleased
 
+### Added
+- Symbols `Relay SPST` and `Relay SPDT` in the Basic library, bound to the `Relay` model (`pyams/models/Relay.py`): coil (`cp`, `cn`), common (`com`), normally open (`no`) and, for the changeover type, normally closed (`nc`) contacts. Drawn with the editor's own elements (looped coil, case, wires) and a Live widget for the contacts: the Automatic transfer switch (SPDT) and the Automatic switch (SPST), both with the dashed actuator arrow, bound to `param:act`. In the Live simulation the blade follows the armature.
+- `Relay` model: parameter `act` and a `live()` hook that writes the armature position to it (1 = energised), for the widgets of the symbols. It does not change any other analysis.
+
 ### Fixed
+- Live simulation with digital models (`digital()` / `dsignal`: `Relay`, gates, flip-flops, counters ...): the digital part was not initialised or stepped by `pyams/live.py`, so a digital model never changed state. It now uses the same digital set-up as a normal run; older versions of `pyams` without digital models still work.
 - A simulation could fail at start (`NameError: name 'object' is not defined`) when the opened folder contained a Python installation (e.g. a bundled PyPy): its standard-library folders were put on PYTHONPATH and shadowed modules such as `abc`. Python installations, standard-library copies and package internals are no longer added.
 - A simulation could fail with `Cannot import PyAMS (Module use of python312.dll conflicts with this version of Python)` when the opened folder contained a copy of installed packages (numpy, scipy, `*.dist-info`, compiled `.pyd` / `.so` files): that folder was put on PYTHONPATH and shadowed the interpreter's own numpy. Folders holding third-party packages are no longer added.
 
