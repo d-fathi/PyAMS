@@ -6,6 +6,7 @@ All notable changes to PyAMS will be documented in this file.
 
 ### Fixed
 - A simulation could fail at start (`NameError: name 'object' is not defined`) when the opened folder contained a Python installation (e.g. a bundled PyPy): its standard-library folders were put on PYTHONPATH and shadowed modules such as `abc`. Python installations, standard-library copies and package internals are no longer added.
+- A simulation could fail with `Cannot import PyAMS (Module use of python312.dll conflicts with this version of Python)` when the opened folder contained a copy of installed packages (numpy, scipy, `*.dist-info`, compiled `.pyd` / `.so` files): that folder was put on PYTHONPATH and shadowed the interpreter's own numpy. Folders holding third-party packages are no longer added.
 
 ## [0.4.0] - 2026-11-13
 

@@ -112,13 +112,24 @@ static projectPythonPaths(extensionPath) {
                ['python.exe', 'pythonw.exe', 'pypy.exe', 'pypy3.exe', 'pyvenv.cfg'].some((n) => files.has(n)) ||
                entries.some((e) => e.isDirectory() && ['site-packages', 'lib-python', 'lib_pypy'].includes(e.name.toLowerCase()));
     };
+    // A folder that holds installed third-party packages (numpy, scipy ... copied or extracted somewhere,
+    // a site-packages-like folder, wheels unpacked next to their *.dist-info) must never be on PYTHONPATH:
+    // its compiled modules (*.pyd built for another Python) would shadow the ones of the running interpreter
+    // ("Module use of python312.dll conflicts with this version of Python").
+    const THIRD_PARTY = new Set(['numpy', 'scipy', 'pandas', 'matplotlib', 'sympy', 'pip', 'setuptools', 'wheel',
+                                 'numpy.libs', 'scipy.libs', 'pyams', 'cython', 'pythonwin', 'win32', 'pywin32_system32']);
+    const holdsThirdParty = (entries) => entries.some((e) => {
+        const n = e.name.toLowerCase();
+        return (e.isDirectory() && (THIRD_PARTY.has(n) || n.endsWith('.dist-info') || n.endsWith('.egg-info'))) ||
+               (e.isFile() && (n.endsWith('.pyd') || n.endsWith('.so') || n.endsWith('.egg-link')));
+    });
     // returns true when `dir` is a Python package (has __init__.py): its inner folders are never added,
     // the folder that holds the package is (so `import package` works)
     const walk = (dir, depth) => {
         if (depth > 8 || visited++ > 20000) return false;
         let entries;
         try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { return false; }
-        if (isPythonHome(entries)) return false;
+        if (isPythonHome(entries) || holdsThirdParty(entries)) return false;
         if (entries.some((e) => e.isFile() && e.name === '__init__.py')) return true;
         let holdsPackage = false;
         for (const e of entries) {
