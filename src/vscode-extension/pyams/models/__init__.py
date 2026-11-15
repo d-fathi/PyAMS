@@ -57,6 +57,7 @@ from .VCCS import VCCS
 from .CCVS import CCVS
 from .CCCS import CCCS
 from .Diode import Diode
+from .DiodeBridge import DiodeBridge
 from .Diac import Diac
 from .ZenerDiode import ZenerDiode
 from .TunnelDiode import TunnelDiode
@@ -80,7 +81,7 @@ __all__ = [
     "Counter", "ShiftRegister", "DAC", "ADC", "CapacitorIc", "InductorIc",
     "NonlinearResistance", "Transformer", "SinVoltage", "DCVoltage", "ACVoltage", "ACCurrent",
     "TrapezoidVoltage", "DCCurrent", "SinCurrent", "ExpVoltage", "ExpCurrent", "PWLVoltage",
-    "PWLCurrent", "TrapezoidCurrent", "TransmissionLine", "Diode", "Diac", "ZenerDiode",
+    "PWLCurrent", "TrapezoidCurrent", "TransmissionLine", "Diode", "DiodeBridge", "Diac", "ZenerDiode",
     "TunnelDiode", "Thyristor", "UJT", "BJT", "MOSFET", "MOSFET4",
     "JFET", "IGBT", "OpAmp", "Comparator", "Timer555",
 ]

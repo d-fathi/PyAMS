@@ -30,6 +30,7 @@
     ],
     "Semiconductor": [
         "Diode.sym",
+        "Diode Bridge.sym",
         "Diac.sym",
         "NPN.sym",
         "PNP.sym",
