@@ -43,8 +43,8 @@ var liveWidget = (function () {
             case 'segment': return { label: '', scale: 1, offset: 0, format: 'dec', digits: 1, dp: false, color: '#ef4444', offColor: '#3a1c1c', value: 8 };
             case 'switch':  return { label: '', onValue: 1, offValue: 0, on: false, color: '#22c55e' };
             case 'button':  return { label: '', pressValue: 1, releaseValue: 0, color: '#3b82f6' };
-            case 'spst':    return { label: '', onValue: 1, offValue: 0, on: false, color: '#8b95a5', accent: '#22c55e' };
-            case 'spdt':    return { label: '', onValue: 1, offValue: 0, on: true,  color: '#8b95a5', accent: '#22c55e' };   // on = upper position
+            case 'spst':    return { label: '', onValue: 1, offValue: 0, on: false, color: '#8b95a5', accent: '#22c55e', lineWidth: 0 };
+            case 'spdt':    return { label: '', onValue: 1, offValue: 0, on: true,  color: '#8b95a5', accent: '#22c55e', lineWidth: 0, spacing: 0 };   // on = upper position
             case 'polyseg': return { onColor: '#ef4444', offColor: '#3a1c1c', threshold: 0.5, activeLow: false, value: 1, scale: 1, offset: 0 };
             case 'pushsw':  return { label: '', pressValue: 1, releaseValue: 0, color: '#8b95a5', accent: '#22c55e' };
             case 'gauge':   return { label: '', min: 0, max: 5, value: 2.5, color: '#22c55e', needleColor: '#1f2937', decimals: 1, unit: 'V', showValue: true, scale: 1, offset: 0 };
@@ -339,7 +339,8 @@ var liveWidget = (function () {
     // single pole, single throw (knife switch)
     function drawSpst(p, w, h, c) {
         var pad = 5, y = h * 0.64, xp = pad + (w - 2 * pad) * 0.3, xc = w - pad - (w - 2 * pad) * 0.3, r = Math.max(2.6, Math.min(w, h) * 0.1);
-        var sw = Math.max(1.6, Math.min(w, h) * 0.07), on = !!c.on, act = on ? c.accent : c.color;
+        var sw = c.lineWidth > 0 ? Math.max(0.5, c.lineWidth) : Math.max(1.6, Math.min(w, h) * 0.07), on = !!c.on, act = on ? c.accent : c.color;
+        if (c.lineWidth > 0) r = Math.max(r, sw * 0.9 + 1);
         lead(p, pad, y, xp, y, on ? c.accent : c.color, sw);
         lead(p, xc, y, w - pad, y, on ? c.accent : c.color, sw);
         if (on) blade(p, xp, y, xc, y, c.accent, sw + 1, true);
@@ -353,8 +354,11 @@ var liveWidget = (function () {
     // single pole, double throw (changeover): on = upper position
     function drawSpdt(p, w, h, c) {
         var pad = 5, xp = pad + (w - 2 * pad) * 0.28, xc = w - pad - (w - 2 * pad) * 0.3;
-        var ym = h / 2, yu = h * 0.2, yl = h * 0.8, r = Math.max(2.6, Math.min(w, h) * 0.085);
-        var sw = Math.max(1.6, Math.min(w, h) * 0.06), up = !!c.on;
+        var ym = h / 2, r = Math.max(2.6, Math.min(w, h) * 0.085);
+        var sw = c.lineWidth > 0 ? Math.max(0.5, c.lineWidth) : Math.max(1.6, Math.min(w, h) * 0.06), up = !!c.on;
+        if (c.lineWidth > 0) r = Math.max(r, sw * 0.9 + 1);
+        var sp = c.spacing > 0 ? Math.min(c.spacing, h - 2 * (r + sw)) : h * 0.6;      // distance between the two throws
+        var yu = ym - sp / 2, yl = ym + sp / 2;
         lead(p, pad, ym, xp, ym, c.accent, sw);
         lead(p, xc, yu, w - pad, yu, up ? c.accent : c.color, sw);
         lead(p, xc, yl, w - pad, yl, up ? c.color : c.accent, sw);
@@ -669,7 +673,8 @@ function liveWidgetSelect() {
                 { label: 'Open value', type: 'number', value: c.offValue },
                 { label: 'Initial state', type: 'dropdown', options: ['Open', 'Closed'], value: c.on ? 'Closed' : 'Open' },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
-                { label: 'Active color', type: 'color', value: c.accent, color: c.accent }
+                { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Line width (0 = auto)', type: 'number', value: c.lineWidth || 0 }
             ]; break;
         case 'spdt':
             rows = [
@@ -677,7 +682,9 @@ function liveWidgetSelect() {
                 { label: 'Lower value', type: 'number', value: c.offValue },
                 { label: 'Initial position', type: 'dropdown', options: ['Upper', 'Lower'], value: c.on ? 'Upper' : 'Lower' },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
-                { label: 'Active color', type: 'color', value: c.accent, color: c.accent }
+                { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Line width (0 = auto)', type: 'number', value: c.lineWidth || 0 },
+                { label: 'Throw spacing (0 = auto)', type: 'number', value: c.spacing || 0 }
             ]; break;
         case 'pushsw':
             rows = [
@@ -849,10 +856,12 @@ function modifiedLiveWidget() {
             case 'spst':
                 c.onValue = f(R[0].value, 1); c.offValue = f(R[1].value, 0);
                 c.on = R[2].value === 'Closed'; c.color = R[3].value; c.accent = R[4].value;
+                c.lineWidth = Math.max(0, f(R[5].value, 0));
                 break;
             case 'spdt':
                 c.onValue = f(R[0].value, 1); c.offValue = f(R[1].value, 0);
                 c.on = R[2].value === 'Upper'; c.color = R[3].value; c.accent = R[4].value;
+                c.lineWidth = Math.max(0, f(R[5].value, 0)); c.spacing = Math.max(0, f(R[6].value, 0));
                 break;
             case 'pushsw':
                 c.pressValue = f(R[0].value, 1); c.releaseValue = f(R[1].value, 0);
