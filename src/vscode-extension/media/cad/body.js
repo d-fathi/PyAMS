@@ -139,6 +139,26 @@ body.innerHTML = `
             <circle cx="20" cy="5.5" r="1" fill="white"/>
         </svg>
     </button>
+   <button class="toolbar-btn" id="btnPlaceComponent" title="Place Component (P)">
+     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+       <text x="17" y="7" text-anchor="middle" font-size="7" font-weight="bold" fill="currentColor" stroke="none">+</text>
+       <line x1="1" y1="15" x2="4" y2="15"/>
+       <polyline points="4,15 6,9 9,21 12,9 15,21 18,9 20,15"/>
+       <line x1="20" y1="15" x2="23" y2="15"/>
+     </svg>
+   </button>
+   <button class="toolbar-btn" id="btnListElements" title="List of drawing elements / change order">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+       <polygon points="12 3 21 8 12 13 3 8"/>
+       <polyline points="3 12 12 17 21 12"/>
+       <polyline points="3 16 12 21 21 16"/>
+     </svg>
+   </button>
+   <button class="toolbar-btn" id="btnLive" title="Live (interactive) simulation panel">
+     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+       <polyline points="2 12 6 12 9 4 14 20 17 12 22 12"/>
+     </svg>
+   </button>
 </div>
 
  <div class="toolbar-group">
@@ -163,14 +183,6 @@ body.innerHTML = `
    </button>
  </div>
  <div class="toolbar-group" id="grpComponent">
-   <button class="toolbar-btn" id="btnPlaceComponent" title="Place Component (P)">
-     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-       <text x="17" y="7" text-anchor="middle" font-size="7" font-weight="bold" fill="currentColor" stroke="none">+</text>
-       <line x1="1" y1="15" x2="4" y2="15"/>
-       <polyline points="4,15 6,9 9,21 12,9 15,21 18,9 20,15"/>
-       <line x1="20" y1="15" x2="23" y2="15"/>
-     </svg>
-   </button>
    <button class="toolbar-btn" id="btnText" title="Text (T)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
    </button>
@@ -321,20 +333,6 @@ body.innerHTML = `
 
 
 
- <div class="toolbar-group">
-   <button class="toolbar-btn" id="btnListElements" title="List of drawing elements / change order">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-       <polygon points="12 3 21 8 12 13 3 8"/>
-       <polyline points="3 12 12 17 21 12"/>
-       <polyline points="3 16 12 21 21 16"/>
-     </svg>
-   </button>
-   <button class="toolbar-btn" id="btnLive" title="Live (interactive) simulation panel">
-     <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-       <polyline points="2 12 6 12 9 4 14 20 17 12 22 12"/>
-     </svg>
-   </button>
- </div>
  <div class="toolbar-group" id="grpAnalysis">
    <button class="toolbar-btn" id="btnHTML" title="HTML Mode (M)">
      <svg viewBox="0 0 24 24" fill="currentColor">
@@ -559,7 +557,6 @@ document.getElementById('btnWidget').addEventListener('click',  () =>{self.activ
 document.getElementById('btnScope').addEventListener('click',  () =>{self.activeBtnById('btnScope'); addShape("liveScope"); });
 
 document.getElementById('btnWire').addEventListener('click',  () =>{self.activeBtnById('btnWire'); addShape('net'); });
-document.getElementById('btnPlaceComponent').addEventListener('click',  () =>{ showSymbolPanel() });
 document.getElementById('btnGND').addEventListener('click',  () =>{self.activeBtnById('btnGND');  addGnd();});
 document.getElementById('btnVCC').addEventListener('click',  () =>{self.activeBtnById('btnVCC');  addVBar(); });
 document.getElementById('btnPort').addEventListener('click',  () =>{self.activeBtnById('btnPort');  addPort(); });
@@ -568,20 +565,45 @@ document.getElementById('btnRotate').addEventListener('click',  () =>{  rotatePa
 document.getElementById('btnFlipVertical').addEventListener('click',  () =>{ flipVerticallyPart(); });
 document.getElementById('btnFlipHorizontal').addEventListener('click',  () =>{  flipHorizontalPart(); });
 
-document.getElementById('btnListElements').addEventListener('click', () => {
-    start_listElements();
-});
 
-// Live (interactive) simulation: everything lives in its own module (media/live/liveSimulation.js)
-liveSimulation.onChange = (on) => { document.getElementById('btnLive').classList.toggle('active', on); };
-document.getElementById('btnLive').addEventListener('click', () => { liveSimulation.toggle(); });
-document.getElementById('btnShowPanel').addEventListener('click', (e) => {  const isActive=e.currentTarget.classList.toggle('active'); if(!propertiesData)  pageSelect();  
-          if (isActive) {
-                propertiesPanel.show(propertiesData);
-            } else {
-                    propertiesPanel.hide();
-            }
+// ---- the four side panels (properties, symbols library, list of elements, live simulation) --------
+// They share the same area of the drawing: opening one closes the others (Shift / Ctrl + click keeps the others open).
+const sidePanels = {
+    btnShowPanel:      { isOpen: () => { const e = document.getElementById('propertiesPanel'); return !!e && e.classList.contains('visible'); },
+                         open: () => { if (!propertiesData) pageSelect(); propertiesPanel.show(propertiesData); },
+                         close: () => { propertiesPanel.hide(); } },
+    btnPlaceComponent: { isOpen: () => typeof symbolsPanel !== 'undefined' && !!symbolsPanel && !!symbolsPanel.isVisible,
+                         open: () => { showSymbolPanel(); },
+                         close: () => { symbolsPanel.hide(); } },
+    btnListElements:   { isOpen: () => typeof nodeSelectorDialog !== 'undefined' && !!nodeSelectorDialog && !!nodeSelectorDialog.isVisible,
+                         open: () => { start_listElements(); },
+                         close: () => { nodeSelectorDialog.hide(); } },
+    btnLive:           { isOpen: () => liveSimulation.isOpen(),
+                         open: () => { liveSimulation.show(); },
+                         close: () => { liveSimulation.hide(); } }
+};
+function syncSidePanelButtons() {
+    Object.keys(sidePanels).forEach((id) => {
+        const b = document.getElementById(id);
+        if (b) b.classList.toggle('active', !!sidePanels[id].isOpen());
+    });
+}
+function toggleSidePanel(id, keepOthers) {
+    const p = sidePanels[id];
+    if (!p) return;
+    if (p.isOpen()) p.close();
+    else {
+        if (!keepOthers) Object.keys(sidePanels).forEach((o) => { if (o !== id && sidePanels[o].isOpen()) sidePanels[o].close(); });
+        p.open();
+    }
+    setTimeout(syncSidePanelButtons, 0);
+}
+Object.keys(sidePanels).forEach((id) => {
+    document.getElementById(id).addEventListener('click', (e) => { toggleSidePanel(id, e.shiftKey || e.ctrlKey || e.metaKey); });
 });
+liveSimulation.onChange = () => { syncSidePanelButtons(); };
+// a panel can also be closed by its own close button: keep the buttons in step
+document.addEventListener('click', () => { setTimeout(syncSidePanelButtons, 0); }, true);
 const toolButtons = [
   'btnSelect', 'btnWire', 'btnBus', 'btnText',
   'btnRectangle', 'btnEllipse', 'btnArc', 'btnPolyline', 'btnPolygon',
@@ -692,7 +714,7 @@ document.addEventListener('keydown', (e) => {
       self.shapes.design.mouse = false;
       self.shapes.design.start = false;
     }
-    if (key === 'p') { if(drawing.pageType == 'sym') return; showSymbolPanel();}
+    if (key === 'p') { if(drawing.pageType == 'sym') return; toggleSidePanel('btnPlaceComponent', false);}
     if (key === 'n') { if(drawing.pageType == 'sym') return;  addGnd(); self.activeBtnSelect();}
     if (key === 'u') { if(drawing.pageType == 'sym') return;  addVBar(); self.activeBtnSelect();}
     if (key === 'o') { if(drawing.pageType == 'sym') return;  addPort(); self.activeBtnSelect();}

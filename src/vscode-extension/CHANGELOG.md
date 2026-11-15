@@ -9,6 +9,9 @@ All notable changes to PyAMS will be documented in this file.
 - Automatic switch and Automatic transfer switch widgets: new property `Line width` (0 = automatic, from the size of the widget), set next to the colors; the contact rings grow with it. The Automatic transfer switch also has `Contact spacing` (0 = automatic), the distance in pixels between its two contacts, so the contacts can be placed on the grid points of the pins. Symbols saved before keep their look.
 - `Relay` model: parameter `act` and a `live()` hook that writes the armature position to it (1 = energised), for the widgets of the symbols. It does not change any other analysis.
 
+### Changed
+- Toolbar: the buttons of the four side panels (Properties, Symbols library, List of drawing elements, Live simulation) are grouped at the start of the toolbar. Only one of these panels is shown at a time: opening one closes the others, so they no longer pile up over the drawing. Shift / Ctrl + click keeps the other panels open; the buttons follow the panels, also when a panel is closed with its own close button. The `P` shortcut now toggles the Symbols library.
+
 ### Fixed
 - Live simulation with digital models (`digital()` / `dsignal`: `Relay`, gates, flip-flops, counters ...): the digital part was not initialised or stepped by `pyams/live.py`, so a digital model never changed state. It now uses the same digital set-up as a normal run; older versions of `pyams` without digital models still work.
 - A simulation could fail at start (`NameError: name 'object' is not defined`) when the opened folder contained a Python installation (e.g. a bundled PyPy): its standard-library folders were put on PYTHONPATH and shadowed modules such as `abc`. Python installations, standard-library copies and package internals are no longer added.
