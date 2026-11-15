@@ -6,6 +6,7 @@ All notable changes to PyAMS will be documented in this file.
 
 ### Added
 - Symbols `Relay SPST` and `Relay SPDT` in the Basic library, bound to the `Relay` model (`pyams/models/Relay.py`): coil (`cp`, `cn`), common (`com`), normally open (`no`) and, for the changeover type, normally closed (`nc`) contacts. Drawn with the editor's own elements (looped coil, case, wires) and a Live widget for the contacts: the Automatic transfer switch (SPDT) and the Automatic switch (SPST), both with the dashed actuator arrow, bound to `param:act`. In the Live simulation the blade follows the armature.
+- Automatic switch and Automatic transfer switch widgets: new property `Line width` (0 = automatic, from the size of the widget), set next to the colors; the contact rings grow with it. The Automatic transfer switch also has `Contact spacing` (0 = automatic), the distance in pixels between its two contacts, so the contacts can be placed on the grid points of the pins. Symbols saved before keep their look.
 - `Relay` model: parameter `act` and a `live()` hook that writes the armature position to it (1 = energised), for the widgets of the symbols. It does not change any other analysis.
 
 ### Fixed

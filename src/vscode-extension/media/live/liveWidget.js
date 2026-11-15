@@ -50,8 +50,8 @@ var liveWidget = (function () {
             case 'gauge':   return { label: '', min: 0, max: 5, value: 2.5, color: '#22c55e', needleColor: '#1f2937', decimals: 1, unit: 'V', showValue: true, scale: 1, offset: 0 };
             case 'bar':     return { label: '', min: 0, max: 5, value: 2.5, color: '#3b82f6', vertical: true, showValue: false, decimals: 1, unit: '', scale: 1, offset: 0 };
             case 'value':   return { label: '', value: 1.234, decimals: 3, unit: 'V', color: '#22c55e', bg: '#0b0f14', scale: 1, offset: 0 };
-            case 'autosw':  return { label: '', contact: 'NO', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', actuator: true, value: 0, scale: 1, offset: 0 };
-            case 'ats':     return { label: '', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', actuator: true, value: 0, scale: 1, offset: 0 };
+            case 'autosw':  return { label: '', contact: 'NO', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', lineWidth: 0, actuator: true, value: 0, scale: 1, offset: 0 };
+            case 'ats':     return { label: '', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', lineWidth: 0, spacing: 0, actuator: true, value: 0, scale: 1, offset: 0 };
             case 'knob':    return { label: '', min: 0, max: 10, step: 0.1, value: 5, color: '#3b82f6' };
             case 'slider':  return { label: '', min: 0, max: 1, step: 0.01, value: 0.5, vertical: false, color: '#3b82f6' };
         }
@@ -256,6 +256,9 @@ var liveWidget = (function () {
     }
 
     // ---- automatic switches: contacts of a relay, moved by the bound value -----------------------------
+    // line width: the property (0 = automatic, from the size of the widget); the rings grow with it
+    function lineW(c, w, h) { return c.lineWidth > 0 ? Math.max(0.5, c.lineWidth) : Math.max(1.6, Math.min(w, h) * 0.05); }
+    function ringR(c, sw, w, h) { var r = Math.max(2.6, Math.min(w, h) * 0.07); return c.lineWidth > 0 ? Math.max(r, sw * 0.9 + 1) : r; }
     function ring(p, x, y, r, col, sw, filled) {
         mk('circle', { cx: x, cy: y, r: r, fill: filled ? col : '#ffffff', stroke: col, 'stroke-width': sw }, p);
     }
@@ -271,7 +274,7 @@ var liveWidget = (function () {
     // automatic switch: one contact (normally open or normally closed); the pivot is at the bottom
     function drawAutoSwitch(p, w, h, c) {
         var act = isLit(c, c.value), closed = (c.contact === 'NC') ? !act : act;
-        var sw = Math.max(1.6, Math.min(w, h) * 0.05), r = Math.max(2.6, Math.min(w, h) * 0.07), col = closed ? c.accent : c.color;
+        var sw = lineW(c, w, h), r = ringR(c, sw, w, h), col = closed ? c.accent : c.color;
         var x = w / 2, yt = h * 0.26, yp = h * 0.74, pad = 3;
         lead(p, x, pad, x, yt - r, col, sw);                        // upper lead
         lead(p, x, yp + r, x, h - pad, col, sw);                    // lower lead
@@ -293,8 +296,10 @@ var liveWidget = (function () {
     // automatic transfer switch: changeover contact; at rest the common terminal is joined to the left
     // contact, when the value is active to the right one
     function drawAts(p, w, h, c) {
-        var act = isLit(c, c.value), sw = Math.max(1.6, Math.min(w, h) * 0.05), r = Math.max(2.6, Math.min(w, h) * 0.07);
-        var xl = w * 0.22, xr = w * 0.78, xc = w / 2, yt = h * 0.26, yp = h * 0.74, pad = 3;
+        var act = isLit(c, c.value), sw = lineW(c, w, h), r = ringR(c, sw, w, h);
+        var xc = w / 2, yt = h * 0.26, yp = h * 0.74, pad = 3;
+        var sp = c.spacing > 0 ? Math.min(c.spacing, w - 2 * (r + sw)) : w * 0.56;   // distance between the two contacts
+        var xl = xc - sp / 2, xr = xc + sp / 2;
         var cl = act ? c.color : c.accent, cr = act ? c.accent : c.color;
         lead(p, xl, pad, xl, yt - r, cl, sw);
         lead(p, xr, pad, xr, yt - r, cr, sw);
@@ -695,6 +700,7 @@ function liveWidgetSelect() {
                 { label: 'Preview value', type: 'number', value: c.value },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
                 { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Line width (0 = auto)', type: 'number', value: c.lineWidth || 0 },
                 { label: 'Actuator arrow', type: 'dropdown', options: ['Yes', 'No'], value: yn(c.actuator !== false) }
             ]; break;
         case 'ats':
@@ -704,6 +710,8 @@ function liveWidgetSelect() {
                 { label: 'Preview value', type: 'number', value: c.value },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
                 { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Line width (0 = auto)', type: 'number', value: c.lineWidth || 0 },
+                { label: 'Contact spacing (0 = auto)', type: 'number', value: c.spacing || 0 },
                 { label: 'Actuator arrow', type: 'dropdown', options: ['Yes', 'No'], value: yn(c.actuator !== false) }
             ]; break;
         case 'gauge':
@@ -853,11 +861,11 @@ function modifiedLiveWidget() {
             case 'autosw':
                 c.contact = R[0].value === 'Normally closed' ? 'NC' : 'NO';
                 c.threshold = f(R[1].value, 0.5); c.activeLow = /^Low/.test(R[2].value); c.value = f(R[3].value, 0);
-                c.color = R[4].value; c.accent = R[5].value; c.actuator = R[6].value !== 'No';
+                c.color = R[4].value; c.accent = R[5].value; c.lineWidth = Math.max(0, f(R[6].value, 0)); c.actuator = R[7].value !== 'No';
                 break;
             case 'ats':
                 c.threshold = f(R[0].value, 0.5); c.activeLow = /^Low/.test(R[1].value); c.value = f(R[2].value, 0);
-                c.color = R[3].value; c.accent = R[4].value; c.actuator = R[5].value !== 'No';
+                c.color = R[3].value; c.accent = R[4].value; c.lineWidth = Math.max(0, f(R[5].value, 0)); c.spacing = Math.max(0, f(R[6].value, 0)); c.actuator = R[7].value !== 'No';
                 break;
             case 'gauge':
                 c.min = f(R[0].value, 0); c.max = f(R[1].value, 1); if (c.max <= c.min) c.max = c.min + 1;
