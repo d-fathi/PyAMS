@@ -34,6 +34,10 @@ class Switch(model):
         Vw    width of the transition (V), small = abrupt   1e-3
         Ron   closed resistance (ohm)                     1e-3
         Roff  open resistance (ohm)                       1e9
+
+    Live simulation:  live() writes the state to the parameter `act` (1 = closed,
+    i.e. Vc >= Vt) for the widgets of the symbol (Automatic switch).  It is only
+    called by the Live simulation and does not change any other analysis.
     """
     def __init__(self, p, n, cp, cn):
         self.V = signal('in', voltage, p, n)
@@ -43,9 +47,13 @@ class Switch(model):
         self.Vw = param(1e-3, 'V', 'Width of the smooth transition')
         self.Ron = param(1e-3, 'Ω', 'Closed resistance')
         self.Roff = param(1e9, 'Ω', 'Open resistance')
+        self.act = param(0.0, '', 'State for the Live widgets: 1 = closed (written by live())')
 
     def analog(self):
         x = (self.Vc - self.Vt) / max(float(self.Vw), 1e-12)
         s = 0.5 * (1.0 + tanh(max(-30.0, min(30.0, x))))
         lg = (1.0 - s) * log(1.0 / self.Roff) + s * log(1.0 / self.Ron)
         self.I += exp(lg) * self.V
+
+    def live(self):
+        self.act = 1.0 if float(self.Vc) >= float(self.Vt) else 0.0

@@ -34,6 +34,9 @@ class SwitchV(model):
         Vt    threshold voltage (V)                         0.5
         Vw    width of the transition (V)                   1e-3
         Roff  resistance of the removed branch (ohm)        1e12
+    Live simulation:  live() writes the state to the parameter `act` (1 = closed,
+    i.e. Vc >= Vt) for the widgets of the symbol (Automatic switch).  It is only
+    called by the Live simulation and does not change any other analysis.
     Because the closed switch is an ideal voltage source, do not put it in a loop
     of ideal voltage sources (and keep a resistance in series, as with any 0 V
     source).
@@ -45,6 +48,7 @@ class SwitchV(model):
         self.Vt = param(0.5, 'V', 'Threshold of the control voltage')
         self.Vw = param(1e-3, 'V', 'Width of the smooth transition')
         self.Roff = param(1e12, 'Ω', 'Resistance of the removed (open) branch')
+        self.act = param(0.0, '', 'State for the Live widgets: 1 = closed (written by live())')
 
     def analog(self):
         x = (self.Vc - self.Vt) / max(float(self.Vw), 1e-12)
@@ -53,3 +57,6 @@ class SwitchV(model):
             return
         s = 0.5 * (1.0 + tanh(max(-30.0, x)))
         self.V += (1.0 - s) * self.Roff * self.I
+
+    def live(self):
+        self.act = 1.0 if float(self.Vc) >= float(self.Vt) else 0.0

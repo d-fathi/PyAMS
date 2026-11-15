@@ -1,6 +1,7 @@
 from .Resistor import Resistor
 from .Switch import Switch
 from .SwitchV import SwitchV
+from .SwitchI import SwitchI
 from .Relay import Relay
 from .Combinational import (Multiplexer, Demultiplexer, Decoder, PriorityEncoder, MagnitudeComparator,
                             ParityGenerator, BinaryToGray, GrayToBinary, SevenSegmentDecoder)
@@ -69,7 +70,7 @@ from .Comparator import Comparator
 from .Timer555 import Timer555
 
 __all__ = [
-    "Resistor", "Switch", "SwitchV", "Relay", "Multiplexer", "Demultiplexer", "Decoder", "PriorityEncoder", "MagnitudeComparator",
+    "Resistor", "Switch", "SwitchV", "SwitchI", "Relay", "Multiplexer", "Demultiplexer", "Decoder", "PriorityEncoder", "MagnitudeComparator",
     "ParityGenerator", "BinaryToGray", "GrayToBinary", "SevenSegmentDecoder", "Adder", "Register", "TFF", "LFSR", "IdealSwitch", "Conductor", "VCVS", "VCCS", "CCVS", "CCCS",
     "Capacitor", "Inductor", "LaplaceND", "LaplaceZP", "LaplaceNDII", "LaplaceZPII",
     "LaplaceNDIV", "LaplaceZPIV", "LaplaceNDVI", "LaplaceZPVI",
