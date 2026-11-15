@@ -24,7 +24,9 @@
         "Relay SPDT.sym",
         "Switch.sym",
         "SwitchV.sym",
-        "SwitchI.sym"
+        "SwitchI.sym",
+        "Switch SPST.sym",
+        "Switch SPDT.sym"
     ],
     "Semiconductor": [
         "Diode.sym",
