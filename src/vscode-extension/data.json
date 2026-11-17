@@ -31,6 +31,7 @@
     "Semiconductor": [
         "Diode.sym",
         "Diode Bridge.sym",
+        "Zener Diode.sym",
         "Diac.sym",
         "NPN.sym",
         "PNP.sym",
