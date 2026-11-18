@@ -460,6 +460,23 @@ function netRouteMovedEnd(points,atStart,q,pinVert)
 }
 
 
+// Before a wire is edited (its points are dragged): remove duplicate and
+// collinear points, so that the segments strictly alternate horizontal /
+// vertical and moving a point can never leave a diagonal segment.
+function netSimplifyForEdit(self)
+{
+	var el=self.setElement;
+	if(el.getAttribute("name")!='net' || el.getAttribute("diagonal")=='true') return;
+	var s=netSimplifyPoints(self.points);
+	if(s.length!=self.points.length)
+	{
+		self.points=s;
+		el.setAttribute("points",polylineToAttribute(s, 0, 0));
+		el.setAttribute("xdir",(s[0].x==s[1].x)?'true':'false');
+	}
+}
+
+
 function movePartWithConnectNets(self)
 {
 	var part=self.selectedElement;

@@ -66,6 +66,7 @@ function getType(self) {
                     y: parseInt(n[1])
                 });
 			}
+		netSimplifyForEdit(self);
 		getTypeDirOfNet(self);
 		deletePointInSameDirection(self);
 		self.length =self.points.length+1;
