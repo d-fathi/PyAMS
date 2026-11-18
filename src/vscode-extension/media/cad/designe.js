@@ -91,7 +91,9 @@ function designMouseDown(self, pos) {
 		  if (itConnect(self.svgSym.lastChild,self.points))
 		  {
 		   	self.design.start=false;
-		  	self.design.mouse=false;
+		  	// the wire tool stays active for the next wire (Esc / right click leaves it);
+		  	// a wire started from a pin with the select tool ends the tool as before
+		  	if(self.design.once) self.design.mouse=false;
 			  drawing.saveData('Add :'+drawing.shapes.design.name);
       }
 
@@ -264,8 +266,11 @@ function netFinishDrawing(self)
 }
 
 function designMouseUp(self, pos) {
-	if((drawing.shapes.design.name=='net') && (drawing.shapes.design.start))
-	  return;
+	if(drawing.shapes.design.name=='net')
+	{
+	  if(drawing.shapes.design.start) return;
+	  if(!drawing.shapes.design.once) return;     // the wire tool stays active
+	}
 
 	if(drawing.shapes.design.mouse) 
  	  drawing.saveData('Add :'+drawing.shapes.design.name);

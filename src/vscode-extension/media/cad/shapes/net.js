@@ -240,8 +240,7 @@ function netMergeEndToEnd()
 // shortened so that it begins where the overlap ends:
 //   - when the branch leaves the host wire by turning, at that turn;
 //   - when it runs past the end of the host segment, at that end.
-// Pins and third wires at the old end, or wires ending on the removed part,
-// are never touched.  Returns true when something was changed.
+// Pins and third wires at the old end are never touched.  Returns true when something was changed.
 function netTrimOverlap()
 {
 	if(drawing.shapes && drawing.shapes.design && drawing.shapes.design.start) return false;
@@ -316,18 +315,8 @@ function netTrimOverlap()
 			}
 			if(!newE) continue;
 
-			// nothing else may end on the part that is removed (E .. newE)
-			var blocked=false;
-			for(var z=0; z<nets.length && !blocked; z++)
-			{
-				if(z==a || z==b) continue;
-				var pz=pts[z];
-				var ends=[pz[0],pz[pz.length-1]];
-				for(var q=0; q<2; q++)
-					if(onSeg(E,newE,ends[q].x,ends[q].y)) blocked=true;
-			}
-			if(blocked) continue;
-			if(pinAt[newE.x+','+newE.y] && (newE.x!=F.x || newE.y!=F.y)) { /* a pin on the host: fine */ }
+			// The removed part (E .. newE) lies completely on the host segment, so
+			// every wire that ends on it stays connected to the host wire.
 
 			var np=pa.map(function(q){return {x:q.x,y:q.y};});
 			if(ea==0) np[0]=newE; else np[n-1]=newE;
@@ -459,6 +448,7 @@ function netAddInThisPos(pos)
 	   {
 		 drawing.shapes.setNetXDir=pins[n].typeXDir;
 		 addShape('net');
+		 drawing.shapes.design.once=true;   // started from the select tool: one wire only
 		 return true;
 	   }
 
