@@ -282,6 +282,7 @@ function fresize(svg,setDrawing, width, height) {
         }
 
         function endDrag(evt) {
+            if (evt.button === 2 && self.drawing.shapes.design.mouse) return;   // right button: handled by 'contextmenu'
 			if((self.type==2) && self.select )
 				updatePolyline(self);
 			if(self.select  && (!self.drawing.shapes.design.mouse))

@@ -709,6 +709,10 @@ document.addEventListener('keydown', (e) => {
     if (key === 'z') { if(drawing.pageType == 'sym') return;  addShape('probe');}
     if (key === 'w') { if(drawing.pageType == 'sym') return;  addShape('net');} 
     if (key === 'm') { if(drawing.pageType == 'sym') return;  addShape('codeHTML');} 
+    if ((key === 'escape') && self.shapes.design.name == 'net' && self.shapes.design.start) {
+      netFinishDrawing(self.shapes);   // end the wire, stay in the wire tool
+      return;
+    }
     if ((key === 'escape') || (key === 'end') || (key === 'v')) { 
       self.activeBtnSelect();       
       self.shapes.design.mouse = false;

@@ -244,6 +244,25 @@ function designMouseMouve(self, pos) {
     }
 }
 
+// End the wire being drawn (Esc or right mouse button).  The last point
+// (the one following the cursor) is kept, so the wire ends where the cursor is.
+// A wire of zero length is removed.  The wire tool stays active.
+function netFinishDrawing(self)
+{
+  var elem=self.svgSym.lastChild;
+  var p=self.points.map(function(q){return {x:q.x,y:q.y};});
+  p=netSimplifyPoints(p);
+  self.design.start=false;
+  if(p.length<2 || (p[0].x==p[p.length-1].x && p[0].y==p[p.length-1].y && p.length==2))
+  {
+    elem.remove();
+    return;
+  }
+  elem.setAttribute("points",polylineToAttribute(p, 0, 0));
+  elem.setAttribute("xdir",(p[0].x==p[1].x)?'true':'false');
+  drawing.saveData('Add :net');
+}
+
 function designMouseUp(self, pos) {
 	if((drawing.shapes.design.name=='net') && (drawing.shapes.design.start))
 	  return;
