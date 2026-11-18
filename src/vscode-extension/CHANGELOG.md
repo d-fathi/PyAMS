@@ -20,6 +20,8 @@ All notable changes to PyAMS will be documented in this file.
 - `Relay` model: parameter `act` and a `live()` hook that writes the armature position to it (1 = energised), for the widgets of the symbols. It does not change any other analysis.
 
 ### Changed
+- The junction dots take the colour of their wire, also when the colour of a net is changed in the properties panel (`nodesUpdateColor` in `cnode.js`).
+- The junction dot of a wire that starts or ends on the side of another wire and first runs along it is now drawn where the branch really leaves the other wire: the overlapping part of the branch is cut off (`netTrimOverlap`). Pins, third wires and wires ending on the removed part are left alone.
 - Moving a part no longer lifts the far segment of a U-shaped wire (for example the bottom wire of a loop, with a ground symbol connected to it): only a Z-shaped wire, whose two end segments go the same way, has its middle segment centred again.
 - Dragging a point of a wire can no longer leave a diagonal segment: before a wire is edited, duplicate and collinear points are removed (`netSimplifyForEdit`), so the segments strictly alternate horizontal / vertical. Wires drawn with diagonal segments are left untouched.
 - Two wires that meet end to end are joined into one wire (collinear points are removed). Nothing is merged when a pin, a third wire or a T-junction is connected at that point, when the result would be a closed loop, or while a wire is being drawn. If one of the two wires carries a net name, that wire is kept.

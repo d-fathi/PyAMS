@@ -234,12 +234,124 @@ function netMergeEndToEnd()
 }
 
 
+// A wire that starts (or ends) on the side of another wire and first runs along
+// it (the two wires overlap) shows its junction dot at the end of the wire, far
+// from the place where the branch really leaves the other wire.  The branch is
+// shortened so that it begins where the overlap ends:
+//   - when the branch leaves the host wire by turning, at that turn;
+//   - when it runs past the end of the host segment, at that end.
+// Pins and third wires at the old end, or wires ending on the removed part,
+// are never touched.  Returns true when something was changed.
+function netTrimOverlap()
+{
+	if(drawing.shapes && drawing.shapes.design && drawing.shapes.design.start) return false;
+	var sym=document.getElementById("sym");
+	var parts=[], nets=[];
+	for(var i=0; i<sym.children.length; i++)
+	{
+		var nm=sym.children[i].getAttribute("name");
+		if(nm=='net') nets.push(sym.children[i]);
+		else if(nm=='part') parts.push(sym.children[i]);
+	}
+	if(nets.length<2) return false;
+
+	var pinAt={};
+	for(var i=0; i<parts.length; i++)
+	{
+		var pl=getListPins(parts[i]);
+		for(var j=0; j<pl.length; j++) pinAt[pl[j].x+','+pl[j].y]=true;
+	}
+	var pts=nets.map(function(e){return getArrayPoints(e);});
+
+	function onSeg(p,q,x,y){
+		if(p.x==q.x && p.x==x && y>=Math.min(p.y,q.y) && y<=Math.max(p.y,q.y)) return true;
+		if(p.y==q.y && p.y==y && x>=Math.min(p.x,q.x) && x<=Math.max(p.x,q.x)) return true;
+		return false;
+	}
+
+	for(var a=0; a<nets.length; a++)
+	{
+		if(nets[a].getAttribute("diagonal")=='true') continue;
+		var pa=pts[a];
+		if(pa.length<3) continue;                     // keep at least two points
+		for(var ea=0; ea<2; ea++)
+		{
+			var n=pa.length;
+			var E=ea==0?pa[0]:pa[n-1];
+			var F=ea==0?pa[1]:pa[n-2];
+			if(pinAt[E.x+','+E.y]) continue;
+
+			var vert=(E.x==F.x);
+			if(!vert && E.y!=F.y) continue;
+
+			// the nets that touch the end E
+			var touch=[];
+			for(var b=0; b<nets.length; b++)
+			{
+				if(b==a) continue;
+				var pb=pts[b];
+				for(var k=0; k<pb.length-1; k++)
+					if(onSeg(pb[k],pb[k+1],E.x,E.y)) { touch.push(b); break; }
+			}
+			if(touch.length!=1) continue;
+			var b=touch[0], pb=pts[b];
+
+			// a segment of the host that contains E and lies on the same line as E-F
+			var newE=null;
+			for(var k=0; k<pb.length-1 && !newE; k++)
+			{
+				var S0=pb[k], S1=pb[k+1];
+				if(!onSeg(S0,S1,E.x,E.y)) continue;
+				if(vert && !(S0.x==S1.x && S0.x==E.x)) continue;
+				if(!vert && !(S0.y==S1.y && S0.y==E.y)) continue;
+				var lo=vert?Math.min(S0.y,S1.y):Math.min(S0.x,S1.x);
+				var hi=vert?Math.max(S0.y,S1.y):Math.max(S0.x,S1.x);
+				var e=vert?E.y:E.x, f=vert?F.y:F.x, dir=f>e?1:-1;
+				// the host must extend from E in the direction of F
+				if(dir>0 && !(hi>e)) continue;
+				if(dir<0 && !(lo<e)) continue;
+				var lim=dir>0?hi:lo;                  // far end of the host segment
+				var t=dir>0?Math.min(f,lim):Math.max(f,lim);
+				newE=vert?{x:E.x,y:t}:{x:t,y:E.y};
+			}
+			if(!newE) continue;
+
+			// nothing else may end on the part that is removed (E .. newE)
+			var blocked=false;
+			for(var z=0; z<nets.length && !blocked; z++)
+			{
+				if(z==a || z==b) continue;
+				var pz=pts[z];
+				var ends=[pz[0],pz[pz.length-1]];
+				for(var q=0; q<2; q++)
+					if(onSeg(E,newE,ends[q].x,ends[q].y)) blocked=true;
+			}
+			if(blocked) continue;
+			if(pinAt[newE.x+','+newE.y] && (newE.x!=F.x || newE.y!=F.y)) { /* a pin on the host: fine */ }
+
+			var np=pa.map(function(q){return {x:q.x,y:q.y};});
+			if(ea==0) np[0]=newE; else np[n-1]=newE;
+			np=netSimplifyPoints(np);
+			if(np.length<2) continue;
+			if(np.length==2 && np[0].x==np[1].x && np[0].y==np[1].y) continue;
+			nets[a].setAttribute("points",polylineToAttribute(np, 0, 0));
+			nets[a].setAttribute("xdir",(np[0].x==np[1].x)?'true':'false');
+			if(drawing.resize && drawing.resize.setElement==nets[a])
+				try{ drawing.resize.deletEllipse(); }catch(e){}
+			return true;
+		}
+	}
+	return false;
+}
+
+
 function refNetWithPart()
 {
 	var netId=0;
 	var partsDesc=[];
 
-	while(netMergeEndToEnd()) {}
+	var guard=0;
+	while((netTrimOverlap() || netMergeEndToEnd()) && guard++<200) {}
 	netSamePositionPoint();
 
 	var collection = document.getElementById("sym").children;
