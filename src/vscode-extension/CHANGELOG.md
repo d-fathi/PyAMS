@@ -20,6 +20,7 @@ All notable changes to PyAMS will be documented in this file.
 - `Relay` model: parameter `act` and a `live()` hook that writes the armature position to it (1 = energised), for the widgets of the symbols. It does not change any other analysis.
 
 ### Changed
+- Moving a part no longer lifts the far segment of a U-shaped wire (for example the bottom wire of a loop, with a ground symbol connected to it): only a Z-shaped wire, whose two end segments go the same way, has its middle segment centred again.
 - Dragging a point of a wire can no longer leave a diagonal segment: before a wire is edited, duplicate and collinear points are removed (`netSimplifyForEdit`), so the segments strictly alternate horizontal / vertical. Wires drawn with diagonal segments are left untouched.
 - Two wires that meet end to end are joined into one wire (collinear points are removed). Nothing is merged when a pin, a third wire or a T-junction is connected at that point, when the result would be a closed loop, or while a wire is being drawn. If one of the two wires carries a net name, that wire is kept.
 - Ending a wire: **Esc** or the **right mouse button** finishes the wire being drawn. The last point (the one following the cursor) is kept, a zero-length wire is discarded, and the wire tool stays active. Pressing Esc or right-clicking again returns to the select tool; the browser context menu is not shown while the wire tool is active.

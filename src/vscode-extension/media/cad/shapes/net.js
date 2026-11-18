@@ -434,11 +434,21 @@ function netRouteMovedEnd(points,atStart,q,pinVert)
 	}
 	else
 	{
+		// a Z (both end segments go the same way) or a U (they go back the way
+		// they came): only a Z is centred again, a U keeps its middle segment
+		var isZ=false;
+		if(n==4)
+		{
+			var d1=vertical?(r[1].y-r[0].y):(r[1].x-r[0].x);
+			var d3=vertical?(r[3].y-r[2].y):(r[3].x-r[2].x);
+			isZ=(d1!=0 && d3!=0 && (d1>0)==(d3>0));
+		}
+
 		r[0].x=q.x; r[0].y=q.y;
 		if(vertical) r[1].x=q.x; else r[1].y=q.y;
 
 		// Z with the middle segment outside the two ends: centre it again
-		if(n==4)
+		if(isZ)
 		{
 			var zv=(r[0].x==r[1].x);
 			if(zv && r[1].y==r[2].y)
