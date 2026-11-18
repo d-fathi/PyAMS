@@ -710,8 +710,8 @@ class model:
         object.__setattr__(self, name, value)
 
     def analog(self):
-        if self._dsigs:                  # a purely digital model: the outputs are driven
-            return                       # automatically after analog()
+        if self._dsigs or self._has_sub():   # purely digital / purely structural model
+            return                           # (digital outputs are driven after analog())
         raise NotImplementedError('%s must define analog()' % type(self).__name__)
 
     # -- digital models ----------------------------------------------------------
@@ -775,6 +775,60 @@ class model:
             raise SimulationError('at() can only be called while a circuit is '
                                   'being solved')
         sim._schedule(self, float(t), target, value)
+
+    # -- hierarchy: a model may contain other models and internal nodes ------------
+    def subcircuit(self):
+        """Hook: describe the internal circuit of the model with ``self.add(...)``
+        and ``self.node(...)`` (see the class docstring of ``model``).  The default
+        does nothing."""
+        return None
+
+    def node(self, name):
+        """Name of the internal node ``name`` of this instance (inside subcircuit())."""
+        path = self.__dict__.get('_path')
+        if path is None:
+            raise SimulationError('node() can only be used inside subcircuit()')
+        return '%s.%s' % (path, name)
+
+    def add(self, name, element, **params):
+        """Inside subcircuit(): add the sub-model ``element`` under ``name``; ``params``
+        set its parameters (``R=self.R``).  Returns the element."""
+        if self.__dict__.get('_children') is None:
+            raise SimulationError('add() can only be used inside subcircuit()')
+        if not isinstance(element, model):
+            raise TypeError('%r is not a model instance' % (name,))
+        if '.' in str(name):
+            raise ValueError("sub-model names cannot contain '.': %r" % (name,))
+        if any(n == name for n, _ in self._children):
+            raise ValueError('sub-model %r already exists in %s' % (name, self._path))
+        if params:
+            element.setParams(params)
+        self._children.append((name, element))
+        return element
+
+    def _has_sub(self):
+        return type(self).subcircuit is not model.subcircuit
+
+    def _expand(self, path, seen):
+        """Leaf models of the internal circuit: [(full name, model), ...]
+        (runs subcircuit() again, so parameters are always current)."""
+        if id(self) in seen:
+            raise SimulationError('the model %s is used twice' % path)
+        seen.add(id(self))
+        object.__setattr__(self, '_path', path)
+        object.__setattr__(self, '_children', [])
+        self.subcircuit()
+        out = []
+        for name, el in self._children:
+            full = '%s.%s' % (path, name)
+            if el._has_sub():
+                if el._signals:                      # it has its own equations too
+                    out.append((full, el))
+                out.extend(el._expand(full, seen))
+            else:
+                out.append((full, el))
+        object.__setattr__(self, '_children', None)
+        return out
 
     def getParams(self):
         """Return {name: param} for every declared parameter."""
@@ -1089,6 +1143,19 @@ class circuit:
         ename, pname = self._resolve_param(param)
         self.par_sweep = (ename, pname, [float(v) for v in list])
 
+    def _flatten(self):
+        """[(name, model)] of the leaf elements: subcircuits are expanded."""
+        flat = []
+        seen = set()
+        for name, mdl in self.elements.items():
+            if mdl._has_sub():
+                if mdl._signals:                     # own equations + internal circuit
+                    flat.append((name, mdl))
+                flat.extend(mdl._expand(str(name), seen))
+            else:
+                flat.append((name, mdl))
+        return flat
+
     # -- build the equation system -------------------------------------------
     def _compile(self):
         if not self.elements:
@@ -1103,14 +1170,15 @@ class circuit:
                 index[key] = len(index)
             return index[key]
 
-        for mdl in self.elements.values():
+        flat = self._flatten()
+        for _, mdl in flat:
             for sig in mdl._signals.values():
                 node(sig.p)
                 node(sig.n)
         n_nodes = len(index)
         n_branch = 0
         elems = []
-        for name, mdl in self.elements.items():
+        for name, mdl in flat:
             if not mdl._signals:
                 raise SimulationError('element %r declares no signals' % (name,))
             in_specs, in_names, out_specs, out_names, branch_of = [], [], [], [], {}
@@ -1407,8 +1475,8 @@ class circuit:
 
     def _make_ac_probe(self, name, local, stim):
         """Phasor probe: a node voltage, or an 'Element.signal'."""
-        if '.' in name:
-            ename, sname = name.split('.', 1)
+        if '.' in name and name not in self._node_index:
+            ename, sname = name.rsplit('.', 1)
             el = self._by_name[ename]
             sig = el.model._signals[sname]
             Gl, Cl, Ql = local[ename]
@@ -1976,8 +2044,8 @@ class circuit:
 
     # -- outputs --------------------------------------------------------------
     def _make_probe(self, name):
-        if '.' in name:
-            ename, sname = name.split('.', 1)
+        if '.' in name and name not in self._node_index:
+            ename, sname = name.rsplit('.', 1)
             el = self._by_name.get(ename)
             if el is None:
                 raise SimulationError('unknown element %r in output %r '
