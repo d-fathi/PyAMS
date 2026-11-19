@@ -4,6 +4,9 @@ All notable changes to PyAMS will be documented in this file.
 
 ## [0.6.0] - Unreleased
 
+### Added
+- Buses, phase 1 (drawing only): a wire whose Reference is written `D[0:7]` in the Properties panel is a bus of 8 lines (`D0` to `D7`; `D[7:0]` is accepted too, any name and any width of 2 or more). It is drawn thick (3 px) with larger junction dots and its width written next to it. A pin named `D[0:7]` in the symbol editor is a thick bus pin (attribute `bus`). Renaming it back to a normal name restores the normal drawing. `busParse`, `netBusUpdate` (`cnode.js`) and `pinBusStyle` (`pin.js`). Width checks between wires and pins and the expansion into `D0` to `D7` in the netlist are not done yet: a bus is still simulated as one net.
+
 ### Fixed
 - Junction dots follow the z-order of the drawing: when a wire passes over or under an element, the dot of that wire appears and disappears with the wire. A dot is hidden when a filled shape drawn above its wire covers it (`updateNodesVisibility` in `cnode.js`, run after every `nodes()`), and it is updated again when the order of the elements is changed (front / back / forward / backward, from the keyboard or from the list of elements: `reorderListElement` in `listElements.js`). Unfilled shapes, texts and open polylines never hide a dot, and a dot on the border of a shape stays visible.
 

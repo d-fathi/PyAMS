@@ -71,7 +71,20 @@ function drawingPin(pinElement) {
     pinElement.childNodes[3].setAttribute('transform', 'rotate(0 ' + xt + ' ' + yt + ')');
 
     drawingPinByType(pinElement, points)
+    pinBusStyle(pinElement);
 
+}
+
+// a pin named like D[0:7] is a bus pin: thick line + width attribute
+function pinBusStyle(pinElement) {
+    var bus = (typeof busParse == 'function') ? busParse(pinElement.childNodes[2].textContent) : null;
+    if (bus) {
+        pinElement.setAttribute('bus', bus.width);
+        pinElement.childNodes[0].style.strokeWidth = (typeof BUS_STROKE != 'undefined' ? BUS_STROKE : 3) + 'px';
+    } else if (pinElement.hasAttribute('bus')) {
+        pinElement.removeAttribute('bus');
+        pinElement.childNodes[0].style.strokeWidth = '1px';
+    }
 }
 
 

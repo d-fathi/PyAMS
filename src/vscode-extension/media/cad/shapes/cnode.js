@@ -241,6 +241,7 @@ function modifiedNetRefColor()
     modifiedColorNetParent(); 
     modifiedRefNetWithStdPart();
     nodesUpdateColor();
+    netBusUpdate();
 }
 
 function  modifiedRefNetParent()
@@ -387,3 +388,72 @@ for(var i=0; i<parts.length;i++)
 
 }
 
+
+
+//--------------------------------------------------------------
+//  Bus (data) : a reference such as D[0:7] means 8 lines D0..D7
+//--------------------------------------------------------------
+var BUS_STROKE = 3;   // stroke width (px) of a bus wire / bus pin
+
+// returns {base, from, to, width} for "D[0:7]", otherwise null (normal net)
+function busParse(name)
+{
+	if (name === null || name === undefined) return null;
+	var m = /^\s*([A-Za-z_]\w*)\s*\[\s*(\d+)\s*:\s*(\d+)\s*\]\s*$/.exec(String(name));
+	if (!m) return null;
+	var a = parseInt(m[2], 10), b = parseInt(m[3], 10);
+	var w = Math.abs(a - b) + 1;
+	if (w < 2) return null;
+	return { base: m[1], from: a, to: b, width: w };
+}
+
+// thick wires, bigger junction dots and a width label for every bus net
+function netBusUpdate()
+{
+	var layer = document.getElementById('nodes');
+	var nets = document.querySelectorAll('[name="net"]');
+	var best = {};   // ref -> longest segment {len, x, y}
+	for (var i = 0; i < nets.length; i++) {
+		var n = nets[i];
+		var bus = busParse(n.getAttribute('ref'));
+		if (!bus) {
+			if (n.hasAttribute('bus')) {
+				n.removeAttribute('bus');
+				n.style.strokeWidth = '1px';
+			}
+			continue;
+		}
+		n.setAttribute('bus', bus.width);
+		n.style.strokeWidth = BUS_STROKE + 'px';
+		var p = getArrayPoints(n), ref = n.getAttribute('ref');
+		for (var k = 0; k + 1 < p.length; k++) {
+			var len = Math.abs(p[k].x - p[k + 1].x) + Math.abs(p[k].y - p[k + 1].y);
+			if (!best[ref] || len > best[ref].len)
+				best[ref] = { len: len, w: bus.width, x: (p[k].x + p[k + 1].x) / 2, y: (p[k].y + p[k + 1].y) / 2,
+				              horiz: p[k].y == p[k + 1].y, color: n.style.stroke };
+		}
+	}
+	if (!layer) return;
+	var dots = layer.querySelectorAll('ellipse');
+	for (var i = 0; i < dots.length; i++) {
+		var net = document.getElementById(dots[i].getAttribute('netid'));
+		var isBus = net && net.hasAttribute('bus');
+		dots[i].setAttribute('rx', isBus ? 3.5 : 2);
+		dots[i].setAttribute('ry', isBus ? 3.5 : 2);
+	}
+	var old = layer.querySelectorAll('[name="buslabel"]');
+	for (var i = 0; i < old.length; i++) old[i].remove();
+	for (var ref in best) {
+		var b = best[ref];
+		var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+		t.setAttribute('name', 'buslabel');
+		t.setAttribute('x', b.x + (b.horiz ? -3 : 4));
+		t.setAttribute('y', b.y + (b.horiz ? -4 : 3));
+		t.style.fontSize = '7px';
+		t.style.fontFamily = 'Arial';
+		t.style.fill = b.color || '#000';
+		t.style.pointerEvents = 'none';
+		t.textContent = b.w;
+		layer.appendChild(t);
+	}
+}
