@@ -31,6 +31,62 @@ function itConnectNetByNode(x,y,id)
 }
 
 
+// ---- junction dots follow the z-order of the drawing ------------------------------------------
+// The dots live in their own layer above #sym. A dot must be hidden when a filled shape that is
+// drawn above its wire (later in #sym) covers it, like the wire itself is covered.
+
+function nodeFilledAt(el, x, y) {
+	// true when (x,y) (drawing coordinates) is strictly inside the filled area of the geometry element `el`
+	if (typeof el.isPointInFill !== 'function') return false;
+	var cs = window.getComputedStyle(el);
+	var fill = cs.fill;
+	if (!fill || fill === 'none' || fill === 'transparent' || /^rgba\(.*,\s*0\)$/.test(fill)) return false;
+	if (parseFloat(cs.fillOpacity) === 0 || parseFloat(cs.opacity) === 0 || cs.display === 'none' || cs.visibility === 'hidden') return false;
+	var root = document.getElementById('svg');
+	var a = root && root.getScreenCTM(), b = el.getScreenCTM();
+	if (!a || !b) return false;
+	var inv = b.inverse().multiply(a);               // drawing space -> local space of the element
+	var d = 1.5;                                     // strictly inside: a dot on the border of a shape stays visible
+	var pts = [[x, y], [x + d, y], [x - d, y], [x, y + d], [x, y - d]];
+	for (var i = 0; i < pts.length; i++) {
+		var q = new DOMPoint(pts[i][0], pts[i][1]).matrixTransform(inv);
+		if (!el.isPointInFill(q)) return false;
+	}
+	return true;
+}
+
+function nodeCoveredBy(el, x, y) {
+	if (el.nodeType !== 1) return false;
+	var name = el.getAttribute('name');
+	if (name === 'net' || name === 'cnode') return false;
+	var tag = el.tagName.toLowerCase();
+	if (tag === 'g') {
+		var kids = el.children;
+		for (var i = 0; i < kids.length; i++) if (nodeCoveredBy(kids[i], x, y)) return true;
+		return false;
+	}
+	if (tag === 'text' || tag === 'image' || tag === 'foreignobject' || tag === 'polyline' || tag === 'line') return false;
+	return nodeFilledAt(el, x, y);
+}
+
+function updateNodesVisibility() {
+	var layer = document.getElementById('nodes');
+	if (!layer) return;
+	var dots = layer.children;
+	for (var i = 0; i < dots.length; i++) {
+		var dot = dots[i];
+		var net = document.getElementById(dot.getAttribute('netid'));
+		var hidden = false;
+		if (net) {
+			var x = parseFloat(dot.getAttribute('cx')), y = parseFloat(dot.getAttribute('cy'));
+			for (var s = net.nextElementSibling; s && !hidden; s = s.nextElementSibling) {
+				try { hidden = nodeCoveredBy(s, x, y); } catch (e) { hidden = false; }
+			}
+		}
+		dot.style.display = hidden ? 'none' : '';
+	}
+}
+
 function nodes()
 {
 	svg=document.getElementById('nodes');
@@ -80,6 +136,7 @@ function nodes()
         svg.appendChild(newElement);
     }
 	nodesUpdateColor();
+	updateNodesVisibility();   // hide the dots covered by a shape that is above their wire
 }
 
 

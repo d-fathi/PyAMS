@@ -2,6 +2,11 @@
 
 All notable changes to PyAMS will be documented in this file.
 
+## [0.6.0] - Unreleased
+
+### Fixed
+- Junction dots follow the z-order of the drawing: when a wire passes over or under an element, the dot of that wire appears and disappears with the wire. A dot is hidden when a filled shape drawn above its wire covers it (`updateNodesVisibility` in `cnode.js`, run after every `nodes()`), and it is updated again when the order of the elements is changed (front / back / forward / backward, from the keyboard or from the list of elements: `reorderListElement` in `listElements.js`). Unfilled shapes, texts and open polylines never hide a dot, and a dot on the border of a shape stays visible.
+
 ## [0.5.0] - 2026-11-19
 
 ### Added
