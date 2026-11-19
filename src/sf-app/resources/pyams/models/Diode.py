@@ -1,3 +1,10 @@
+#-------------------------------------------------------------------------------
+# Name:        Diode
+# Author:      d.fathi
+# Created:     10/05/2015
+# Copyright:   (c) PyAMS
+# Licence:     free  "MIT"
+#-------------------------------------------------------------------------------
 
 from pyams.lib import signal, model, param
 from pyams.lib import voltage, current

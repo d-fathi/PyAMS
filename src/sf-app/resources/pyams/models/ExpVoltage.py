@@ -1,7 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        Exponential voltage source (SPICE EXP)
-# Licence:     free  "MIT  "
+# Author:      d.fathi
+# Created:     20/03/2015
+# Copyright:   (c) PyAMS
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
+
 from math import exp
 from pyams.lib import signal, param, model, time
 from pyams.lib import voltage

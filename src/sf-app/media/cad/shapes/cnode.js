@@ -46,7 +46,7 @@ function nodes()
 		 var r=itConnectNetByNode(p[0].x,p[0].y,i);
          if(r!=-1)
 		 {
-			rect.push({x:p[0].x,y:p[0].y});
+			rect.push({x:p[0].x,y:p[0].y,id:i});
 		 }
 		
 		
@@ -55,7 +55,7 @@ function nodes()
 		 var r=itConnectNetByNode(p[l].x,p[l].y,i);
          if(r!=-1)
 		 {
-			rect.push({x:p[l].x,y:p[l].y});
+			rect.push({x:p[l].x,y:p[l].y,id:i});
 		 }
 
 		 netElem.setAttribute('node1',r);
@@ -76,9 +76,28 @@ function nodes()
         newElement.setAttribute("ry", r);
 		newElement.setAttribute("id", 'node'+i);
 		newElement.setAttribute("name",'cnode');
+		newElement.setAttribute("netid",rect[i].id);
         svg.appendChild(newElement);
     }
-	
+	nodesUpdateColor();
+}
+
+
+// The junction dots take the colour of the wire they belong to.
+function nodesUpdateColor()
+{
+	var dots=document.querySelectorAll('#nodes ellipse');
+	for(var i=0; i<dots.length; i++)
+	{
+		var net=document.getElementById(dots[i].getAttribute('netid'));
+		if(!net || net.getAttribute("name")!='net') continue;
+		var c=net.style.stroke;
+		if(c)
+		{
+			dots[i].style.stroke=c;
+			dots[i].style.fill=c;
+		}
+	}
 }
 
 
@@ -164,6 +183,7 @@ function modifiedNetRefColor()
     modifiedRefNetParent();
     modifiedColorNetParent(); 
     modifiedRefNetWithStdPart();
+    nodesUpdateColor();
 }
 
 function  modifiedRefNetParent()
@@ -231,8 +251,7 @@ function refSelectedColorNet(elem){
 			  }
 			 
 	}
-				
-	
+	nodesUpdateColor();
 }
 
 

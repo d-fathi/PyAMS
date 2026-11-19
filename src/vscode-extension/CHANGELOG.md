@@ -2,7 +2,7 @@
 
 All notable changes to PyAMS will be documented in this file.
 
-## [0.5.0] - Unreleased
+## [0.5.0] - 2026-11-19
 
 ### Added
 - Symbol `Tunnel Diode` in the Semiconductor library (the `TunnelDiode` model): the diode triangle with the bracket-shaped tunnel-diode cathode bar and an `Ip` parameter text.

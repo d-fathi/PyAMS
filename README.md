@@ -11,7 +11,7 @@ PyAMS: Python for Analog and Mixed Signals
 <p align="center">
  
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.4.0-blue" alt="v0.4.0">
+    <img src="https://img.shields.io/badge/Version-0.5.0-blue" alt="v0.5.0">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -49,7 +49,27 @@ Both use the same `pyams` library and the same models, so a model written for on
 
 ## News
 
-**v0.4.0 (Current)** 
+**v0.5.0 (Current)**
+
+### Added
+- **Switches and relays:** manual switches (SPST, SPDT), voltage- and current-controlled switches (`Switch`, `SwitchV`, `SwitchI`) and relays (SPST, SPDT) with their symbols and models. The switch widgets have a *Line width* property.
+- **New symbols:** Zener Diode, Tunnel Diode and Diode Bridge (the `DiodeBridge` model is built with the new `subcircuit()`).
+- **New demos:** RC charge / discharge with SPDT and SPST switches (live), a full-wave bridge rectifier fed by a transformer (with discrete diodes and with the Diode Bridge), Zener DC sweep and clipper, and two tunnel diode oscillators. Each demo has a detailed HTML note.
+
+### Changed
+- **Better wire (net) editing:**
+  - Moving a part keeps its wires attached to the pins; a wire that is no longer straight is broken into horizontal / vertical segments.
+  - A dragged wire point never leaves a diagonal segment.
+  - Two wires that meet end to end become one wire.
+  - Junction dots are drawn where a branch really leaves the other wire, and take the colour of the wire.
+  - **Esc** or the **right mouse button** ends the wire being drawn, and the wire tool stays active for the next wire.
+
+### Fixed
+- Live simulation of digital models (relays, gates, flip-flops, counters): the digital part was never stepped, so a digital model did not change state.
+- A simulation could fail at start when the opened folder contained a Python installation or a copy of installed packages (`numpy`, `scipy`, compiled `.pyd` files).
+
+
+**v0.4.0** 
 
 - Live simulation runs the circuit with Python: the Live panel starts `pyams/liveSession.py`; switches, buttons and sliders change model parameters while it runs, LEDs / 7-segments / polygon segments and scopes show the results (adjustable step and speed, Pause / Reset).
 - Optional `def live(self)` in a model: called after every accepted step to write output parameters for the widgets.

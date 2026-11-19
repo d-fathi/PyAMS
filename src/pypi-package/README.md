@@ -14,7 +14,7 @@
 </a>
 
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.4.0-blue" alt="v0.4.0">
+    <img src="https://img.shields.io/badge/Version-0.5.0-blue" alt="v0.5.0">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -43,7 +43,9 @@
 
 - The ability to create custom models of electrical components.
 - Simulation of circuits in different modes of operation (DC, DC sweep, transient, AC).
-- Visualization of simulation results using `matplotlib`.
+- Digital and mixed-signal models (gates, flip-flops, counters, buses with `dsignal`, DAC / ADC) solved together with the analog circuit.
+- Hierarchical models: a model made of other models with internal nodes (`subcircuit()`).
+- Visualization of simulation results using `matplotlib`, including a logic waveform viewer (`plot_wave`).
 - Compatibility with Python 3+, working across Linux, Windows, and macOS.
 - PyAMS library (pyams_lib) documentation   <a href="https://pyams-lib.readthedocs.io/">https://pyams-lib.readthedocs.io/</a>.
 - For circuit design using the CAD system, visit the software section at <a href='https://pyams.sf.net/'>https://pyams.sf.net</a>.
@@ -71,6 +73,8 @@ Requires Python 3 with `numpy` and `matplotlib`.
    - [Building a circuit](#21-building-a-circuit)
    - [Setting parameters](#22-setting-parameters)
    - [Writing your own model](#23-writing-your-own-model)
+   - [Hierarchical models: `subcircuit()`](#24-hierarchical-models-subcircuit)
+   - [Digital models and buses: `dsignal`](#25-digital-models-and-buses-dsignal)
 3. [Analysis](#3-analysis)
    - [DC operating point](#31-dc-operating-point)
    - [DC sweep](#32-dc-sweep)
@@ -78,7 +82,11 @@ Requires Python 3 with `numpy` and `matplotlib`.
    - [AC (small signal)](#34-ac-small-signal-analysis)
    - [Parametric sweep](#35-parametric-sweep)
 4. [Showing the results](#4-showing-the-results)
+   - [Logic waveform viewer: `plot_wave`](#logic-waveform-viewer-plot_wave)
 5. [Built-in models](#5-built-in-models)
+   - [Switches and relay](#switches-and-relay)
+   - [Laplace blocks](#laplace-blocks)
+   - [Digital blocks](#digital-blocks)
 6. [More examples](#6-more-examples)
 
 ---
@@ -231,6 +239,68 @@ You only write the equations — the solver builds and linearises the system
 (modified nodal analysis with Newton–Raphson; the Jacobian is obtained by finite
 differences of `analog()`), so no derivatives have to be coded by hand.
 
+### 2.4 Hierarchical models: `subcircuit()`
+
+A model can be built from other models. Define `subcircuit()` in an ordinary `model`
+class: `self.node(name)` creates an internal node of the instance and
+`self.add(name, element, **params)` adds a sub-model (which may itself contain
+sub-models, to any depth).
+
+```python
+from pyams.lib import model, param
+from pyams.models import Resistor, Capacitor
+
+class RCLadder(model):
+    def __init__(self, inp, out, gnd="0"):
+        self.inp, self.out, self.gnd = inp, out, gnd          # terminals
+        self.R = param(1e3, 'Ω', 'Resistance of a section')
+        self.C = param(1e-6, 'F', 'Capacitance of a section')
+
+    def subcircuit(self):
+        mid = self.node("mid")                                 # internal node "L1.mid"
+        self.add("R1", Resistor(self.inp, mid), R=self.R)
+        self.add("R2", Resistor(mid, self.out), R=self.R)
+        self.add("C1", Capacitor(self.out, self.gnd), C=self.C)
+```
+
+- Inner nodes and sub-models are recorded with dotted names: `setOutPuts("L1.mid", "L1.R1.I")`.
+- `subcircuit()` runs again before every analysis, so parameters changed by `sweep()` are always current.
+- A model may have both `subcircuit()` and `analog()` (its own equations are solved together with its sub-models).
+- The circuit solves the flattened network, so a hierarchical model costs the same as writing the elements one by one.
+
+`DiodeBridge(ac1, ac2, plus, minus)` is a ready-made example (four `Diode` sub-models):
+
+![Hierarchical models](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/subcircuit_example.png)
+
+![Diode bridge](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/diode_bridge_example.png)
+
+### 2.5 Digital models and buses: `dsignal`
+
+Digital models are written with `dsignal` (Verilog-like). A model that has a `digital()` method is
+called at every accepted time point; assignments use `<<=` and are driven on the node through a
+Thevenin output stage (logic levels `Voh`, `Vol`, resistance `Rout`, delay `Tpd`, ...), so digital blocks
+connect directly to analog circuits.
+
+```python
+from pyams.lib import model, dsignal
+
+class MyCounter(model):
+    def __init__(self, clk, q):
+        self.Clk = dsignal('in', clk)
+        self.Q = dsignal('out', q, width=3)       # a 3-bit bus: nodes q[0], q[1], q[2] (bit 0 = LSB)
+
+    def digital(self):
+        if self.Clk.rising:                       # also .falling / .changed
+            self.Q <<= self.Q + 1                 # wraps at 8; <<= masks to the width
+```
+
+A bus supports integer operators, slices `ds[lo:hi]`, `.value`, and delayed assignment `ds.set(v, delay)`.
+The digital models of section 5 are all written this way, and a model can have both `digital()` and `analog()`.
+
+| Counters | Sequential logic | ADC / DAC |
+|:--:|:--:|:--:|
+| ![Counters](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/digital_counter.png) | ![Sequential](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/digital_sequential.png) | ![ADC DAC](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/digital_adc_dac.png) |
+
 ---
 
 ## 3. Analysis
@@ -280,7 +350,7 @@ Options for demanding circuits (switching, stiff, oscillators):
 | `max_step`        | largest internal step                                                        |
 | `reltol`          | Newton convergence tolerance (default `1e-6`)                                |
 | `uic=True`        | start from an all-zero state instead of the DC operating point               |
-| `progress=True`   | show a progress bar                                                          |
+| `progress=True`   | show a progress bar on the console (or pass a function `fn(fraction, t)` for a GUI; raise in it to abort) |
 
 ```python
 cir.analysis(mode="tran", start=0, stop=0.006, step=1e-6, adaptive=True, order=2)
@@ -380,6 +450,29 @@ fig.savefig("out.png", dpi=150)
 | `ac`            | `"freq"`, then one **complex** array per output                         |
 | with `sweep()`  | a list of the dictionaries above, each with the extra key `"param"`     |
 
+### Logic waveform viewer: `plot_wave`
+
+`pyams.wave.plot_wave` draws a VHDL-style wave window: single bits as step traces, buses as
+hexagons with their value (hex / bin / dec) and analog traces in the same window.
+
+```python
+from pyams.wave import plot_wave
+
+plot_wave(res, [
+    "clk",                                       # a bit
+    ("count", ["s0", "s1", "s2"]),               # a bus, LSB first, hex
+    ("count", ["s0", "s1", "s2"], "dec"),        # 'hex' | 'bin' | 'dec'
+    ("Vin, Vdac", ["vin", "vdac"], "analog"),    # one or more analog traces
+], vth=2.5, tscale=1e6, tunit="µs", tlim=(60, 100), filename="wave.png", show=True)
+```
+
+`vth` is the logic threshold (or a `(vl, vh)` pair: a bus with a bit in between shows `X`),
+`tlim` zooms on a time window, `show=True` opens a window and `filename` saves a png.
+
+| Bits, buses and analog (`wave_example.py`) | Tracking ADC: comparator + up/down counter + DAC (`tracking_adc.py`) |
+|:--:|:--:|
+| ![wave](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/wave_example.png) | ![tracking ADC](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/tracking_adc.png) |
+
 ---
 
 ## 5. Built-in models
@@ -391,11 +484,17 @@ from pyams.models import Resistor, Capacitor, Diode, BJT   # ... see the list be
 | Group | Models |
 |-------|--------|
 | Passive | `Resistor`, `Conductor`, `Capacitor`, `CapacitorIc`, `Inductor`, `InductorIc`, `NonlinearResistance`, `Transformer`, `TransmissionLine` |
+| Switches | `Switch`, `SwitchV`, `IdealSwitch`, `Relay` |
+| Laplace blocks | `LaplaceND`, `LaplaceZP` (and the `II`, `IV`, `VI` versions with voltage / current ports) |
 | Independent sources | `DCVoltage`, `SinVoltage`, `ACVoltage`, `ExpVoltage`, `PWLVoltage`, `TrapezoidVoltage`, `DCCurrent`, `SinCurrent`, `ACCurrent`, `ExpCurrent`, `PWLCurrent`, `TrapezoidCurrent` |
 | Controlled sources | `VCVS`, `VCCS`, `CCVS`, `CCCS` |
-| Diodes / switching | `Diode`, `ZenerDiode`, `TunnelDiode`, `Diac`, `Thyristor`, `UJT` |
+| Diodes / switching | `Diode`, `DiodeBridge`, `ZenerDiode`, `TunnelDiode`, `Diac`, `Thyristor`, `UJT` |
 | Transistors | `BJT`, `MOSFET`, `MOSFET4`, `JFET`, `IGBT` |
 | Analog ICs | `OpAmp`, `Comparator`, `Timer555` |
+| Digital: gates and clock | `DigitalClock`, `NOT`, `AND`, `OR`, `NAND`, `NOR`, `XOR`, `XNOR` |
+| Digital: sequential | `SRLatch`, `DLatch`, `DFF`, `JKFF`, `TFF`, `Register`, `ShiftRegister`, `Counter`, `LFSR` |
+| Digital: combinational | `Multiplexer`, `Demultiplexer`, `Decoder`, `PriorityEncoder`, `MagnitudeComparator`, `ParityGenerator`, `BinaryToGray`, `GrayToBinary`, `SevenSegmentDecoder`, `Adder` |
+| Mixed-signal | `DAC`, `ADC` |
 
 Each class documents its terminals, signals and parameters in its docstring:
 
@@ -403,6 +502,49 @@ Each class documents its terminals, signals and parameters in its docstring:
 help(BJT)
 print(BJT("c", "b", "e").getParams())
 ```
+
+### Switches and relay
+
+```python
+from pyams.models import Switch, SwitchV, Relay
+
+sw = Switch("vs", "a", "vc", "0");  sw.setParams("Vt=0.5 Vw=1m Ron=1m Roff=1G")   # closed when V(vc) > Vt (smooth Ron/Roff)
+sv = SwitchV("vs", "a", "vc", "0"); sv.setParams("Vt=0.5 Vw=1m")                 # a 0 V source when closed, removed when open
+K = Relay("cp", "0", "vs", "no", "nc")                                           # coil, common, normally open / closed contacts
+K.setParams("Rc=70 Lc=0.1 Ion=0.05 Ioff=0.01 Ton=5m Toff=3m")
+```
+
+`Relay` has a coil model `V = Rc·I + Lc·dI/dt`, hysteresis (`Ion` / `Ioff`) and contact delays (`Ton` / `Toff`).
+
+| Switch charging / discharging a capacitor | `Switch` | `SwitchV` | `Relay` |
+|:--:|:--:|:--:|:--:|
+| ![charge discharge](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/switch_charge_discharge.png) | ![Switch](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/switch_example.png) | ![SwitchV](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/switch_v_example.png) | ![Relay](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/relay_example.png) |
+
+### Laplace blocks
+
+Transfer functions in the s domain, usable in AC, DC and transient analysis:
+
+```python
+H = LaplaceND("in", "0", "out", "0", num=[1, 0, 0], den=[1, 2*3.14159e3, (2*3.14159e3)**2])   # s² / (...)
+Z = LaplaceZP("in", "0", "out", "0", zeros=[...], poles=[...], gain=1.0)                      # zeros / poles form
+```
+
+| Laplace blocks (`laplace_examples.py`) | Elliptic filter (`elliptic_filter.py`) |
+|:--:|:--:|
+| ![Laplace](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/laplace_examples.png) | ![Elliptic](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/elliptic_filter.png) |
+
+### Digital blocks
+
+Combinational blocks, arithmetic, registers and an LFSR, all with `dsignal` buses
+(`digital_combinational.py`):
+
+```python
+MX = Multiplexer(["t0", "t1", "t2", "t3"], ["t4", "t5"], "mx")     # 4:1, data inputs, select bits, output
+AD = Adder(["a0", "a1", "a2", "a3"], ["b0", "b1", "b2", "b3"], ["s0", "s1", "s2", "s3"], cout="co")
+RG = Register(["d0", "d1", "d2", "d3"], "clk", ["q0", "q1", "q2", "q3"])
+```
+
+![Digital combinational blocks](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/digital_combinational.png)
 
 ---
 
@@ -419,6 +561,11 @@ The `examples/` folder contains ready-to-run scripts, each saving a figure:
 | `bjt_astable.py`, `timer555_astable.py`, `ring_oscillator.py` | oscillators and multivibrators |
 | `schmitt_opamp.py`, `comparator_demo.py` | comparators and Schmitt triggers |
 | `chua_opamp.py`, `van_der_pol.py` | non-linear oscillators / chaos |
+| `switch_example.py`, `switch_v_example.py`, `switch_charge_discharge.py`, `relay_example.py` | switches and relay |
+| `laplace_examples.py`, `laplace_pulse_int_diff.py` | Laplace transfer-function blocks |
+| `digital_counter.py`, `digital_sequential.py`, `digital_adc_dac.py`, `digital_combinational.py` | digital models with `dsignal` buses and DAC / ADC |
+| `subcircuit_example.py`, `diode_bridge_example.py` | hierarchical models (`subcircuit()`) |
+| `wave_example.py`, `tracking_adc.py` | logic waveform viewer and a closed analog / digital loop (tracking ADC) |
 | `transmission_line.py`, `thyristor_lamp_dimmer.py`, `igbt_chopper.py` | power and transmission-line circuits |
 
 | 555 astable | JFET output curves | Chua double scroll |

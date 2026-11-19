@@ -282,7 +282,21 @@ function fshapes(svg, setDrawing, width, height) {
         });
         evt.addEventListener('mouseleave', function () { sendPos(null); });
 
+        // right mouse button: end the wire being drawn (or leave the wire tool)
+        evt.addEventListener('contextmenu', function (ev) {
+            if (!(self.design.mouse && self.design.name == 'net')) return;
+            ev.preventDefault();
+            // some systems send contextmenu on button down and again on button up
+            if (ev.timeStamp - (self.lastNetFinish || -1000) < 400) return;
+            if (self.design.start) { netFinishDrawing(self); self.lastNetFinish = ev.timeStamp; }
+            else {
+                var b = document.getElementById('btnSelect');
+                if (b) b.click();   // back to the select tool
+            }
+        });
+
         function startDrag(evt) {
+            if (evt.button === 2 && self.design.mouse) return;
 
             if (self.design.mouse) {
                 designMouseDown(self, getMousePosition(evt));
@@ -377,6 +391,7 @@ function fshapes(svg, setDrawing, width, height) {
         }
 
         function endDrag(evt) {
+            if (evt.button === 2 && self.design.mouse) return;
             self.coord = getMousePosition(evt);
             upElemGroup(self);
             if (self.selectedElement && itMouved(self))

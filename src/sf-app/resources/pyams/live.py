@@ -33,7 +33,7 @@ Real time::
 
 import time as _wall
 
-from pyams.lib import SimulationError, _active, time as _simtime
+from pyams.lib import SimulationError, _active, model as _model, time as _simtime
 
 import numpy as np
 
@@ -58,6 +58,7 @@ class LiveRunner:
         self._x = []
         self._pending = {}          # parameter changes applied at the next step
         self._hooked = []           # elements whose model defines live()
+        self._digital = []          # elements with digital() (empty with older versions of pyams)
         self._reads = {}            # key -> (element, kind, name)  readings for output widgets
 
     # -- life cycle ----------------------------------------------------------
@@ -75,6 +76,7 @@ class LiveRunner:
         self._check_reads()
         self._hooked = [el for el in cir._elems if callable(getattr(type(el.model), 'live', None))]
         cir._dyn = []
+        self._init_digital()
         cir._h = None
         cir._h1 = None
         cir._bdf2 = False
@@ -92,6 +94,8 @@ class LiveRunner:
                 x = cir._solve_op(np.zeros(cir._size), t0)
             if x is None:
                 raise SimulationError('the operating point at t = %g s did not converge' % t0)
+            if self._digital and not self.uic:
+                x = cir._digital_settle(x, t0)       # initial state of the digital models
             self._sample(x, t0)
             cir._commit(x, t0)
         except BaseException:
@@ -99,6 +103,29 @@ class LiveRunner:
             raise
         self.x, self.t = x, float(t0)
         return dict(self._last)
+
+    def _init_digital(self):
+        """Digital models (digital() / dsignal, e.g. Relay, gates, flip-flops): the same set-up as
+        Circuit.run() does.  Older versions of pyams have no digital models: nothing to do."""
+        cir = self.cir
+        self._digital = []
+        if not hasattr(cir, '_dig') or not hasattr(_model, 'digital'):
+            return
+        cir._dig = [el for el in cir._elems if type(el.model).digital is not _model.digital]
+        cir._events = []
+        cir._dead = set()
+        cir._t_ev = None
+        cir._dinit = False
+        cir._immediate = []
+        cir._dtol = 1e-3 * cir.options['event_step']
+        for el in cir._dig:
+            mdl = el.model
+            mdl._bmem.clear(); mdl._bcur.clear(); mdl._bprev.clear(); mdl._pending.clear()
+            for ds in mdl._dsigs.values():
+                if ds.direction == 'out':
+                    setattr(mdl, ds._attr, ds.init)
+            mdl.digital_reset()
+        self._digital = cir._dig
 
     def end(self):
         """Give the models back their own class and signals (always call it)."""
@@ -194,7 +221,8 @@ class LiveRunner:
 
             def rec(x, t):
                 self._sample(x, t)
-            self.x = cir._advance(self.x, self.t, t1, rec)
+            step_fn = cir._advance_dig if self._digital else cir._advance
+            self.x = step_fn(self.x, self.t, t1, rec)
             self.t = t1
             out.append((t1, dict(self._last)))
         return out

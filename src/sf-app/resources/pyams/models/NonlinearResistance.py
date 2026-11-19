@@ -1,7 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        Nonlinear resistance (Van der Pol)
-# Licence:     free  "MIT  "
+# Author:      d.fathi
+# Created:     20/08/2020
+# Copyright:   (c) PyAMS
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
+
 from pyams.lib import signal, param, model
 from pyams.lib import voltage, current
 

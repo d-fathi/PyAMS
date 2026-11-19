@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        MOSFET (N-channel / P-channel, level 1)
-# Updated:     17/10/2026
+# Author:      d.fathi
+# Created:     10/05/2015
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 from pyams.lib import model, signal, param

@@ -19,10 +19,20 @@
         "Nonlinear Resistance.sym",
         "Transmission Line.sym",
         "CCS.sym",
-        "Transformer.sym"
+        "Transformer.sym",
+        "Relay SPST.sym",
+        "Relay SPDT.sym",
+        "Switch.sym",
+        "SwitchV.sym",
+        "SwitchI.sym",
+        "Switch SPST.sym",
+        "Switch SPDT.sym"
     ],
     "Semiconductor": [
         "Diode.sym",
+        "Diode Bridge.sym",
+        "Zener Diode.sym",
+        "Tunnel Diode.sym",
         "Diac.sym",
         "NPN.sym",
         "PNP.sym",

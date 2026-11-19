@@ -1,8 +1,9 @@
 #-------------------------------------------------------------------------------
 # Name:        CCCS (current-controlled current source, SPICE "F")
-# Updated:     20/10/2026
+# Author:      d.fathi
+# Created:     10/03/2017
 # Copyright:   (c) PyAMS
-# Licence:     free  "MIT  "
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
 
 from pyams.lib import signal, param, model

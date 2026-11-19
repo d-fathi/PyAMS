@@ -43,15 +43,15 @@ var liveWidget = (function () {
             case 'segment': return { label: '', scale: 1, offset: 0, format: 'dec', digits: 1, dp: false, color: '#ef4444', offColor: '#3a1c1c', value: 8 };
             case 'switch':  return { label: '', onValue: 1, offValue: 0, on: false, color: '#22c55e' };
             case 'button':  return { label: '', pressValue: 1, releaseValue: 0, color: '#3b82f6' };
-            case 'spst':    return { label: '', onValue: 1, offValue: 0, on: false, color: '#8b95a5', accent: '#22c55e' };
-            case 'spdt':    return { label: '', onValue: 1, offValue: 0, on: true,  color: '#8b95a5', accent: '#22c55e' };   // on = upper position
+            case 'spst':    return { label: '', onValue: 1, offValue: 0, on: false, color: '#8b95a5', accent: '#22c55e', lineWidth: 0 };
+            case 'spdt':    return { label: '', onValue: 1, offValue: 0, on: true,  color: '#8b95a5', accent: '#22c55e', lineWidth: 0, spacing: 0 };   // on = upper position
             case 'polyseg': return { onColor: '#ef4444', offColor: '#3a1c1c', threshold: 0.5, activeLow: false, value: 1, scale: 1, offset: 0 };
             case 'pushsw':  return { label: '', pressValue: 1, releaseValue: 0, color: '#8b95a5', accent: '#22c55e' };
             case 'gauge':   return { label: '', min: 0, max: 5, value: 2.5, color: '#22c55e', needleColor: '#1f2937', decimals: 1, unit: 'V', showValue: true, scale: 1, offset: 0 };
             case 'bar':     return { label: '', min: 0, max: 5, value: 2.5, color: '#3b82f6', vertical: true, showValue: false, decimals: 1, unit: '', scale: 1, offset: 0 };
             case 'value':   return { label: '', value: 1.234, decimals: 3, unit: 'V', color: '#22c55e', bg: '#0b0f14', scale: 1, offset: 0 };
-            case 'autosw':  return { label: '', contact: 'NO', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', actuator: true, value: 0, scale: 1, offset: 0 };
-            case 'ats':     return { label: '', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', actuator: true, value: 0, scale: 1, offset: 0 };
+            case 'autosw':  return { label: '', contact: 'NO', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', lineWidth: 0, actuator: true, value: 0, scale: 1, offset: 0 };
+            case 'ats':     return { label: '', threshold: 0.5, activeLow: false, color: '#374151', accent: '#22c55e', lineWidth: 0, spacing: 0, actuator: true, value: 0, scale: 1, offset: 0 };
             case 'knob':    return { label: '', min: 0, max: 10, step: 0.1, value: 5, color: '#3b82f6' };
             case 'slider':  return { label: '', min: 0, max: 1, step: 0.01, value: 0.5, vertical: false, color: '#3b82f6' };
         }
@@ -256,6 +256,9 @@ var liveWidget = (function () {
     }
 
     // ---- automatic switches: contacts of a relay, moved by the bound value -----------------------------
+    // line width: the property (0 = automatic, from the size of the widget); the rings grow with it
+    function lineW(c, w, h) { return c.lineWidth > 0 ? Math.max(0.5, c.lineWidth) : Math.max(1.6, Math.min(w, h) * 0.05); }
+    function ringR(c, sw, w, h) { var r = Math.max(2.6, Math.min(w, h) * 0.07); return c.lineWidth > 0 ? Math.max(r, sw * 0.9 + 1) : r; }
     function ring(p, x, y, r, col, sw, filled) {
         mk('circle', { cx: x, cy: y, r: r, fill: filled ? col : '#ffffff', stroke: col, 'stroke-width': sw }, p);
     }
@@ -271,7 +274,7 @@ var liveWidget = (function () {
     // automatic switch: one contact (normally open or normally closed); the pivot is at the bottom
     function drawAutoSwitch(p, w, h, c) {
         var act = isLit(c, c.value), closed = (c.contact === 'NC') ? !act : act;
-        var sw = Math.max(1.6, Math.min(w, h) * 0.05), r = Math.max(2.6, Math.min(w, h) * 0.07), col = closed ? c.accent : c.color;
+        var sw = lineW(c, w, h), r = ringR(c, sw, w, h), col = closed ? c.accent : c.color;
         var x = w / 2, yt = h * 0.26, yp = h * 0.74, pad = 3;
         lead(p, x, pad, x, yt - r, col, sw);                        // upper lead
         lead(p, x, yp + r, x, h - pad, col, sw);                    // lower lead
@@ -293,8 +296,10 @@ var liveWidget = (function () {
     // automatic transfer switch: changeover contact; at rest the common terminal is joined to the left
     // contact, when the value is active to the right one
     function drawAts(p, w, h, c) {
-        var act = isLit(c, c.value), sw = Math.max(1.6, Math.min(w, h) * 0.05), r = Math.max(2.6, Math.min(w, h) * 0.07);
-        var xl = w * 0.22, xr = w * 0.78, xc = w / 2, yt = h * 0.26, yp = h * 0.74, pad = 3;
+        var act = isLit(c, c.value), sw = lineW(c, w, h), r = ringR(c, sw, w, h);
+        var xc = w / 2, yt = h * 0.26, yp = h * 0.74, pad = 3;
+        var sp = c.spacing > 0 ? Math.min(c.spacing, w - 2 * (r + sw)) : w * 0.56;   // distance between the two contacts
+        var xl = xc - sp / 2, xr = xc + sp / 2;
         var cl = act ? c.color : c.accent, cr = act ? c.accent : c.color;
         lead(p, xl, pad, xl, yt - r, cl, sw);
         lead(p, xr, pad, xr, yt - r, cr, sw);
@@ -334,7 +339,8 @@ var liveWidget = (function () {
     // single pole, single throw (knife switch)
     function drawSpst(p, w, h, c) {
         var pad = 5, y = h * 0.64, xp = pad + (w - 2 * pad) * 0.3, xc = w - pad - (w - 2 * pad) * 0.3, r = Math.max(2.6, Math.min(w, h) * 0.1);
-        var sw = Math.max(1.6, Math.min(w, h) * 0.07), on = !!c.on, act = on ? c.accent : c.color;
+        var sw = c.lineWidth > 0 ? Math.max(0.5, c.lineWidth) : Math.max(1.6, Math.min(w, h) * 0.07), on = !!c.on, act = on ? c.accent : c.color;
+        if (c.lineWidth > 0) r = Math.max(r, sw * 0.9 + 1);
         lead(p, pad, y, xp, y, on ? c.accent : c.color, sw);
         lead(p, xc, y, w - pad, y, on ? c.accent : c.color, sw);
         if (on) blade(p, xp, y, xc, y, c.accent, sw + 1, true);
@@ -348,8 +354,11 @@ var liveWidget = (function () {
     // single pole, double throw (changeover): on = upper position
     function drawSpdt(p, w, h, c) {
         var pad = 5, xp = pad + (w - 2 * pad) * 0.28, xc = w - pad - (w - 2 * pad) * 0.3;
-        var ym = h / 2, yu = h * 0.2, yl = h * 0.8, r = Math.max(2.6, Math.min(w, h) * 0.085);
-        var sw = Math.max(1.6, Math.min(w, h) * 0.06), up = !!c.on;
+        var ym = h / 2, r = Math.max(2.6, Math.min(w, h) * 0.085);
+        var sw = c.lineWidth > 0 ? Math.max(0.5, c.lineWidth) : Math.max(1.6, Math.min(w, h) * 0.06), up = !!c.on;
+        if (c.lineWidth > 0) r = Math.max(r, sw * 0.9 + 1);
+        var sp = c.spacing > 0 ? Math.min(c.spacing, h - 2 * (r + sw)) : h * 0.6;      // distance between the two throws
+        var yu = ym - sp / 2, yl = ym + sp / 2;
         lead(p, pad, ym, xp, ym, c.accent, sw);
         lead(p, xc, yu, w - pad, yu, up ? c.accent : c.color, sw);
         lead(p, xc, yl, w - pad, yl, up ? c.color : c.accent, sw);
@@ -664,7 +673,8 @@ function liveWidgetSelect() {
                 { label: 'Open value', type: 'number', value: c.offValue },
                 { label: 'Initial state', type: 'dropdown', options: ['Open', 'Closed'], value: c.on ? 'Closed' : 'Open' },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
-                { label: 'Active color', type: 'color', value: c.accent, color: c.accent }
+                { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Line width (0 = auto)', type: 'number', value: c.lineWidth || 0 }
             ]; break;
         case 'spdt':
             rows = [
@@ -672,7 +682,9 @@ function liveWidgetSelect() {
                 { label: 'Lower value', type: 'number', value: c.offValue },
                 { label: 'Initial position', type: 'dropdown', options: ['Upper', 'Lower'], value: c.on ? 'Upper' : 'Lower' },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
-                { label: 'Active color', type: 'color', value: c.accent, color: c.accent }
+                { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Line width (0 = auto)', type: 'number', value: c.lineWidth || 0 },
+                { label: 'Throw spacing (0 = auto)', type: 'number', value: c.spacing || 0 }
             ]; break;
         case 'pushsw':
             rows = [
@@ -695,6 +707,7 @@ function liveWidgetSelect() {
                 { label: 'Preview value', type: 'number', value: c.value },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
                 { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Line width (0 = auto)', type: 'number', value: c.lineWidth || 0 },
                 { label: 'Actuator arrow', type: 'dropdown', options: ['Yes', 'No'], value: yn(c.actuator !== false) }
             ]; break;
         case 'ats':
@@ -704,6 +717,8 @@ function liveWidgetSelect() {
                 { label: 'Preview value', type: 'number', value: c.value },
                 { label: 'Line color', type: 'color', value: c.color, color: c.color },
                 { label: 'Active color', type: 'color', value: c.accent, color: c.accent },
+                { label: 'Line width (0 = auto)', type: 'number', value: c.lineWidth || 0 },
+                { label: 'Contact spacing (0 = auto)', type: 'number', value: c.spacing || 0 },
                 { label: 'Actuator arrow', type: 'dropdown', options: ['Yes', 'No'], value: yn(c.actuator !== false) }
             ]; break;
         case 'gauge':
@@ -841,10 +856,12 @@ function modifiedLiveWidget() {
             case 'spst':
                 c.onValue = f(R[0].value, 1); c.offValue = f(R[1].value, 0);
                 c.on = R[2].value === 'Closed'; c.color = R[3].value; c.accent = R[4].value;
+                c.lineWidth = Math.max(0, f(R[5].value, 0));
                 break;
             case 'spdt':
                 c.onValue = f(R[0].value, 1); c.offValue = f(R[1].value, 0);
                 c.on = R[2].value === 'Upper'; c.color = R[3].value; c.accent = R[4].value;
+                c.lineWidth = Math.max(0, f(R[5].value, 0)); c.spacing = Math.max(0, f(R[6].value, 0));
                 break;
             case 'pushsw':
                 c.pressValue = f(R[0].value, 1); c.releaseValue = f(R[1].value, 0);
@@ -853,11 +870,11 @@ function modifiedLiveWidget() {
             case 'autosw':
                 c.contact = R[0].value === 'Normally closed' ? 'NC' : 'NO';
                 c.threshold = f(R[1].value, 0.5); c.activeLow = /^Low/.test(R[2].value); c.value = f(R[3].value, 0);
-                c.color = R[4].value; c.accent = R[5].value; c.actuator = R[6].value !== 'No';
+                c.color = R[4].value; c.accent = R[5].value; c.lineWidth = Math.max(0, f(R[6].value, 0)); c.actuator = R[7].value !== 'No';
                 break;
             case 'ats':
                 c.threshold = f(R[0].value, 0.5); c.activeLow = /^Low/.test(R[1].value); c.value = f(R[2].value, 0);
-                c.color = R[3].value; c.accent = R[4].value; c.actuator = R[5].value !== 'No';
+                c.color = R[3].value; c.accent = R[4].value; c.lineWidth = Math.max(0, f(R[5].value, 0)); c.spacing = Math.max(0, f(R[6].value, 0)); c.actuator = R[7].value !== 'No';
                 break;
             case 'gauge':
                 c.min = f(R[0].value, 0); c.max = f(R[1].value, 1); if (c.max <= c.min) c.max = c.min + 1;

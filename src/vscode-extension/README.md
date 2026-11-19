@@ -19,7 +19,26 @@
 
 ## What’s New 
 
-**v0.4.0 (Current)**
+**v0.5.0 (Current)**
+
+### Added
+- **Switches and relays:** manual switches (SPST, SPDT), voltage- and current-controlled switches (`Switch`, `SwitchV`, `SwitchI`) and relays (SPST, SPDT) with their symbols and models. The switch widgets have a *Line width* property.
+- **New symbols:** Zener Diode, Tunnel Diode and Diode Bridge (the `DiodeBridge` model is built with the new `subcircuit()`).
+- **New demos:** RC charge / discharge with SPDT and SPST switches (live), a full-wave bridge rectifier fed by a transformer (with discrete diodes and with the Diode Bridge), Zener DC sweep and clipper, and two tunnel diode oscillators. Each demo has a detailed HTML note.
+
+### Changed
+- **Better wire (net) editing:**
+  - Moving a part keeps its wires attached to the pins; a wire that is no longer straight is broken into horizontal / vertical segments.
+  - A dragged wire point never leaves a diagonal segment.
+  - Two wires that meet end to end become one wire.
+  - Junction dots are drawn where a branch really leaves the other wire, and take the colour of the wire.
+  - **Esc** or the **right mouse button** ends the wire being drawn, and the wire tool stays active for the next wire.
+
+### Fixed
+- Live simulation of digital models (relays, gates, flip-flops, counters): the digital part was never stepped, so a digital model did not change state.
+- A simulation could fail at start when the opened folder contained a Python installation or a copy of installed packages (`numpy`, `scipy`, compiled `.pyd` files).
+
+**v0.4.0**
 
 ### Added
 - **Live simulation:** run a circuit with Python while you operate it. Switches, push buttons, sliders and rotary knobs change model parameters; LEDs, 7-segments, gauges, bars, value displays, polygon segments and scopes show the results. Step and speed (real time) are adjustable, with Pause and Reset.

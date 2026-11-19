@@ -1,7 +1,11 @@
 #-------------------------------------------------------------------------------
 # Name:        Piece-wise linear voltage source (SPICE PWL)
-# Licence:     free  "MIT  "
+# Author:      d.fathi
+# Created:     20/03/2015
+# Copyright:   (c) PyAMS
+# Licence:     free  "MIT"
 #-------------------------------------------------------------------------------
+
 from bisect import bisect_right
 from pyams.lib import signal, param, model, time
 from pyams.lib import voltage
