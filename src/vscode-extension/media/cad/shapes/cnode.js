@@ -407,12 +407,11 @@ function busParse(name)
 	return { base: m[1], from: a, to: b, width: w };
 }
 
-// thick wires, bigger junction dots and a width label for every bus net
+// thick wires and bigger junction dots for every bus net
 function netBusUpdate()
 {
 	var layer = document.getElementById('nodes');
 	var nets = document.querySelectorAll('[name="net"]');
-	var best = {};   // ref -> longest segment {len, x, y}
 	for (var i = 0; i < nets.length; i++) {
 		var n = nets[i];
 		var bus = busParse(n.getAttribute('ref'));
@@ -425,35 +424,68 @@ function netBusUpdate()
 		}
 		n.setAttribute('bus', bus.width);
 		n.style.strokeWidth = BUS_STROKE + 'px';
-		var p = getArrayPoints(n), ref = n.getAttribute('ref');
-		for (var k = 0; k + 1 < p.length; k++) {
-			var len = Math.abs(p[k].x - p[k + 1].x) + Math.abs(p[k].y - p[k + 1].y);
-			if (!best[ref] || len > best[ref].len)
-				best[ref] = { len: len, w: bus.width, x: (p[k].x + p[k + 1].x) / 2, y: (p[k].y + p[k + 1].y) / 2,
-				              horiz: p[k].y == p[k + 1].y, color: n.style.stroke };
-		}
 	}
 	if (!layer) return;
-	var dots = layer.querySelectorAll('ellipse');
+	var dots = layer.querySelectorAll('ellipse[name="cnode"]');
 	for (var i = 0; i < dots.length; i++) {
 		var net = document.getElementById(dots[i].getAttribute('netid'));
 		var isBus = net && net.hasAttribute('bus');
 		dots[i].setAttribute('rx', isBus ? 3.5 : 2);
 		dots[i].setAttribute('ry', isBus ? 3.5 : 2);
 	}
-	var old = layer.querySelectorAll('[name="buslabel"]');
-	for (var i = 0; i < old.length; i++) old[i].remove();
-	for (var ref in best) {
-		var b = best[ref];
-		var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-		t.setAttribute('name', 'buslabel');
-		t.setAttribute('x', b.x + (b.horiz ? -3 : 4));
-		t.setAttribute('y', b.y + (b.horiz ? -4 : 3));
-		t.style.fontSize = '7px';
-		t.style.fontFamily = 'Arial';
-		t.style.fill = b.color || '#000';
-		t.style.pointerEvents = 'none';
-		t.textContent = b.w;
-		layer.appendChild(t);
+	busCheck();
+}
+
+// width of a pin / net name: bus width, or 1 for a normal name
+function busWidth(name)
+{
+	var b = busParse(name);
+	return b ? b.width : 1;
+}
+
+// width differs from the width of its wire is reported and shown with the
+// green square of an unconnected pin. Standard parts (GND, ports, ...) are not checked.
+function busCheck()
+{
+	var layer = document.getElementById('nodes');
+	if (layer) {
+		var old = layer.querySelectorAll('[name="buserr"]');
+		for (var i = 0; i < old.length; i++) old[i].remove();
 	}
+	var errors = [];
+	var parts = document.querySelectorAll('#sym [name="part"]');
+	for (var i = 0; i < parts.length; i++) {
+		var pins;
+		try {
+			var sym = JSON.parse(parts[i].firstChild.getAttribute('symbol'));
+			if (sym && sym.device && sym.device.type == 'std') continue;
+			pins = getListPins(parts[i]);
+		} catch (e) { continue; }
+		for (var n = 0; n < pins.length; n++) {
+			var el = pins[n].elem;
+			if (el.childNodes[1].style.display != 'none') continue;   // not connected
+			var net = document.getElementById(el.getAttribute('netId'));
+			if (!net) continue;
+			var pinName = el.childNodes[2].textContent, ref = net.getAttribute('ref');
+			var pw = busWidth(pinName), nw = busWidth(ref);
+			if (pw == nw) continue;
+			errors.push({ part: parts[i].getAttribute('sref'), pin: pinName, net: ref,
+			              pinWidth: pw, netWidth: nw, x: pins[n].x, y: pins[n].y });
+			if (layer) {
+				// the green square of an unconnected pin, drawn over the pin
+				var c = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+				c.setAttribute('name', 'buserr');
+				c.setAttribute('x', pins[n].x - 3); c.setAttribute('y', pins[n].y - 3);
+				c.setAttribute('width', 6); c.setAttribute('height', 6);
+				c.style.fill = 'none'; c.style.stroke = 'rgb(0, 255, 0)'; c.style.strokeWidth = '1px';
+				var t = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+				t.textContent = 'Bus width mismatch: pin ' + parts[i].getAttribute('sref') + '.' + pinName +
+				                ' (' + pw + ') on net ' + ref + ' (' + nw + ')';
+				c.appendChild(t);
+				layer.appendChild(c);
+			}
+		}
+	}
+	if (typeof drawing != 'undefined') drawing.busErrors = errors;
+	return errors;
 }
