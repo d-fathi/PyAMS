@@ -33,6 +33,8 @@ from .Counter import Counter
 from .ShiftRegister import ShiftRegister
 from .DAC import DAC
 from .ADC import ADC
+from .DAC_analog import DAC_analog
+from .ADC_analog import ADC_analog
 from .Transformer import Transformer
 from .SinVoltage import SinVoltage
 from .DCVoltage import DCVoltage
@@ -78,7 +80,7 @@ __all__ = [
     "Capacitor", "Inductor", "LaplaceND", "LaplaceZP", "LaplaceNDII", "LaplaceZPII",
     "LaplaceNDIV", "LaplaceZPIV", "LaplaceNDVI", "LaplaceZPVI",
     "DigitalClock", "NOT", "AND", "OR", "NAND", "NOR", "XOR", "XNOR", "SRLatch", "DLatch", "DFF", "JKFF",
-    "Counter", "ShiftRegister", "DAC", "ADC", "CapacitorIc", "InductorIc",
+    "Counter", "ShiftRegister", "DAC", "ADC", "DAC_analog", "ADC_analog", "CapacitorIc", "InductorIc",
     "NonlinearResistance", "Transformer", "SinVoltage", "DCVoltage", "ACVoltage", "ACCurrent",
     "TrapezoidVoltage", "DCCurrent", "SinCurrent", "ExpVoltage", "ExpCurrent", "PWLVoltage",
     "PWLCurrent", "TrapezoidCurrent", "TransmissionLine", "Diode", "DiodeBridge", "Diac", "ZenerDiode",

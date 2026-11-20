@@ -3,7 +3,8 @@
         "Basic",
         "Source",
         "Semiconductor",
-        "Analog ICs"
+        "Analog ICs",
+        "Mixed-Signal"
     ],
     "Basic": [
         "Resistor.sym",
@@ -59,5 +60,9 @@
     ],
     "Analog ICs": [
         "OpAmp.sym"
+    ],
+    "Mixed-Signal": [
+        "DAC.sym",
+        "ADC.sym"
     ]
 }
