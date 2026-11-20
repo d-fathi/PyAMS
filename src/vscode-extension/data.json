@@ -64,6 +64,8 @@
     "Mixed-Signal": [
         "DAC.sym",
         "ADC.sym",
+        "DAC Analog.sym",
+        "ADC Analog.sym",
         "DAC Clocked.sym",
         "ADC Clocked.sym"
     ]
