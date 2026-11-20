@@ -63,6 +63,8 @@
     ],
     "Mixed-Signal": [
         "DAC.sym",
-        "ADC.sym"
+        "ADC.sym",
+        "DAC Clocked.sym",
+        "ADC Clocked.sym"
     ]
 }
