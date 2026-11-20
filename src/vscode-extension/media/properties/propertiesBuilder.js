@@ -362,7 +362,8 @@ function netSelect() {
                 rows: [
                     { label: "Stroke", type: "color", value: rgb2hex(mtable.select.style.stroke), color: rgb2hex(mtable.select.style.stroke) },
                     { label: 'Reference', type: "text", value: mtable.select.getAttribute("ref") },
-                    { label: 'Diagonal',  type: "dropdown", value: mtable.select.getAttribute("diagonal"), options: ['false', 'true'] }
+                    { label: 'Diagonal',  type: "dropdown", value: mtable.select.getAttribute("diagonal"), options: ['false', 'true'] },
+                    { label: 'Show name', type: "dropdown", value: netLabelShown(mtable.select) ? 'true' : 'false', options: ['false', 'true'] }
                 ]
             }
         ]
@@ -378,6 +379,7 @@ function netModified() {
     
     mtable.select.setAttribute("diagonal", propertiesData.sections[0].rows[2].value);
     getNetRef();
+    netLabelSet(mtable.select, propertiesData.sections[0].rows[3].value == 'true');
     if(rgb2hex(mtable.select.style.stroke) != propertiesData.sections[0].rows[0].color) {
          mtable.select.setAttribute("setcolor", propertiesData.sections[0].rows[0].color);
         mtable.select.setAttribute("parentcolor", true);
@@ -784,9 +786,9 @@ function textSelect(){
                     { label: 'Font.family', type: "dropdown", value: mtable.select.style.fontFamily, options: fontAvailable },
                     { label: 'Pos.x', type: "number", value: parseInt(mtable.select.getAttribute("x")) },
                     { label: 'Pos.y', type: "number", value: parseInt(mtable.select.getAttribute("y")) },
-                    { label: 'Rotation', type: "dropdown", value: mtable.select.getAttribute("r") + "°", options: ['0°', '90°'] },
+                    { label: 'Rotation', type: "dropdown", value: mtable.select.getAttribute("r") + "°", options: mtable.select.hasAttribute('netlabel') ? ['0°', '90°', '270°'] : ['0°', '90°'] },
                     { label: 'Fill', type: "color", value: rgb2hex(mtable.select.style.fill), color: rgb2hex(mtable.select.style.fill) },
-                    { label: 'Text', type: "text", value: mtable.select.textContent },
+                    { label: 'Text', type: "text", value: mtable.select.textContent, readonly: mtable.select.hasAttribute('netlabel') },
                     { label: 'Stroke.used', type: "dropdown", value: mtable.select.style.stroke ? 'true' : 'false', options: ['false', 'true'] },
                     { label: 'Stroke.width', type: "number", value: mtable.select.style.strokeWidth}
                 ]
@@ -816,6 +818,7 @@ function modifiedText() {
         mtable.select.style.stroke=null;
     mtable.select.style.strokeWidth = propertiesData.sections[0].rows[10].value;
     setPosText();
+    if (mtable.select.hasAttribute('netlabel')) netLabelUpdate();   // a name label follows its wire
     deleteEllipseMS(mtable.resize);
     mtable.resize.updateSlect();
 }

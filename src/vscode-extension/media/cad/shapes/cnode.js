@@ -242,6 +242,7 @@ function modifiedNetRefColor()
     modifiedRefNetWithStdPart();
     nodesUpdateColor();
     netBusUpdate();
+    netLabelUpdate();
 }
 
 function  modifiedRefNetParent()
@@ -488,4 +489,206 @@ function busCheck()
 	}
 	if (typeof drawing != 'undefined') drawing.busErrors = errors;
 	return errors;
+}
+
+
+//--------------------------------------------------------------
+//  Net name label : a text linked to a wire that shows its name
+//--------------------------------------------------------------
+//  The label is an ordinary text (name="text", it has the font properties of
+//  a text and can be dragged).  It is linked to ONE net of the wire (attribute
+//  nlabel="<id>" on the net, netlabel="<id>" on the text).  The label keeps
+//  the offset of its centre from the anchor of the net (the middle of the
+//  net along its length): when the wire moves the label moves with it.  The
+//  text is always the Reference of the wire, it is parallel to the nearest
+//  segment (rotated 270 degrees beside a vertical segment) and takes the
+//  colour of the wire unless the colour of the text was changed.
+
+var NETLABEL_SIZE = '9px';
+
+function netLabelNets()
+{
+	return Array.prototype.slice.call(document.querySelectorAll('#sym [name="net"]'));
+}
+
+function netLabelAll()
+{
+	return Array.prototype.slice.call(document.querySelectorAll('#sym [netlabel]'));
+}
+
+// point at half of the length of a net
+function netLabelAnchor(net)
+{
+	var p = getArrayPoints(net), total = 0, k;
+	for (k = 0; k + 1 < p.length; k++)
+		total += Math.abs(p[k + 1].x - p[k].x) + Math.abs(p[k + 1].y - p[k].y);
+	if (!p.length) return { x: 0, y: 0 };
+	var half = total / 2, run = 0;
+	for (k = 0; k + 1 < p.length; k++) {
+		var len = Math.abs(p[k + 1].x - p[k].x) + Math.abs(p[k + 1].y - p[k].y);
+		if (len > 0 && run + len >= half) {
+			var t = (half - run) / len;
+			return { x: p[k].x + (p[k + 1].x - p[k].x) * t, y: p[k].y + (p[k + 1].y - p[k].y) * t };
+		}
+		run += len;
+	}
+	return { x: p[0].x, y: p[0].y };
+}
+
+// true when the segment of the wire nearest to (x, y) is vertical
+function netLabelNearVertical(ref, x, y)
+{
+	var nets = netLabelNets(), best = 1e12, vertical = false;
+	for (var i = 0; i < nets.length; i++) {
+		if (nets[i].getAttribute('ref') != ref) continue;
+		var p = getArrayPoints(nets[i]);
+		for (var k = 0; k + 1 < p.length; k++) {
+			var a = p[k], b = p[k + 1];
+			var dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy;
+			var t = l2 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / l2)) : 0;
+			var d = Math.hypot(x - (a.x + t * dx), y - (a.y + t * dy));
+			if (d < best) { best = d; vertical = (dx == 0 && dy != 0); }
+		}
+	}
+	return vertical;
+}
+
+function netLabelCenter(t)
+{
+	var b = t.getBBox(), x = parseFloat(t.getAttribute('x')), y = parseFloat(t.getAttribute('y'));
+	var r = parseInt(t.getAttribute('r')) || 0;
+	if (r == 270) return { x: x - b.height / 4, y: y - b.width / 2 };
+	if (r == 90) return { x: x + b.height / 4, y: y + b.width / 2 };
+	return { x: x + b.width / 2, y: y - b.height / 4 };
+}
+
+// puts the text with its centre at (cx, cy), parallel to the wire
+function netLabelPut(t, cx, cy, vertical)
+{
+	var b = t.getBBox(), r = vertical ? 270 : 0;
+	var x = vertical ? cx + b.height / 4 : cx - b.width / 2;
+	var y = vertical ? cy + b.width / 2 : cy + b.height / 4;
+	x = Math.round(x); y = Math.round(y);
+	t.setAttribute('r', r);
+	t.setAttribute('x', x);
+	t.setAttribute('y', y);
+	t.setAttribute('transform', 'rotate(' + r + ' ' + x + ' ' + y + ')');
+	['xo', 'yo', 'x1', 'y1', 'w', 'h', 'ro'].forEach(function (a) { t.removeAttribute(a); });
+	return { x: x, y: y };
+}
+
+// text, colour, position and orientation of every label; removes the labels
+// of wires that no longer exist
+function netLabelUpdate()
+{
+	var labels = netLabelAll();
+	if (!labels.length && !document.querySelector('#sym [name="net"][nlabel]')) return;
+	var nets = netLabelNets(), usedRef = {}, usedId = {};
+	for (var i = 0; i < labels.length; i++) {
+		var t = labels[i], id = t.getAttribute('netlabel');
+		var net = null;
+		for (var k = 0; k < nets.length; k++)
+			if (nets[k].getAttribute('nlabel') == id) { net = nets[k]; break; }
+		if (!net) {                           // the linked net was merged or replaced: another net of the wire
+			for (var k = 0; k < nets.length; k++)
+				if (nets[k].getAttribute('ref') == t.getAttribute('nref') && !nets[k].hasAttribute('nlabel')) { net = nets[k]; break; }
+			if (net) net.setAttribute('nlabel', id);
+		}
+		if (!net || usedRef[net.getAttribute('ref')]) {   // the wire was deleted / one label per wire
+			t.remove();
+			continue;
+		}
+		var ref = net.getAttribute('ref');
+		usedRef[ref] = true; usedId[id] = true;
+		t.setAttribute('nref', ref);
+		t.textContent = ref;
+		var color = net.style.stroke;
+		if (!t.hasAttribute('lc') || t.style.fill == t.getAttribute('lc')) {   // not recoloured by hand
+			t.style.fill = color;
+			t.setAttribute('lc', t.style.fill);
+		}
+		var anchor = netLabelAnchor(net);
+		var cdx = parseFloat(t.getAttribute('cdx')), cdy = parseFloat(t.getAttribute('cdy'));
+		var px = parseFloat(t.getAttribute('px')), py = parseFloat(t.getAttribute('py'));
+		var ax = parseFloat(t.getAttribute('ax')), ay = parseFloat(t.getAttribute('ay'));
+		var x = parseFloat(t.getAttribute('x')), y = parseFloat(t.getAttribute('y'));
+		if (isNaN(cdx) || isNaN(px)) {                   // no stored placement
+			var c = netLabelCenter(t);
+			cdx = c.x - anchor.x; cdy = c.y - anchor.y;
+		} else if (Math.abs(x - px) > 0.5 || Math.abs(y - py) > 0.5) {
+			// the text was moved: new offset = old + its own move - the move of the anchor
+			cdx += (x - px) - (anchor.x - ax);
+			cdy += (y - py) - (anchor.y - ay);
+		}
+		var cx = anchor.x + cdx, cy = anchor.y + cdy;
+		var pos = netLabelPut(t, cx, cy, netLabelNearVertical(ref, cx, cy));
+		t.setAttribute('cdx', cdx); t.setAttribute('cdy', cdy);
+		t.setAttribute('px', pos.x); t.setAttribute('py', pos.y);
+		t.setAttribute('ax', anchor.x); t.setAttribute('ay', anchor.y);
+	}
+	// attributes of nets without label, and a second net of the same wire / id
+	var seen = {};
+	for (var k = 0; k < nets.length; k++) {
+		var id = nets[k].getAttribute('nlabel');
+		if (id === null) continue;
+		if (!usedId[id] || seen[id]) nets[k].removeAttribute('nlabel');
+		else seen[id] = true;
+	}
+}
+
+// does the wire (all nets of this reference) show its name?
+function netLabelShown(net)
+{
+	var ref = net.getAttribute('ref'), nets = netLabelNets();
+	for (var i = 0; i < nets.length; i++)
+		if (nets[i].getAttribute('ref') == ref && nets[i].hasAttribute('nlabel')) return true;
+	return false;
+}
+
+// "Show name" of the properties panel
+function netLabelSet(net, show)
+{
+	var ref = net.getAttribute('ref'), nets = netLabelNets(), i;
+	if (show == netLabelShown(net)) return;
+	if (!show) {
+		for (i = 0; i < nets.length; i++)
+			if (nets[i].getAttribute('ref') == ref && nets[i].hasAttribute('nlabel')) {
+				var id = nets[i].getAttribute('nlabel');
+				nets[i].removeAttribute('nlabel');
+				netLabelAll().forEach(function (t) { if (t.getAttribute('netlabel') == id) t.remove(); });
+			}
+		return;
+	}
+	var n = 1;
+	while (document.querySelector('#sym [netlabel="nl' + n + '"], #sym [nlabel="nl' + n + '"]')) n++;
+	var id = 'nl' + n;
+	net.setAttribute('nlabel', id);
+	var t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+	t.setAttribute('class', 'draggable');
+	t.setAttribute('name', 'text');
+	t.setAttribute('netlabel', id);
+	t.setAttribute('nref', ref);
+	t.setAttribute('x', 0); t.setAttribute('y', 0);
+	t.setAttribute('r', 0); t.setAttribute('rtemp', 0);
+	t.style.fontSize = NETLABEL_SIZE;
+	t.style.fontFamily = 'Arial';
+	t.style.fontWeight = 'normal';
+	t.style.fontStyle = 'normal';
+	t.textContent = ref;
+	document.getElementById('sym').appendChild(t);
+	// first place: beside the anchor (above a horizontal wire, left of a vertical one)
+	var anchor = netLabelAnchor(net), b = t.getBBox();
+	var p = getArrayPoints(net), vertical = false, best = 1e12;
+	for (var k = 0; k + 1 < p.length; k++) {
+		var l = Math.abs(p[k + 1].x - p[k].x) + Math.abs(p[k + 1].y - p[k].y);
+		var mid = Math.hypot((p[k].x + p[k + 1].x) / 2 - anchor.x, (p[k].y + p[k + 1].y) / 2 - anchor.y);
+		if (l > 0 && mid < best) { best = mid; vertical = (p[k].x == p[k + 1].x); }
+	}
+	var gap = b.height / 2 + 2;
+	var cdx = vertical ? -gap : 0, cdy = vertical ? 0 : -gap;
+	var pos = netLabelPut(t, anchor.x + cdx, anchor.y + cdy, vertical);
+	t.setAttribute('cdx', cdx); t.setAttribute('cdy', cdy);
+	t.setAttribute('px', pos.x); t.setAttribute('py', pos.y);
+	t.setAttribute('ax', anchor.x); t.setAttribute('ay', anchor.y);
+	netLabelUpdate();
 }
