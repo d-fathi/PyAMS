@@ -915,6 +915,17 @@ drawing.getListParameter(code)
             break;
         }
 
+        case 'addWaveRow': {
+            if(mtable.type!='analysis') break;
+            var analy=JSON.parse(mtable.select.getAttribute("description"));
+            if(!analy.waves) analy.waves=[];
+            analy.waves.push({label:'', nodes:'', fmt:'hex', color:'#2a78d6'});
+            mtable.select.setAttribute("description", JSON.stringify(analy));
+            analysisSelect();
+            scheduleSavePropertyChange();
+            break;
+        }
+
         case 'addOutputX': {
    
             var code=generateCodePyofCircuit();

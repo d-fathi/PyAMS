@@ -144,6 +144,17 @@ function getAnalysis() {
           analysis.oupouts.color.push(r[i].color);
        }
 
+      // the nodes of the digital (wave) rows are outputs too (Time Domain only)
+      if(analy.type=='Time Domain'){
+          var wv=waveExpand(analy);
+          for(var i=0;i<wv.length;i++)
+              for(var k=0;k<wv[i].nodes.length;k++)
+                  if(analysis.oupouts.names.indexOf(wv[i].nodes[k])<0){
+                      analysis.oupouts.names.push(wv[i].nodes[k]);
+                      analysis.oupouts.color.push(wv[i].color);
+                  }
+      }
+
       if(analy.xAxe.used && ((analy.type=='DC Sweep')||(analy.type=='Time Domain')))
           analysis.xAxe=analy.xAxe.name;
       if(analy.options.second_sweep && analy.options.second_sweep==true){
@@ -157,3 +168,162 @@ function getAnalysis() {
 
 
 
+
+
+//--------------------------------------------------------------
+//  Wave rows : digital signals (bit / bus) like the wave window of a VHDL simulator
+//--------------------------------------------------------------
+//  analy.waves = [{label, nodes, fmt, color}]
+//     nodes : "D[0:7]" (a bus name: D0 ... D7) or a list "s0, s1, s2" (LSB first) or one node "clk"
+//     fmt   : 'bit' (one node, a step trace) | 'hex' | 'bin' | 'dec' (value of the bus in a hexagon)
+//  analy.wavevth : logic threshold in volts "2.5" or an undefined band "0.8,2.0" (empty = half of the
+//                  largest voltage of the row)
+
+// rows of the wave section, with the node names expanded
+function waveExpand(analy)
+{
+	var out = [], w = analy.waves || [];
+	for (var i = 0; i < w.length; i++) {
+		var text = String(w[i].nodes || '').trim();
+		if (!text) continue;
+		var nodes = null;
+		if (typeof busParse == 'function' && busParse(text) && typeof busNodeNames == 'function')
+			nodes = busNodeNames(text);
+		else
+			nodes = text.split(/[\s,;]+/).filter(function (n) { return n.length > 0; });
+		if (!nodes || !nodes.length) continue;
+		var fmt = w[i].fmt || (nodes.length == 1 ? 'bit' : 'hex');
+		if (nodes.length > 1 && fmt == 'bit') fmt = 'hex';
+		out.push({ label: w[i].label || text, nodes: nodes, fmt: fmt, color: w[i].color || '#2a78d6' });
+	}
+	return out;
+}
+
+// options of the plot: the wave rows and the logic threshold
+function waveOptions(analy)
+{
+	if (analy.type != 'Time Domain') return {};
+	var waves = waveExpand(analy);
+	if (!waves.length) return {};
+	var onlyWave = {}, i, k;
+	for (i = 0; i < waves.length; i++)
+		for (k = 0; k < waves[i].nodes.length; k++) onlyWave[waves[i].nodes[k]] = true;
+	for (i = 0; i < analy.yAxe.length; i++) delete onlyWave[analy.yAxe[i].name];   // also drawn as analog
+	var vth = String(analy.wavevth || '').split(/[\s,;]+/).filter(function (t) { return t.length; }).map(Number).filter(function (v) { return !isNaN(v); });
+	return { waves: waves, waveOnly: onlyWave, vth: vth.length ? vth : null };
+}
+
+// bit values of one signal: 1, 0 or -1 (between vl and vh: undefined)
+function waveBits(y, vl, vh)
+{
+	var b = new Int8Array(y.length);
+	for (var k = 0; k < y.length; k++) {
+		var v = y[k];
+		b[k] = v > vh ? 1 : ((vl != vh && v >= vl) ? -1 : 0);
+	}
+	return b;
+}
+
+// constant segments of a bus [{a, z, v}] (v = null: undefined), bit 0 = LSB
+function waveSegments(t, bits)
+{
+	var n = t.length, seg = [], s = 0, key = new Array(n), i, k;
+	for (k = 0; k < n; k++) {
+		var val = 0, und = false;
+		for (i = 0; i < bits.length; i++) {
+			if (bits[i][k] < 0) und = true;
+			else if (bits[i][k] > 0) val += Math.pow(2, i);
+		}
+		key[k] = und ? -1 : val;
+	}
+	for (k = 1; k < n; k++)
+		if (key[k] != key[s]) { seg.push({ a: t[s], z: t[k], v: key[s] < 0 ? null : key[s] }); s = k; }
+	seg.push({ a: t[s], z: t[n - 1], v: key[s] < 0 ? null : key[s] });
+	return seg;
+}
+
+function waveFormat(v, fmt, width)
+{
+	if (v === null) return 'X';
+	if (fmt == 'bin') { var b = v.toString(2); while (b.length < width) b = '0' + b; return b; }
+	if (fmt == 'dec') return String(v);
+	return v.toString(16).toUpperCase();
+}
+
+// the Plotly traces of one wave row, drawn on the axes xaxis/yaxis number `row`
+function waveTraces(results, w, vthOpt, row)
+{
+	var ser = results.series || [], arr = [], t = null, i;
+	for (i = 0; i < w.nodes.length; i++) {
+		var sr = null;
+		for (var k = 0; k < ser.length; k++)
+			if (ser[k].name == w.nodes[i] && !ser[k].run) { sr = ser[k]; break; }
+		if (!sr) return [];
+		arr.push(sr.y);
+		if (!t) t = sr.x || results.x;
+	}
+	if (!t || !t.length) return [];
+	var vl, vh;
+	if (vthOpt && vthOpt.length) { vl = vthOpt[0]; vh = vthOpt.length > 1 ? vthOpt[1] : vthOpt[0]; if (vl > vh) { var tmp = vl; vl = vh; vh = tmp; } }
+	else {
+		var mx = -1e300;
+		arr.forEach(function (y) { for (var k = 0; k < y.length; k++) if (y[k] > mx) mx = y[k]; });
+		vl = vh = 0.5 * mx;
+	}
+	var bits = arr.map(function (y) { return waveBits(y, vl, vh); });
+	var ax = { xaxis: 'x' + (row > 1 ? row : ''), yaxis: 'y' + (row > 1 ? row : '') };
+	var out = [];
+	if (w.nodes.length == 1) {                                  // one bit: step trace
+		var b = bits[0], y = new Array(t.length), bad = new Array(t.length), anyBad = false;
+		for (i = 0; i < t.length; i++) { y[i] = b[i] > 0 ? 1 : 0; bad[i] = b[i] < 0 ? 1 : 0; if (b[i] < 0) anyBad = true; }
+		out.push(Object.assign({ type: 'scatter', mode: 'lines', x: t, y: y, name: w.label, showlegend: false,
+			line: { color: w.color, width: 1.5, shape: 'hv' }, hovertemplate: w.label + ' = %{y}<extra></extra>',
+			meta: { wave: 'bit' } }, ax));
+		if (anyBad)
+			out.push(Object.assign({ type: 'scatter', mode: 'lines', x: t, y: bad, fill: 'tozeroy', fillcolor: 'rgba(208,59,59,0.4)',
+				line: { width: 0, shape: 'hv' }, showlegend: false, hoverinfo: 'skip', meta: { wave: 'x' } }, ax));
+		return out;
+	}
+	var seg = waveSegments(t, bits), span = t[t.length - 1] - t[0];
+	var px = [], py = [], bx = [], by = [], tx = [], ty = [], tt = [], hv = [], wd = [];
+	seg.forEach(function (s) {
+		var d = Math.min((s.z - s.a) * 0.15, span * 0.004);
+		var poly = [[s.a, .5], [s.a + d, .9], [s.z - d, .9], [s.z, .5], [s.z - d, .1], [s.a + d, .1], [s.a, .5]];
+		poly.forEach(function (q) { px.push(q[0]); py.push(q[1]); });
+		px.push(null); py.push(null);
+		if (s.v === null) { poly.forEach(function (q) { bx.push(q[0]); by.push(q[1]); }); bx.push(null); by.push(null); }
+		tx.push((s.a + s.z) / 2); ty.push(.5);
+		var txt = waveFormat(s.v, w.fmt, w.nodes.length);
+		tt.push(txt); wd.push(s.z - s.a);
+		hv.push(w.label + ' = ' + txt + (w.fmt != 'dec' && s.v !== null ? '  (' + s.v + ')' : ''));
+	});
+	out.push(Object.assign({ type: 'scatter', mode: 'lines', x: px, y: py, name: w.label, showlegend: false, hoverinfo: 'skip',
+		connectgaps: false, line: { color: w.color, width: 1.2 }, meta: { wave: 'bus' } }, ax));
+	if (bx.length)
+		out.push(Object.assign({ type: 'scatter', mode: 'lines', x: bx, y: by, fill: 'toself', fillcolor: 'rgba(208,59,59,0.4)',
+			line: { width: 0 }, showlegend: false, hoverinfo: 'skip', meta: { wave: 'x' } }, ax));
+	out.push(Object.assign({ type: 'scatter', mode: 'text', x: tx, y: ty, text: tt.slice(), hovertext: hv, hoverinfo: 'text',
+		textfont: { size: 10, color: '#0b0b0b' }, showlegend: false, customdata: wd,
+		meta: { wave: 'text', full: tt.slice(), fmtw: w.nodes.length } }, ax));
+	return out;
+}
+
+// hides the value of a segment that is too narrow to hold it (after a zoom the values appear)
+function waveFitText(gd)
+{
+	try {
+		if (!gd || !gd.data || !gd._fullLayout) return;
+		var upd = [], idx = [];
+		gd.data.forEach(function (tr, i) {
+			if (!tr.meta || tr.meta.wave != 'text') return;
+			var xa = gd._fullLayout[tr.xaxis ? tr.xaxis.replace('x', 'xaxis') : 'xaxis'];
+			if (!xa || !xa.range) return;
+			var pxPerUnit = xa._length / Math.abs(xa.range[1] - xa.range[0]);
+			var full = tr.meta.full, show = new Array(full.length);
+			for (var k = 0; k < full.length; k++)
+				show[k] = (tr.customdata[k] * pxPerUnit >= full[k].length * 7 + 6) ? full[k] : '';
+			upd.push(show); idx.push(i);
+		});
+		if (idx.length) Plotly.restyle(gd, { text: upd }, idx);
+	} catch (e) { console.error(e); }
+}

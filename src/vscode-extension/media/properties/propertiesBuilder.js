@@ -1106,6 +1106,22 @@ function analysisSelect() {
     defaultData.sections[3].rows.push({ label: 'Add X axe', type: "Button", value: x.used?'Modify':'Add', setClick: 'addOutputX' });
     }
 
+    // Digital rows (wave) --------------------------------------------------------------------------
+    // bits and buses drawn like the wave window of a VHDL simulator (Time Domain only)
+    if(analy.type=='Time Domain'){
+        var wv=analy.waves||[];
+        defaultData.sections.push({ title: "Digital rows (wave)", collapsed: false, showReset: true, rows: [] });
+        var wr=defaultData.sections[defaultData.sections.length-1].rows;
+        wr.push({ label: 'Logic threshold (V)', type: "text", value: analy.wavevth||'' });
+        for(var i=0;i<wv.length;i++){
+            wr.push({ label: 'Label '+(i+1), type: "text", value: wv[i].label||'' });
+            wr.push({ label: 'Signals '+(i+1), type: "text", value: wv[i].nodes||'' });
+            wr.push({ label: 'Format '+(i+1), type: "dropdown", value: wv[i].fmt||'hex', options: ['bit','hex','bin','dec'] });
+            wr.push({ label: 'Color '+(i+1), type: "axeproperty", value: wv[i].color||'#2a78d6', color: wv[i].color||'#2a78d6', delete: false });
+        }
+        wr.push({ label: 'Add digital row', type: "Button", value: 'Add', setClick: 'addWaveRow' });
+    }
+
     //Second sweep property------------------------------------------------------------------------
    if(analy.options.second_sweep && analy.options.second_sweep==true){
     defaultData.sections.push({ title: "Second sweep", collapsed: false, showReset: true, rows: [] });
@@ -1160,6 +1176,26 @@ function modifiedAnalysis() {
       for(var i=0;i<r.length;i++){
          r[i].color=propertiesData.sections[2].rows[i].color;
       }
+
+ // digital rows: 4 lines per row (label, signals, format, colour with delete) after the threshold
+ var waveDelete=-1;
+ for(var s=0;s<propertiesData.sections.length;s++){
+     if(propertiesData.sections[s].title!="Digital rows (wave)") continue;
+     var wr=propertiesData.sections[s].rows;
+     analy.wavevth=wr[0].value;
+     analy.waves=[];
+     for(var i=0;(1+4*i+3)<wr.length;i++){
+         var b=1+4*i;
+         analy.waves.push({label: wr[b].value, nodes: wr[b+1].value, fmt: wr[b+2].value, color: wr[b+3].color});
+         if(wr[b+3].delete) waveDelete=i;
+     }
+ }
+ if(waveDelete>=0){
+     analy.waves.splice(waveDelete,1);
+     mtable.select.setAttribute("description", JSON.stringify(analy));
+     analysisSelect();
+     return;
+ }
 
  mtable.select.setAttribute("description", JSON.stringify(analy));
             
