@@ -542,7 +542,7 @@ self.plotPyAMSResults = function(elem, results, options) {
     return Plotly.newPlot(elem, p.data, p.layout, p.config).then(function(gd) {
         if (p.layout.annotations) {                         // digital rows: values that fit the segments
             waveFitText(elem);
-            if (elem.on) elem.on('plotly_relayout', function() { waveFitText(elem); });
+            waveWatch(elem);
         }
         return gd;
     });
@@ -602,13 +602,14 @@ self.getListParameter = function(code) {
 }
 //*************Signal dialog for PyAMS code*******************//
 // data: result of getListParameter(code); preSelected: e.g. "R1.I" or a node name ("Vcc").
-// onSubmit receives { selectedSignal, selectedFunction, selectedKind }.
-self.getSignalDialog = function(data, preSelected, acUsed, onSubmit, onCancel) {
+// onSubmit receives { selectedSignal, selectedFunction, selectedKind, selectedNodes }; options.digital lists the dsignal.
+self.getSignalDialog = function(data, preSelected, acUsed, onSubmit, onCancel, options) {
     if (typeof signalDialog === 'undefined' || !signalDialog) {
         signalDialog = new fSignalDialog(self);
     }
     signalDialog.onSubmit = onSubmit || null;
     signalDialog.onCancel = onCancel || null;
+    signalDialog.digital = !!(options && options.digital);     // list the digital signals (dsignal) too
     signalDialog.initData(data, preSelected, acUsed);
     signalDialog.show();
 };

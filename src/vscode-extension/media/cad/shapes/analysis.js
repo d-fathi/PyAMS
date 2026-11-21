@@ -65,7 +65,7 @@ function modifedSizeAnalysis(element) {
             width: a*w - 6,
             height: a*h - 6
         };
-        if (e.data) Plotly.relayout(e, update);
+        if (e.data) { Plotly.relayout(e, update); if (typeof waveWatch == "function" && e.data.some(function (t) { return t.meta && t.meta.wave == "text"; })) { waveWatch(e); waveFitText(e); } }
     }
 }
 
@@ -140,6 +140,7 @@ function getAnalysis() {
 
       var r=analy.yAxe;
       for(var i=0;i<r.length;i++){
+          if(r[i].digital) continue;       // a digital output: its nodes are added below
           analysis.oupouts.names.push(r[i].name);
           analysis.oupouts.color.push(r[i].color);
        }
@@ -171,30 +172,54 @@ function getAnalysis() {
 
 
 //--------------------------------------------------------------
-//  Wave rows : digital signals (bit / bus) like the wave window of a VHDL simulator
+//  Digital rows : digital signals (bit / bus) like the wave window of a VHDL simulator
 //--------------------------------------------------------------
-//  analy.waves = [{label, nodes, fmt, color}]
-//     nodes : "D[0:7]" (a bus name: D0 ... D7) or a list "s0, s1, s2" (LSB first) or one node "clk"
-//     fmt   : 'bit' (one node, a step trace) | 'hex' | 'bin' | 'dec' (value of the bus in a hexagon)
+//  A digital output is an entry of analy.yAxe added from the signal dialog (a dsignal of a model):
+//     {name: 'U1.D', color, digital: {nodes: ['D0', ..., 'D7'] (LSB first), fmt: 'bit' | 'hex' | 'bin' | 'dec'}}
 //  analy.wavevth : logic threshold in volts "2.5" or an undefined band "0.8,2.0" (empty = half of the
 //                  largest voltage of the row)
+//  (files of the first version kept the rows in analy.waves = [{label, nodes, fmt, color}]: converted here)
 
-// rows of the wave section, with the node names expanded
+// the nodes written as a bus name "D[0:7]", a list "s0, s1" or one node
+function waveNodeList(text)
+{
+	text = String(text || '').trim();
+	if (!text) return [];
+	if (typeof busParse == 'function' && busParse(text) && typeof busNodeNames == 'function')
+		return busNodeNames(text) || [];
+	return text.split(/[\s,;]+/).filter(function (n) { return n.length > 0; });
+}
+
+// moves the rows of analy.waves into analy.yAxe; returns true when something changed
+function waveMigrate(analy)
+{
+	if (!analy.waves || !analy.waves.length) { delete analy.waves; return false; }
+	analy.waves.forEach(function (w) {
+		var nodes = waveNodeList(w.nodes);
+		if (!nodes.length) return;
+		analy.yAxe.push({ name: w.label || String(w.nodes), color: w.color || '#8a63d2',
+			digital: { nodes: nodes, fmt: w.fmt || (nodes.length == 1 ? 'bit' : 'hex') } });
+	});
+	delete analy.waves;
+	return true;
+}
+
+// the digital rows, with the node names
 function waveExpand(analy)
 {
-	var out = [], w = analy.waves || [];
-	for (var i = 0; i < w.length; i++) {
-		var text = String(w[i].nodes || '').trim();
-		if (!text) continue;
-		var nodes = null;
-		if (typeof busParse == 'function' && busParse(text) && typeof busNodeNames == 'function')
-			nodes = busNodeNames(text);
-		else
-			nodes = text.split(/[\s,;]+/).filter(function (n) { return n.length > 0; });
-		if (!nodes || !nodes.length) continue;
-		var fmt = w[i].fmt || (nodes.length == 1 ? 'bit' : 'hex');
+	var out = [], r = (analy.yAxe || []).slice();
+	if (analy.waves && analy.waves.length) {                    // old file: not converted yet
+		var c = JSON.parse(JSON.stringify(analy));
+		waveMigrate(c);
+		r = c.yAxe;
+	}
+	for (var i = 0; i < r.length; i++) {
+		if (!r[i].digital) continue;
+		var nodes = r[i].digital.nodes || [];
+		if (!nodes.length) continue;
+		var fmt = r[i].digital.fmt || (nodes.length == 1 ? 'bit' : 'hex');
 		if (nodes.length > 1 && fmt == 'bit') fmt = 'hex';
-		out.push({ label: w[i].label || text, nodes: nodes, fmt: fmt, color: w[i].color || '#2a78d6' });
+		out.push({ label: r[i].name, nodes: nodes, fmt: fmt, color: r[i].color || '#8a63d2' });
 	}
 	return out;
 }
@@ -208,7 +233,7 @@ function waveOptions(analy)
 	var onlyWave = {}, i, k;
 	for (i = 0; i < waves.length; i++)
 		for (k = 0; k < waves[i].nodes.length; k++) onlyWave[waves[i].nodes[k]] = true;
-	for (i = 0; i < analy.yAxe.length; i++) delete onlyWave[analy.yAxe[i].name];   // also drawn as analog
+	for (i = 0; i < analy.yAxe.length; i++) if (!analy.yAxe[i].digital) delete onlyWave[analy.yAxe[i].name];   // also drawn as analog
 	var vth = String(analy.wavevth || '').split(/[\s,;]+/).filter(function (t) { return t.length; }).map(Number).filter(function (v) { return !isNaN(v); });
 	return { waves: waves, waveOnly: onlyWave, vth: vth.length ? vth : null };
 }
@@ -313,17 +338,49 @@ function waveFitText(gd)
 {
 	try {
 		if (!gd || !gd.data || !gd._fullLayout) return;
+		if (gd.__waveBusy) return;
 		var upd = [], idx = [];
 		gd.data.forEach(function (tr, i) {
 			if (!tr.meta || tr.meta.wave != 'text') return;
+			// the axis of the trace (x, x2 ...); if it has no usable range, the first axis that has one
 			var xa = gd._fullLayout[tr.xaxis ? tr.xaxis.replace('x', 'xaxis') : 'xaxis'];
+			if (!xa || !xa.range || !(xa._length > 0)) xa = gd._fullLayout.xaxis;
 			if (!xa || !xa.range) return;
-			var pxPerUnit = xa._length / Math.abs(xa.range[1] - xa.range[0]);
-			var full = tr.meta.full, show = new Array(full.length);
-			for (var k = 0; k < full.length; k++)
+			var span = Math.abs(xa.range[1] - xa.range[0]);
+			if (!(span > 0)) return;
+			var pxPerUnit = xa._length / span;
+			var full = tr.meta.full, show = new Array(full.length), changed = false;
+			for (var k = 0; k < full.length; k++) {
 				show[k] = (tr.customdata[k] * pxPerUnit >= full[k].length * 7 + 6) ? full[k] : '';
-			upd.push(show); idx.push(i);
+				if (show[k] !== (tr.text ? tr.text[k] : '')) changed = true;
+			}
+			if (changed) { upd.push(show); idx.push(i); }
 		});
-		if (idx.length) Plotly.restyle(gd, { text: upd }, idx);
-	} catch (e) { console.error(e); }
+		if (idx.length) {
+			gd.__waveBusy = true;                      // the redraws below must not call this function again
+			idx.forEach(function (i, n) { gd.data[i].text = upd[n]; });
+			// Plotly drops a redraw asked while it is still drawing (a zoom in progress): the redraw is repeated
+			// until the text drawn in the plot is the text asked for (at most 6 times)
+			var want = 0;
+			upd.forEach(function (u) { u.forEach(function (t) { if (t) want++; }); });
+			var tries = 0;
+			var redraw = function () {
+				var drawn = gd.querySelectorAll('.textpoint text').length;
+				if (drawn == want || tries++ >= 6) { gd.__waveBusy = false; return; }
+				var again = function () { setTimeout(redraw, 60); };
+				try { Promise.resolve(Plotly.redraw(gd)).then(again, again); } catch (e) { gd.__waveBusy = false; console.error(e); }
+			};
+			setTimeout(redraw, 20);
+		}
+	} catch (e) { gd.__waveBusy = false; console.error(e); }
+}
+
+// connects the values of the digital rows to every redraw of the plot (zoom, pan, resize, autoscale...)
+function waveWatch(gd)
+{
+	if (!gd || gd.__waveWatch || typeof gd.on != 'function') return;
+	gd.__waveWatch = true;
+	['plotly_relayout', 'plotly_relayouting', 'plotly_afterplot', 'plotly_autosize', 'plotly_doubleclick'].forEach(function (ev) {
+		gd.on(ev, function () { waveFitText(gd); });
+	});
 }

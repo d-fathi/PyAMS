@@ -1025,6 +1025,8 @@ function removeOutput(n){
 function analysisSelect() {
 
         var analy=JSON.parse(mtable.select.getAttribute("description"));
+        if(typeof waveMigrate=='function' && waveMigrate(analy))       // digital rows of the first version
+            mtable.select.setAttribute("description", JSON.stringify(analy));
         var sweep=analy.sweep;
         var r=analy.yAxe;
 	    var x=analy.xAxe;
@@ -1090,6 +1092,18 @@ function analysisSelect() {
     for(var i=0;i<r.length;i++){
         defaultData.sections[2].rows.push( { label: r[i].name , type: "axeproperty", value: r[i].color, color: r[i].color, delete: false, setChange: 'colorOutput('+i+',this)', setClick: 'removeOutput('+i+')' });
     }
+    // digital outputs (Time Domain): format of each one and the logic threshold, after the rows of the outputs
+    var nDigital=0;
+    if(analy.type=='Time Domain'){
+        for(var i=0;i<r.length;i++)
+            if(r[i].digital){
+                nDigital++;
+                defaultData.sections[2].rows.push( { label: 'Format '+r[i].name, type: "dropdown", value: r[i].digital.fmt||'hex',
+                                                     options: (r[i].digital.nodes.length==1 ? ['bit','hex','bin','dec'] : ['hex','bin','dec']) });
+            }
+        if(nDigital)
+            defaultData.sections[2].rows.push( { label: 'Logic threshold (V)', type: "text", value: analy.wavevth||'' });
+    }
     defaultData.sections[2].rows.push({ label: 'Add output', type: "Button", value: 'Add', setClick: 'addOutputY' });
 
 
@@ -1104,22 +1118,6 @@ function analysisSelect() {
     // the X axis has no colour: only its name (with delete); "Modify" below changes the signal
     if(x.used)defaultData.sections[3].rows.push({ label: 'Signal', type: "axeproperty", noColor: true, value: x.name, color: x.color, delete: false });
     defaultData.sections[3].rows.push({ label: 'Add X axe', type: "Button", value: x.used?'Modify':'Add', setClick: 'addOutputX' });
-    }
-
-    // Digital rows (wave) --------------------------------------------------------------------------
-    // bits and buses drawn like the wave window of a VHDL simulator (Time Domain only)
-    if(analy.type=='Time Domain'){
-        var wv=analy.waves||[];
-        defaultData.sections.push({ title: "Digital rows (wave)", collapsed: false, showReset: true, rows: [] });
-        var wr=defaultData.sections[defaultData.sections.length-1].rows;
-        wr.push({ label: 'Logic threshold (V)', type: "text", value: analy.wavevth||'' });
-        for(var i=0;i<wv.length;i++){
-            wr.push({ label: 'Label '+(i+1), type: "text", value: wv[i].label||'' });
-            wr.push({ label: 'Signals '+(i+1), type: "text", value: wv[i].nodes||'' });
-            wr.push({ label: 'Format '+(i+1), type: "dropdown", value: wv[i].fmt||'hex', options: ['bit','hex','bin','dec'] });
-            wr.push({ label: 'Color '+(i+1), type: "axeproperty", value: wv[i].color||'#2a78d6', color: wv[i].color||'#2a78d6', delete: false });
-        }
-        wr.push({ label: 'Add digital row', type: "Button", value: 'Add', setClick: 'addWaveRow' });
     }
 
     //Second sweep property------------------------------------------------------------------------
@@ -1177,24 +1175,16 @@ function modifiedAnalysis() {
          r[i].color=propertiesData.sections[2].rows[i].color;
       }
 
- // digital rows: 4 lines per row (label, signals, format, colour with delete) after the threshold
- var waveDelete=-1;
- for(var s=0;s<propertiesData.sections.length;s++){
-     if(propertiesData.sections[s].title!="Digital rows (wave)") continue;
-     var wr=propertiesData.sections[s].rows;
-     analy.wavevth=wr[0].value;
-     analy.waves=[];
-     for(var i=0;(1+4*i+3)<wr.length;i++){
-         var b=1+4*i;
-         analy.waves.push({label: wr[b].value, nodes: wr[b+1].value, fmt: wr[b+2].value, color: wr[b+3].color});
-         if(wr[b+3].delete) waveDelete=i;
-     }
- }
- if(waveDelete>=0){
-     analy.waves.splice(waveDelete,1);
-     mtable.select.setAttribute("description", JSON.stringify(analy));
-     analysisSelect();
-     return;
+ // digital outputs: the format of each one (rows after the outputs) and the logic threshold
+ if(analy.type=='Time Domain'){
+     var yr=propertiesData.sections[2].rows, nd=0;
+     for(var i=0;i<r.length;i++)
+         if(r[i].digital){
+             var fr=yr[r.length+nd];
+             if(fr && fr.type=="dropdown") r[i].digital.fmt=fr.value;
+             nd++;
+         }
+     if(nd && yr[r.length+nd] && yr[r.length+nd].label=='Logic threshold (V)') analy.wavevth=yr[r.length+nd].value;
  }
 
  mtable.select.setAttribute("description", JSON.stringify(analy));
