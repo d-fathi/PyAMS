@@ -4,7 +4,8 @@
         "Source",
         "Semiconductor",
         "Analog ICs",
-        "Mixed-Signal"
+        "Mixed-Signal",
+        "Digital"
     ],
     "Basic": [
         "Resistor.sym",
@@ -68,5 +69,10 @@
         "ADC Analog.sym",
         "DAC Clocked.sym",
         "ADC Clocked.sym"
+    ],
+    "Digital": [
+        "Digital Clock.sym",
+        "Counter.sym",
+        "D Flip-Flop.sym"
     ]
 }
