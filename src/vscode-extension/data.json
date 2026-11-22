@@ -76,8 +76,6 @@
     ],
     "Digital": [
         "Digital Clock.sym",
-        "Counter.sym",
-        "D Flip-Flop.sym",
         "NOT.sym",
         "AND.sym",
         "OR.sym",
@@ -86,8 +84,27 @@
         "XOR.sym",
         "XNOR.sym",
         "AND3.sym",
-        "NAND3.sym",
         "OR3.sym",
-        "NOR3.sym"
+        "NAND3.sym",
+        "NOR3.sym",
+        "SR Latch.sym",
+        "D Latch.sym",
+        "D Flip-Flop.sym",
+        "JK Flip-Flop.sym",
+        "T Flip-Flop.sym",
+        "Counter.sym",
+        "Register.sym",
+        "Shift Register.sym",
+        "LFSR.sym",
+        "Multiplexer.sym",
+        "Demultiplexer.sym",
+        "Decoder.sym",
+        "Priority Encoder.sym",
+        "Magnitude Comparator.sym",
+        "Parity Generator.sym",
+        "Binary to Gray.sym",
+        "Gray to Binary.sym",
+        "Seven Segment Decoder.sym",
+        "Adder.sym"
     ]
 }
