@@ -43,7 +43,11 @@
         "NMOS 4 terminal.sym",
         "PMOS 4 terminal.sym",
         "NJFET.sym",
-        "PJFET.sym"
+        "PJFET.sym",
+        "LED Red.sym",
+        "LED Yellow.sym",
+        "LED Green.sym",
+        "LED Blue.sym"
     ],
     "Source": [
         "DC Current.sym",
@@ -80,6 +84,10 @@
         "NAND.sym",
         "NOR.sym",
         "XOR.sym",
-        "XNOR.sym"
+        "XNOR.sym",
+        "AND3.sym",
+        "NAND3.sym",
+        "OR3.sym",
+        "NOR3.sym"
     ]
 }

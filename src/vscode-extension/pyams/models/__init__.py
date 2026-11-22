@@ -27,6 +27,7 @@ from .LaplaceNDIV import LaplaceNDIV, LaplaceZPIV
 from .LaplaceNDVI import LaplaceNDVI, LaplaceZPVI
 from .DigitalClock import DigitalClock
 from .Gates import NOT, AND, OR, NAND, NOR, XOR, XNOR
+from .Gates3 import AND3, OR3, NAND3, NOR3
 from .Latches import SRLatch, DLatch
 from .FlipFlops import DFF, JKFF
 from .Counter import Counter
@@ -61,6 +62,7 @@ from .VCCS import VCCS
 from .CCVS import CCVS
 from .CCCS import CCCS
 from .Diode import Diode
+from .LED import LED
 from .DiodeBridge import DiodeBridge
 from .Diac import Diac
 from .ZenerDiode import ZenerDiode
