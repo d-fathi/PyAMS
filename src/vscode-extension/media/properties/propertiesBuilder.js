@@ -274,6 +274,7 @@ function polygonSelect() {
     var el = mtable.select, live = el.hasAttribute('wlive');
     var rows = [{ label: "Stroke", type: "color", value: rgb2hex(el.style.stroke), color: rgb2hex(el.style.stroke) }];
     if (!live) rows.push({ label: "Fill", type: "color", value: rgb2hex(el.style.fill), color: rgb2hex(el.style.fill) });
+    if (pathIsClosed(el)) rows.push({ label: "Curved segments", type: "text", value: pathGetBulges(el, getArrayPointsFloat(el).length).join(',') });
     rows.push({ label: "Live segment", type: "dropdown", options: ["No", "Yes"], value: live ? "Yes" : "No" });
     rows.push({ label: "Style", type: "Button", value: 'CSS Code', setClick:'openEditCSS' });
     var sections = [{ title: "Basic Properties", collapsed: false, showReset: true, rows: rows }];
@@ -290,6 +291,7 @@ function polygonModified() {
     var row = function (l) { for (var i = 0; i < B.length; i++) if (B[i].label === l) return B[i]; return null; };
     el.style.stroke = row("Stroke").color;
     var fill = row("Fill"); if (fill) el.style.fill = fill.color;
+    var cv = row("Curved segments"); if (cv && pathIsClosed(el)) pathSetBulges(el, cv.value.split(/[ ,]+/).filter(function (s) { return s !== ''; }).map(function (s) { return parseFloat(s) || 0; }));
     var want = row("Live segment") ? row("Live segment").value === "Yes" : false, rebuild = false;
     if (want && !el.hasAttribute('wlive')) { try { liveWidget.makeLive(el); } catch (e) { console.error(e); } rebuild = true; }
     else if (!want && el.hasAttribute('wlive')) { liveWidget.makeNormal(el); rebuild = true; }

@@ -75,7 +75,7 @@ function getPartForList(self, part) {
         case "polyline":
 		case "polygon":
 		    elem.style.strokeWidth = strokeWidth;
-            var p = getArrayPoints(elem);
+            var p = getArrayPoints(elem).concat(pathExtraPoints(elem));
             for (var j = 0; j < p.length; j++) {
                 v = p[j];
                 xmin = Math.min(v.x, xmin);

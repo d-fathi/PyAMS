@@ -73,6 +73,13 @@
     "Digital": [
         "Digital Clock.sym",
         "Counter.sym",
-        "D Flip-Flop.sym"
+        "D Flip-Flop.sym",
+        "NOT.sym",
+        "AND.sym",
+        "OR.sym",
+        "NAND.sym",
+        "NOR.sym",
+        "XOR.sym",
+        "XNOR.sym"
     ]
 }

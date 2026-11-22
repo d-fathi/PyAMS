@@ -180,6 +180,7 @@ function addLineInPolyline(self)
                 });
 				
 	self.points.splice(self.ellps[self.pos].setPos, 0, {x:self.ellps[self.pos].x,y:self.ellps[self.pos].y});
+	pathInsertVertex(self.setElement, self.ellps[self.pos].setPos-1);
 
 	
 }
@@ -210,9 +211,10 @@ function deletePointInSameDirection(self)
 	 var p=self.points[j+1];
 	 
 	 
-	 if( pointInPolylineDelet(p1,p2, p))
+	 if( pointInPolylineDelet(p1,p2, p) && !pathCurvedAt(self.setElement,j))
 	 {
 		  self.points.splice(j+1, 1);
+		  pathRemoveVertex(self.setElement, j);
 		  self.setElement.setAttribute("points", polylineToAttribute(self.points,0,0));
 		  break;
 	 }
@@ -251,4 +253,107 @@ function getArrayPointsFloat(elem)
             }
 			
 			return points;
+}
+
+//--Closed path (a polygon whose segments can be curved) ----------------------------------------
+// A closed path is a <path name="polygon"> that keeps the polygon data in `points` (so selecting,
+// moving, editing the vertices, rotating and flipping work as for a polygon) and a list of
+// `bulges`, one per segment (the segment from point i to point i+1, the last one closes the shape):
+//   0 = straight line; b = sagitta / half chord (1 = half circle); b > 0 bulges to the right of the
+//   travel direction (outwards for a clockwise outline on the screen), b < 0 to the left.
+// Its `d` is rebuilt from `points` and `bulges` whenever one of them changes.
+function pathIsClosed(el) {
+    return !!el && el.tagName === 'path' && el.hasAttribute('bulges');
+}
+
+function pathGetBulges(el, n) {
+    var b = (el.getAttribute('bulges') || '').split(/[ ,]+/).filter(function (s) { return s !== ''; }).map(parseFloat);
+    for (var i = 0; i < b.length; i++) if (isNaN(b[i])) b[i] = 0;
+    while (b.length < n) b.push(0);
+    return b.slice(0, n);
+}
+
+function pathSetBulges(el, b) {
+    el.setAttribute('bulges', b.map(function (v) { return String(Math.round(v * 10000) / 10000); }).join(','));
+}
+
+function pathNum(v) { return String(Math.round(v * 1000) / 1000); }
+
+function pathBuildD(el) {
+    var p = getArrayPointsFloat(el), n = p.length;
+    if (n < 2) return '';
+    var b = pathGetBulges(el, n);
+    var d = 'M ' + pathNum(p[0].x) + ' ' + pathNum(p[0].y);
+    for (var i = 0; i < n; i++) {
+        var q = p[(i + 1) % n], a = p[i];
+        var c = Math.hypot(q.x - a.x, q.y - a.y);
+        if (b[i] === 0 || c === 0) { d += ' L ' + pathNum(q.x) + ' ' + pathNum(q.y); continue; }
+        var r = (c / 2) * (1 + b[i] * b[i]) / (2 * Math.abs(b[i]));
+        d += ' A ' + pathNum(r) + ' ' + pathNum(r) + ' 0 ' + (Math.abs(b[i]) > 1 ? 1 : 0) + ' ' + (b[i] > 0 ? 1 : 0) + ' ' + pathNum(q.x) + ' ' + pathNum(q.y);
+    }
+    return d + ' Z';
+}
+
+var pathRefreshing = false;
+function pathRefresh(el) {
+    if (pathRefreshing || !pathIsClosed(el) || !el.hasAttribute('points')) return;
+    pathRefreshing = true;
+    try { el.setAttribute('d', pathBuildD(el)); } finally { pathRefreshing = false; }
+}
+
+// the points of the curved segments (used with the vertices to get the size of the shape)
+function pathExtraPoints(el) {
+    var out = [];
+    if (!pathIsClosed(el)) return out;
+    var p = getArrayPointsFloat(el), n = p.length, b = pathGetBulges(el, n);
+    for (var i = 0; i < n; i++) {
+        if (b[i] === 0) continue;
+        var a = p[i], q = p[(i + 1) % n], c = Math.hypot(q.x - a.x, q.y - a.y);
+        if (c === 0) continue;
+        var r = (c / 2) * (1 + b[i] * b[i]) / (2 * Math.abs(b[i])), sg = b[i] > 0 ? 1 : -1;
+        var ux = (q.y - a.y) / c, uy = -(q.x - a.x) / c;                       // bulge side for b > 0
+        var apx = (a.x + q.x) / 2 + ux * b[i] * c / 2, apy = (a.y + q.y) / 2 + uy * b[i] * c / 2;
+        var cx = apx - sg * ux * r, cy = apy - sg * uy * r;                    // centre of the circle
+        var a0 = Math.atan2(a.y - cy, a.x - cx), da = 4 * Math.atan(b[i]);
+        for (var k = 1; k < 16; k++) out.push({ x: cx + r * Math.cos(a0 + da * k / 16), y: cy + r * Math.sin(a0 + da * k / 16) });
+    }
+    return out;
+}
+
+// flipping or turning the shape over reverses the side of every curve
+function pathMirror(el) {
+    if (!pathIsClosed(el)) return;
+    pathSetBulges(el, pathGetBulges(el, getArrayPointsFloat(el).length).map(function (v) { return -v; }));
+}
+
+// a vertex was added on the segment `seg` (between the points seg and seg+1): the curve is shared by the two new segments
+function pathInsertVertex(el, seg) {
+    if (!pathIsClosed(el)) return;
+    var n = getArrayPointsFloat(el).length;                                    // before the insertion
+    var b = pathGetBulges(el, n), h = Math.tan(Math.atan(b[seg]) / 2);
+    b.splice(seg, 1, h, h);
+    pathSetBulges(el, b);
+}
+
+// a vertex was removed: segments `seg` and `seg+1` become one (only straight ones are merged)
+function pathRemoveVertex(el, seg) {
+    if (!pathIsClosed(el)) return;
+    var b = pathGetBulges(el, getArrayPointsFloat(el).length);
+    b.splice(seg + 1, 1);
+    pathSetBulges(el, b);
+}
+
+(function () {
+    var original = Element.prototype.setAttribute;
+    Element.prototype.setAttribute = function (name, value) {
+        original.call(this, name, value);
+        if ((name === 'points' || name === 'bulges') && this.tagName === 'path') pathRefresh(this);
+    };
+})();
+
+// true when the segment `seg` or the next one is curved
+function pathCurvedAt(el, seg) {
+    if (!pathIsClosed(el)) return false;
+    var b = pathGetBulges(el, getArrayPointsFloat(el).length);
+    return b[seg] !== 0 || b[seg + 1] !== 0;
 }

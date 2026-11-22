@@ -141,6 +141,15 @@ function designMouseDown(self, pos) {
         self.design.start = true;
         break;
 
+    case 'cpath':
+        self.addElement('cpath');
+        self.svgSym.lastChild.setAttribute("points", pos.x + "," + pos.y + " " + (pos.x + 10) + "," + pos.y + " " + (pos.x + 10) + "," + (pos.y + 20) + " " + pos.x + "," + (pos.y + 20));
+        self.resize.deletEllipse();
+        self.resize.setElement = drawing.shapes.svgSym.lastChild;
+        self.resize.creatEllipse();
+        self.design.start = true;
+        break;
+
     case 'polyline':
   	case 'polygon':
         self.addElement(drawing.shapes.design.name);

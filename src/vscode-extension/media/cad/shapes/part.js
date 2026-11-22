@@ -62,7 +62,7 @@ function newPart(self, part) {
 
         case "polyline":
         case "polygon":
-            var p = getArrayPoints(elem);
+            var p = getArrayPoints(elem).concat(pathExtraPoints(elem));
             for (var j = 0; j < p.length; j++) {
                 v = p[j];
                 xmin = Math.min(v.x, xmin);
@@ -322,6 +322,7 @@ function rotatePart() {
                         p[j].y = temp;
                     }
                     e.setAttribute("points", polylineToAttribute(p, 0, 0));
+                    pathMirror(e);
                     break;
 
                 case "ellipse":
@@ -473,6 +474,7 @@ function flipHorizontalPart() {
                         p[j].x = Math.abs(p[j].x - w);
 
                     e.setAttribute("points", polylineToAttribute(p, 0, 0));
+                    pathMirror(e);
                     break;
 
                 case "ellipse":
@@ -588,6 +590,7 @@ function flipVerticallyPart() {
                         p[j].y = Math.abs(p[j].y - h);
 
                     e.setAttribute("points", polylineToAttribute(p, 0, 0));
+                    pathMirror(e);
                     break;
 
                 case "ellipse":
