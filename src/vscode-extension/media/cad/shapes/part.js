@@ -91,13 +91,13 @@ function newPart(self, part) {
     }
     var xorg = xmin;
     var yorg = ymin;
-    xmin = 5 * Math.round((xmin - 5) / 5);
-    ymin = 5 * Math.round((ymin - 5) / 5);
+    xmin = 5 * Math.floor((xmin - 2) / 5);
+    ymin = 5 * Math.floor((ymin - 2) / 5);
     var xorg = 0; //xorg-xmin;
     var yorg = 0; //yorg-ymin;
 
-    xmax = 5 * Math.ceil(xmax / 5);
-    ymax = 5 * Math.ceil(ymax / 5);
+    xmax = 5 * Math.ceil((xmax + 2) / 5);
+    ymax = 5 * Math.ceil((ymax + 2) / 5);
     for (var i = 0; i <= collection.length - 1; i++) {
         var elem = collection[i];
         switch (elem.getAttribute("name")) {
