@@ -46,8 +46,13 @@ function savePageToSVG(size) {
                 getMinMaxSize(min_, max_, p[j].x, p[j].y);
             break;
 
-        case "ellipse":
 		case "arc":
+            var ab = arcBounds(elem);
+            getMinMaxSize(min_, max_, ab.xmin, ab.ymin);
+            getMinMaxSize(min_, max_, ab.xmax, ab.ymax);
+            break;
+
+        case "ellipse":
             var x = parseInt(elem.getAttribute("cx")) - parseInt(elem.getAttribute("rx"));
             var y = parseInt(elem.getAttribute("cy")) - parseInt(elem.getAttribute("ry"));
             getMinMaxSize(min_, max_, x, y);

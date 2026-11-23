@@ -33,8 +33,14 @@ function newPart(self, part) {
             xmax = Math.max(x + w, xmax);
             ymax = Math.max(y + h, ymax);
             break
-        case "ellipse":
         case "arc":
+            var ab = arcBounds(elem);
+            xmin = Math.min(ab.xmin, xmin);
+            ymin = Math.min(ab.ymin, ymin);
+            xmax = Math.max(ab.xmax, xmax);
+            ymax = Math.max(ab.ymax, ymax);
+            break
+        case "ellipse":
             var x = parseInt(elem.getAttribute("cx")) - parseInt(elem.getAttribute("rx"));
             var y = parseInt(elem.getAttribute("cy")) - parseInt(elem.getAttribute("ry"));
             var w = 2 * parseInt(elem.getAttribute("rx"));
