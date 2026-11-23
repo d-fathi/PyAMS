@@ -64,7 +64,8 @@
         "AC Current.sym"
     ],
     "Analog ICs": [
-        "OpAmp.sym"
+        "OpAmp.sym",
+        "Timer 555.sym"
     ],
     "Mixed-Signal": [
         "DAC.sym",
