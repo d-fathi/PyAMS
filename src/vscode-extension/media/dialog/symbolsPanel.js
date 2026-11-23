@@ -28,7 +28,7 @@ function fsymbolsPanel(self) {
     position: absolute;
     top: 50px;
     left: 20px;
-    width: 250px;
+    width: 290px;
     background: var(--vscode-editorWidget-background, white);
     border: 1px solid var(--vscode-editorWidget-border, #ccc);
     border-radius: 6px;
@@ -38,9 +38,9 @@ function fsymbolsPanel(self) {
     font-family: var(--vscode-font-family, verdana);
     font-size: var(--vscode-font-size, 12px);
     color: var(--vscode-editor-foreground, #333);
-    /* Fixed overall height */
-    height: 540px;
-    max-height: 80vh;
+    /* Height follows the window: from the top (50px) down to 20px above the bottom */
+    height: calc(100vh - 70px);
+    min-height: 300px;
     /* Use flex column layout */
     display: none;
     flex-direction: column;

@@ -1,5 +1,5 @@
 /* Live simulation side panel (stage 1: layout only, nothing runs yet) */
-#livePanel { position: fixed; top: 120px; right: 16px; width: 270px; z-index: 900; display: none;
+#livePanel { position: fixed; top: 50px; left: 20px; width: 270px; z-index: 900; display: none;
   background: var(--vscode-editorWidget-background, #252526); color: var(--vscode-editorWidget-foreground, #ccc);
   border: 1px solid var(--vscode-editorWidget-border, #454545); border-radius: 6px;
   box-shadow: 0 4px 14px rgba(0,0,0,.35); font-family: var(--vscode-font-family, verdana); font-size: 12px; }

@@ -24,6 +24,7 @@ All notable changes to PyAMS will be documented in this file.
 - Buses, phase 1 (drawing only): a wire whose Reference is written `D[0:7]` in the Properties panel is a bus of 8 lines (`D0` to `D7`; `D[7:0]` is accepted too, any name and any width of 2 or more). It is drawn thick (3 px) with larger junction dots. A pin named `D[0:7]` in the symbol editor is a thick bus pin (attribute `bus`). Renaming it back to a normal name restores the normal drawing. `busParse`, `netBusUpdate` (`cnode.js`) and `pinBusStyle` (`pin.js`). Width checks between wires and pins and the expansion into `D0` to `D7` in the netlist are not done yet: a bus is still simulated as one net.
 
 ### Changed
+- Width of the side panels: `List of elements` 420 -> 340 (it had free space at the right of the text), `Symbols library` 250 -> 290 and its height follows the window (it was fixed at 540, at most 80% of the window).
 - Live simulation panel: `Step` and `Speed` are saved in the circuit file (attributes `livestep` and `liverate` of its header) and restored when the file is opened. Changing one of them asks for a save. A file without these attributes uses the defaults (`1ms`, real time).
 - Initial position of the panels: `List of elements` and `Live simulation` now open at the top left, like `Symbols library` (they opened in the middle and at the right). `Properties` stays at the right. The panels can still be dragged.
 
