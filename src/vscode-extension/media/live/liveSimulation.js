@@ -36,6 +36,32 @@ var liveSimulation = (function () {
         setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 300); }, 2000);
     }
 
+    // Step and Speed are saved in the circuit file (attributes livestep / liverate of its header)
+    var settings = null;
+    function applySettings(s) {
+        if (!panel || !s) return;
+        var st = panel.querySelector('#lpStep'), rt = panel.querySelector('#lpRate');
+        if (s.step) st.value = s.step;
+        if (s.rate !== undefined && s.rate !== null && s.rate !== '') {
+            var ok = Array.prototype.some.call(rt.options, function (o) { return o.value === String(s.rate); });
+            if (ok) rt.value = String(s.rate);
+        }
+    }
+    function settingsChanged() {
+        settings = api.getSettings();
+        // ask for a save so that the file holds the new values
+        try { if (typeof drawing !== 'undefined' && drawing.saveData) drawing.saveData(); } catch (e) {}
+    }
+    api.getSettings = function () {
+        if (!panel) return settings;
+        var step = panel.querySelector('#lpStep').value.trim() || '1ms';
+        return { step: step, rate: panel.querySelector('#lpRate').value };
+    };
+    api.setSettings = function (s) {
+        settings = s && (s.step || s.rate) ? { step: s.step || '', rate: s.rate || '' } : null;
+        applySettings(settings);
+    };
+
     function create() {
         if (panel) return panel;
         panel = document.createElement('div');
@@ -107,7 +133,9 @@ var liveSimulation = (function () {
         };
         liveBridge.onLog = function (m, level) { if (level === 'error') setStatus(m, true); try { console.log('[live ' + level + '] ' + m); } catch (e) {} };
         function fmtT(t) { return t >= 1 ? t.toFixed(2) + ' s' : t >= 1e-3 ? (t * 1e3).toFixed(1) + ' ms' : (t * 1e6).toFixed(0) + ' us'; }
-        panel.querySelector('#lpRate').addEventListener('change', function () { if (liveBridge.isActive()) liveBridge.setRate(rateValue()); });
+        panel.querySelector('#lpRate').addEventListener('change', function () { if (liveBridge.isActive()) liveBridge.setRate(rateValue()); settingsChanged(); });
+        panel.querySelector('#lpStep').addEventListener('change', settingsChanged);
+        if (settings) applySettings(settings);
         showNote();
         panel.querySelectorAll('[data-act]').forEach(function (el) {
             el.addEventListener('click', function (e) {

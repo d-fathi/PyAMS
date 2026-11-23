@@ -89,6 +89,7 @@ self.setSymbolDescription = function () {
         var zoom = parseFloat(sym.getAttribute("zoom"));
         var scrollLeft = parseInt(sym.getAttribute("left"));
         var scrollTop = parseInt(sym.getAttribute("top"));
+        try { liveSimulation.setSettings({ step: sym.getAttribute("livestep"), rate: sym.getAttribute("liverate") }); } catch (e) {}
         self.grid.zoom = zoom;
         self.grid.pageSize(width, height);
         self.grid.area.areaGlobal.scrollTo({
@@ -108,6 +109,7 @@ self.setSymbolDescription = function () {
 
 self.getSymbolDescription = function () {
         var sym = document.getElementById("sym").firstChild;
+        var liveOld = { step: sym.getAttribute("livestep"), rate: sym.getAttribute("liverate") };
         [...sym.attributes].forEach(attr => {sym.removeAttribute(attr.name);});
         sym.setAttribute("width", self.grid.width);
         sym.setAttribute("height", self.grid.height);
@@ -115,6 +117,12 @@ self.getSymbolDescription = function () {
         sym.setAttribute("left", self.grid.area.areaGlobal.scrollLeft);
         sym.setAttribute("top", self.grid.area.areaGlobal.scrollTop);
         sym.setAttribute("symbol", JSON.stringify(self.symbol));  
+        // Step and Speed of the live simulation panel (the values read from the file are kept if the panel was not used)
+        var ls = null;
+        try { ls = liveSimulation.getSettings(); } catch (e) {}
+        if (!ls) ls = liveOld;
+        if (ls && ls.step) sym.setAttribute("livestep", ls.step);
+        if (ls && ls.rate) sym.setAttribute("liverate", ls.rate);
     }
 
  self.getSymbol = function () {
