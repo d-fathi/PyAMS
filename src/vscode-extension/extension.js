@@ -20,7 +20,7 @@ function activate(context) {
     
     context.subscriptions.push(
         vscode.commands.registerCommand('editor.action.clipboardCopyAction', async () => {
-            if (PyAMSEditorProvider.activeWebview) {
+            if (PyAMSEditorProvider.activeWebview && PyAMSEditorProvider.webviewHasFocus !== false) {
                 PyAMSEditorProvider.activeWebview.postMessage({ type: 'execCopy' });
             } else {
                 await vscode.commands.executeCommand('default:editor.action.clipboardCopyAction');
@@ -30,7 +30,7 @@ function activate(context) {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('editor.action.clipboardCutAction', async () => {
-            if (PyAMSEditorProvider.activeWebview) {
+            if (PyAMSEditorProvider.activeWebview && PyAMSEditorProvider.webviewHasFocus !== false) {
                 PyAMSEditorProvider.activeWebview.postMessage({ type: 'execCut' });
             } else {
                 await vscode.commands.executeCommand('default:editor.action.clipboardCutAction');
@@ -40,7 +40,7 @@ function activate(context) {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('editor.action.clipboardPasteAction', async () => {
-            if (PyAMSEditorProvider.activeWebview) {
+            if (PyAMSEditorProvider.activeWebview && PyAMSEditorProvider.webviewHasFocus !== false) {
                 const text = await vscode.env.clipboard.readText();
                 PyAMSEditorProvider.activeWebview.postMessage({ type: 'execPaste', data: text });
             } else {

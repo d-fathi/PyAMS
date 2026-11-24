@@ -34,6 +34,7 @@ class PyAMSEditorProvider {
         webviewPanel.webview.html = this.getHtmlForWebview(webviewPanel.webview);
 
         PyAMSEditorProvider.activeWebview = webviewPanel.webview;
+        PyAMSEditorProvider.webviewHasFocus = true;
 
         // Zoom level shown in the status bar (per editor)
         let currentZoom = null;
@@ -66,6 +67,7 @@ class PyAMSEditorProvider {
         webviewPanel.onDidChangeViewState(e => {
     if (e.webviewPanel.active) {
         PyAMSEditorProvider.activeWebview = webviewPanel.webview;
+        PyAMSEditorProvider.webviewHasFocus = true;
         showZoom();
         showPos();
     } else if (PyAMSEditorProvider.activeWebview === webviewPanel.webview) {
@@ -165,6 +167,14 @@ case 'ready':
 
                 case 'copyData':
                     await vscode.env.clipboard.writeText(message.data);
+                    break;
+
+                // The keyboard focus left the editor (e.g. to a text box of the Explorer) or came back:
+                // Copy / Cut / Paste must act on the circuit only while the editor itself has the focus
+                case 'webviewFocus':
+                    if (PyAMSEditorProvider.activeWebview === webviewPanel.webview) {
+                        PyAMSEditorProvider.webviewHasFocus = !!message.focused;
+                    }
                     break;
 case 'getLibraryFiles': {
     // Run a Python process that searches pyams/models for `class Name(model)`
@@ -620,6 +630,10 @@ webviewPanel.onDidDispose(() => {
                 e.preventDefault();
             }
         }, true);
+
+        // Tell VS Code when the keyboard focus leaves / enters the editor
+        window.addEventListener('focus', function () { vscode.postMessage({ type: 'webviewFocus', focused: true }); });
+        window.addEventListener('blur', function () { vscode.postMessage({ type: 'webviewFocus', focused: false }); });
 
         // Notify VS Code that the Webview is ready
         vscode.postMessage({ type: 'ready' });
