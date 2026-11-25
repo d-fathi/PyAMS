@@ -65,7 +65,8 @@
     ],
     "Analog ICs": [
         "OpAmp.sym",
-        "Timer 555.sym"
+        "Timer 555.sym",
+        "Comparator.sym"
     ],
     "Mixed-Signal": [
         "DAC.sym",
