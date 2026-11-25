@@ -40,8 +40,14 @@ function getCircuit() {
             ymax = Math.max(y + h, ymax);
            console.log( elem.getAttribute("name"));
             break
-        case "ellipse":
         case "arc":
+            var ab = arcBounds(elem);
+            xmin = Math.min(ab.xmin, xmin);
+            ymin = Math.min(ab.ymin, ymin);
+            xmax = Math.max(ab.xmax, xmax);
+            ymax = Math.max(ab.ymax, ymax);
+            break;
+        case "ellipse":
         case "cnode":
             var x = parseInt(elem.getAttribute("cx")) - parseInt(elem.getAttribute("rx"));
             var y = parseInt(elem.getAttribute("cy")) - parseInt(elem.getAttribute("ry"));
@@ -71,7 +77,7 @@ function getCircuit() {
         case "polyline":
         case "polygon":
         case "net":
-            var p = getArrayPoints(elem);
+            var p = getArrayPoints(elem).concat(pathExtraPoints(elem));
             for (var j = 0; j < p.length; j++) {
                 v = p[j];
                 xmin = Math.min(v.x, xmin);
@@ -94,13 +100,13 @@ function getCircuit() {
     }
     var xorg = xmin;
     var yorg = ymin;
-    xmin = 5 * Math.round((xmin - 5) / 5);
-    ymin = 5 * Math.round((ymin - 5) / 5);
+    xmin = 5 * Math.floor((xmin - 2) / 5);
+    ymin = 5 * Math.floor((ymin - 2) / 5);
     var xorg = 0; //xorg-xmin;
     var yorg = 0; //yorg-ymin;
 
-    xmax = 5 * Math.ceil(xmax / 5);
-    ymax = 5 * Math.ceil(ymax / 5);
+    xmax = 5 * Math.ceil((xmax + 2) / 5);
+    ymax = 5 * Math.ceil((ymax + 2) / 5);
     for (var i = 0; i <= collection.length - 1; i++) {
         var elem = collection[i];
         switch (elem.getAttribute("name")) {

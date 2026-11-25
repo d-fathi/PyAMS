@@ -89,6 +89,7 @@ self.setSymbolDescription = function () {
         var zoom = parseFloat(sym.getAttribute("zoom"));
         var scrollLeft = parseInt(sym.getAttribute("left"));
         var scrollTop = parseInt(sym.getAttribute("top"));
+        try { liveSimulation.setSettings({ step: sym.getAttribute("livestep"), rate: sym.getAttribute("liverate") }); } catch (e) {}
         self.grid.zoom = zoom;
         self.grid.pageSize(width, height);
         self.grid.area.areaGlobal.scrollTo({
@@ -108,6 +109,7 @@ self.setSymbolDescription = function () {
 
 self.getSymbolDescription = function () {
         var sym = document.getElementById("sym").firstChild;
+        var liveOld = { step: sym.getAttribute("livestep"), rate: sym.getAttribute("liverate") };
         [...sym.attributes].forEach(attr => {sym.removeAttribute(attr.name);});
         sym.setAttribute("width", self.grid.width);
         sym.setAttribute("height", self.grid.height);
@@ -115,6 +117,12 @@ self.getSymbolDescription = function () {
         sym.setAttribute("left", self.grid.area.areaGlobal.scrollLeft);
         sym.setAttribute("top", self.grid.area.areaGlobal.scrollTop);
         sym.setAttribute("symbol", JSON.stringify(self.symbol));  
+        // Step and Speed of the live simulation panel (the values read from the file are kept if the panel was not used)
+        var ls = null;
+        try { ls = liveSimulation.getSettings(); } catch (e) {}
+        if (!ls) ls = liveOld;
+        if (ls && ls.step) sym.setAttribute("livestep", ls.step);
+        if (ls && ls.rate) sym.setAttribute("liverate", ls.rate);
     }
 
  self.getSymbol = function () {
@@ -435,9 +443,15 @@ self.makePyAMSPlot = function(results, options) {
     var palette = ['#1f77b4', '#d62728', '#2ca02c', '#ff7f0e', '#9467bd', '#8c564b', '#e377c2', '#17becf'];
     var dashes = ['solid', 'dash', 'dot', 'dashdot', 'longdash', 'longdashdot'];
 
+    // digital rows (bit / bus, Time Domain): drawn on top, the analog rows below
+    var waves = (!isAC && options.waves) ? options.waves : [];
+    var waveOnly = options.waveOnly || {};
+    var nW = waves.length;
+
     // the curves to draw: one per (series, view); a view is the signal itself, or dB / magnitude / phase (AC)
     var views = [];
     series.forEach(function(sr, i) {
+        if (waveOnly[sr.name]) return;                 // a node that only a wave row uses
         var list = isAC ? parts : ['y'];
         list.forEach(function(v, k) {
             var y, unit;
@@ -454,9 +468,9 @@ self.makePyAMSPlot = function(results, options) {
     views.forEach(function(v) {
         var k = units.indexOf(v.unit);
         if (k < 0) { units.push(v.unit); k = units.length - 1; }
-        v.row = k + 1;
+        v.row = k + 1 + nW;
     });
-    if (units.length === 0) units.push('');
+    if (units.length === 0 && nW === 0) units.push('');
 
     var data = views.map(function(v) {
         var sr = v.sr;
@@ -477,17 +491,26 @@ self.makePyAMSPlot = function(results, options) {
         };
     });
 
+    for (var j = 0; j < nW; j++)
+        waveTraces(results, waves[j], options.vth, j + 1).forEach(function(t) { data.push(t); });
+
     var layout = Object.assign({}, base);
     delete layout.grid;                       // the rows are placed with explicit axis domains below
-    layout.margin = { l: 70, r: 25, t: 35, b: 70 };
+    layout.margin = { l: nW ? 110 : 70, r: 25, t: 35, b: 70 };
     layout.showlegend = true;
-    var n = units.length;
+    var n = units.length + nW;
     var gap = n > 1 ? 0.06 : 0;
-    var h = (1 - gap * (n - 1)) / n;
+    // a digital row is lower than an analog one
+    var weights = [], wsum = 0;
+    for (var q = 1; q <= n; q++) { weights.push(q <= nW ? 0.45 : 1); wsum += weights[q - 1]; }
+    var avail = 1 - gap * (n - 1), topAt = 1;
+    var annotations = [];
     var xTitle = (results.xLabel || '') + (results.xUnit ? ' [' + results.xUnit + ']' : '');
     for (var r = 1; r <= n; r++) {
         var suffix = r > 1 ? r : '';
-        var top = 1 - (r - 1) * (h + gap);
+        var h = avail * weights[r - 1] / wsum;
+        var top = topAt;
+        topAt -= h + gap;
         var domain = [Math.max(0, top - h), top];
         layout['xaxis' + suffix] = {
             type: isAC ? 'log' : 'linear',
@@ -499,13 +522,24 @@ self.makePyAMSPlot = function(results, options) {
             showticklabels: r === n,
             title: r === n ? { text: xTitle } : undefined
         };
+        if (r <= nW) {                        // a digital row: no ticks, the label at the left
+            layout['yaxis' + suffix] = {
+                type: 'linear', domain: domain, anchor: 'x' + suffix, fixedrange: true,
+                range: waves[r - 1].nodes.length == 1 ? [-0.2, 1.2] : [0, 1],
+                showgrid: false, zeroline: false, showticklabels: false, ticks: ''
+            };
+            annotations.push({ xref: 'paper', yref: 'paper', x: -0.01, y: (domain[0] + domain[1]) / 2, xanchor: 'right',
+                               yanchor: 'middle', showarrow: false, text: waves[r - 1].label, font: { size: 11 } });
+            continue;
+        }
         layout['yaxis' + suffix] = {
             type: 'linear', domain: domain, anchor: 'x' + suffix,
             gridcolor: '#e0e0e0', showgrid: true,
             exponentformat: 'SI',
-            title: { text: units[r - 1] }
+            title: { text: units[r - 1 - nW] }
         };
     }
+    if (annotations.length) layout.annotations = annotations;
     return { data: data, layout: layout, config: { responsive: true, displaylogo: false } };
 };
 
@@ -513,7 +547,13 @@ self.makePyAMSPlot = function(results, options) {
 self.plotPyAMSResults = function(elem, results, options) {
     var p = self.makePyAMSPlot(results, options);
     self.keepPlotStyle(elem, p.layout);
-    return Plotly.newPlot(elem, p.data, p.layout, p.config);
+    return Plotly.newPlot(elem, p.data, p.layout, p.config).then(function(gd) {
+        if (p.layout.annotations) {                         // digital rows: values that fit the segments
+            waveFitText(elem);
+            waveWatch(elem);
+        }
+        return gd;
+    });
 };
 
 // Keep the look of the plot (colors, fonts, title, legend, grid...) that the user set before running again:
@@ -570,13 +610,14 @@ self.getListParameter = function(code) {
 }
 //*************Signal dialog for PyAMS code*******************//
 // data: result of getListParameter(code); preSelected: e.g. "R1.I" or a node name ("Vcc").
-// onSubmit receives { selectedSignal, selectedFunction, selectedKind }.
-self.getSignalDialog = function(data, preSelected, acUsed, onSubmit, onCancel) {
+// onSubmit receives { selectedSignal, selectedFunction, selectedKind, selectedNodes }; options.digital lists the dsignal.
+self.getSignalDialog = function(data, preSelected, acUsed, onSubmit, onCancel, options) {
     if (typeof signalDialog === 'undefined' || !signalDialog) {
         signalDialog = new fSignalDialog(self);
     }
     signalDialog.onSubmit = onSubmit || null;
     signalDialog.onCancel = onCancel || null;
+    signalDialog.digital = !!(options && options.digital);     // list the digital signals (dsignal) too
     signalDialog.initData(data, preSelected, acUsed);
     signalDialog.show();
 };

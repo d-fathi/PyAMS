@@ -108,6 +108,14 @@ def _describe(name, obj, model):
         'n': _plain(s.n),
     } for sname, s in obj._signals.items()]
 
+    # digital signals (dsignal: a bit or a bus): name, direction and the nodes, bit 0 (LSB) first
+    dsignals = [{
+        'name': dname,
+        'direction': d.direction,
+        'width': len(d.nodes),
+        'nodes': _plain(list(d.nodes)),
+    } for dname, d in (getattr(obj, '_dsigs', None) or {}).items()]
+
     params = []
     for pname, p in obj._params.items():
         default = defaults.get(pname)
@@ -128,6 +136,7 @@ def _describe(name, obj, model):
         'init': init,
         'setParams': obj.__dict__.get('_rec_calls', []),
         'signals': signals,
+        'dsignals': dsignals,
         'params': params,
     }
 

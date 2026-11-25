@@ -118,3 +118,21 @@ function getNewPosByAngle(self) {
         self.moveElement(self.ellps[4]);
     }
 }
+
+
+// real extent of the drawn part of an arc (not the whole ellipse): {xmin, ymin, xmax, ymax}
+function arcBounds(elem) {
+    var a = getArcPoints(elem), b = { xmin: Infinity, ymin: Infinity, xmax: -Infinity, ymax: -Infinity };
+    var sweep = isNaN(a.endAngle) ? a.deltaAngle : a.endAngle;
+    if (isNaN(a.startAngle) || isNaN(sweep)) {
+        return { xmin: a.cx - a.rx, ymin: a.cy - a.ry, xmax: a.cx + a.rx, ymax: a.cy + a.ry };
+    }
+    var n = 48;
+    for (var k = 0; k <= n; k++) {
+        var t = a.startAngle + sweep * k / n;
+        var x = a.cx + a.rx * Math.cos(t), y = a.cy + a.ry * Math.sin(t);
+        b.xmin = Math.min(b.xmin, x); b.xmax = Math.max(b.xmax, x);
+        b.ymin = Math.min(b.ymin, y); b.ymax = Math.max(b.ymax, y);
+    }
+    return b;
+}

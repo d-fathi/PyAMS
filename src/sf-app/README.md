@@ -19,7 +19,16 @@
 
 ## What’s New 
 
-**v0.5.0 (Current)**
+**v0.6.0 (Current)**
+
+### Added
+- **Digital and mixed-signal:** logic waveform viewer (digital signals above the analog plot), buses (`D[0:7]`), logic gates, flip-flops, counters and other digital blocks with symbols, ADC / DAC models and symbols, LEDs, Timer 555 and Comparator.
+- **Wire name labels** (`Show name`), the *Closed path* tool in the symbol editor, and new demos (555 astable, Hartley and Colpitts oscillators, relaxation oscillator, ADC / DAC with a bus, digital counter, logic gates with switches and LEDs).
+
+### Fixed
+- Selection box of parts with arcs, junction dots hidden under filled shapes, and other fixes (see CHANGELOG.md).
+
+**v0.5.0**
 
 ### Added
 - **Switches and relays:** manual switches (SPST, SPDT), voltage- and current-controlled switches (`Switch`, `SwitchV`, `SwitchI`) and relays (SPST, SPDT) with their symbols and models. The switch widgets have a *Line width* property.

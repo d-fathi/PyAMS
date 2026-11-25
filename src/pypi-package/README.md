@@ -14,7 +14,7 @@
 </a>
 
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.5.0-blue" alt="v0.5.0">
+    <img src="https://img.shields.io/badge/Version-0.6.0-blue" alt="v0.6.0">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -297,6 +297,45 @@ class MyCounter(model):
 A bus supports integer operators, slices `ds[lo:hi]`, `.value`, and delayed assignment `ds.set(v, delay)`.
 The digital models of section 5 are all written this way, and a model can have both `digital()` and `analog()`.
 
+#### Logic levels: `Voh`, `Vol`, `Vil`, `Vih`
+
+Every digital model carries the parameters of its logic family:
+
+| Parameter | Default | Meaning |
+|-----------|---------|---------|
+| `Voh`, `Vol` | 5 V, 0 V | output levels for 1 and 0 (a Thevenin source behind `Rout`, with `Cout`) |
+| `Vil`, `Vih` | 0.3, 0.7 | input thresholds, **as fractions of `Voh − Vol`**: below `Vlo = Vol + Vil·(Voh−Vol)` the input reads 0, above `Vhi = Vol + Vih·(Voh−Vol)` it reads 1, in between it keeps its previous value (hysteresis) |
+| `Rout`, `Cout`, `Tpd` | 100 Ω, 10 pF, 10 ns | output resistance, output capacitance, propagation delay |
+
+Choose them from the supply voltage and the family you want to model, e.g.
+`g.setParams("Voh=3.3 Vol=0")` for 3.3 V logic or `"Voh=3.4 Vol=0.2 Vil=0.25 Vih=0.6"` for a TTL-like family.
+Because the thresholds are fractions, changing `Voh` alone scales everything; two models of different families
+connected together each read the other's output with their *own* thresholds. Under a heavy load the real output
+level is lower than `Voh` (voltage drop on `Rout`).
+
+**Example: astable multivibrator with one gate** (`digital_astable.py`). A `NOT` gate, a resistor from its output to its input and a
+capacitor from the input to ground. Since the input keeps its value between `Vlo` and `Vhi`, the gate behaves as a Schmitt trigger and the circuit
+oscillates, with the period
+
+`T = (R+Rout)·C·[ ln((Voh−Vlo)/(Voh−Vhi)) + ln((Vhi−Vol)/(Vlo−Vol)) ] + 2·Tpd`
+
+```python
+g = NOT("x", "out");  g.setParams("Voh=5 Vol=0 Vil=0.3 Vih=0.7")
+r = Resistor("out", "x"); r.setParams("R=10k")
+c = Capacitor("x", "0");  c.setParams("C=10n")
+```
+
+| Family | `Vlo` / `Vhi` | T simulated | T theory |
+|--------|--------------|-------------|----------|
+| CMOS 5 V (0.3 / 0.7) | 1.50 / 3.50 V | 172.1 µs | 171.2 µs |
+| 3.3 V logic (0.3 / 0.7) | 0.99 / 2.31 V | 172.1 µs | 171.2 µs |
+| 5 V, wide hysteresis (0.2 / 0.8) | 1.00 / 4.00 V | 281.1 µs | 280.1 µs |
+| TTL-like (`Voh=3.4 Vol=0.2`, 0.25 / 0.6) | 1.00 / 2.12 V | 152.8 µs | 151.9 µs |
+
+Changing `Voh` alone (5 V → 3.3 V) does not change the period (the thresholds scale with it); changing `Vil`, `Vih` or `Vol` does.
+
+![Digital astable](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/digital_astable.png)
+
 | Counters | Sequential logic | ADC / DAC |
 |:--:|:--:|:--:|
 | ![Counters](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/digital_counter.png) | ![Sequential](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/digital_sequential.png) | ![ADC DAC](https://raw.githubusercontent.com/d-fathi/PyAMS/refs/heads/main/src/pypi-package/docs/images/digital_adc_dac.png) |
@@ -564,6 +603,7 @@ The `examples/` folder contains ready-to-run scripts, each saving a figure:
 | `switch_example.py`, `switch_v_example.py`, `switch_charge_discharge.py`, `relay_example.py` | switches and relay |
 | `laplace_examples.py`, `laplace_pulse_int_diff.py` | Laplace transfer-function blocks |
 | `digital_counter.py`, `digital_sequential.py`, `digital_adc_dac.py`, `digital_combinational.py` | digital models with `dsignal` buses and DAC / ADC |
+| `digital_astable.py` | one-gate astable: effect of `Voh`, `Vol`, `Vil`, `Vih` on the period |
 | `subcircuit_example.py`, `diode_bridge_example.py` | hierarchical models (`subcircuit()`) |
 | `wave_example.py`, `tracking_adc.py` | logic waveform viewer and a closed analog / digital loop (tracking ADC) |
 | `transmission_line.py`, `thyristor_lamp_dimmer.py`, `igbt_chopper.py` | power and transmission-line circuits |

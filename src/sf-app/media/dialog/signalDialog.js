@@ -256,6 +256,7 @@ function fSignalDialog(self) {
 }
 .type-voltage { background: #4CAF50; }
 .type-current { background: #FF9800; }
+.type-digital { background: #8a63d2; }
 
 /* Signal label */
 .signal-label {
@@ -525,12 +526,23 @@ function fSignalDialog(self) {
         models.forEach(function(m) {
             var inputs = [], outputs = [];
             (m.signals || []).forEach(function(sg) {
+                if (String(sg.name).indexOf('_ds_') === 0) return;      // hidden node of a digital signal (shown below)
                 var item = {
                     value: m.name + '.' + sg.name,
                     kind: sg.kind === 'current' ? 'current' : 'voltage',
                     hint: sg.kind + (sg.unit ? ' (' + sg.unit + ')' : '') + '  ' + sg.p + ' → ' + sg.n
                 };
                 (sg.direction === 'in' ? inputs : outputs).push(item);
+            });
+            // digital signals (dsignal) of the model: only when the caller asked for them (Time Domain outputs)
+            if (selfDialog.digital) (m.dsignals || []).forEach(function(ds) {
+                var item = {
+                    value: m.name + '.' + ds.name,
+                    kind: 'digital',
+                    nodes: ds.nodes,
+                    hint: 'digital, ' + ds.width + (ds.width > 1 ? ' bits  ' : ' bit  ') + ds.nodes.join(', ')
+                };
+                (ds.direction === 'in' ? inputs : outputs).push(item);
             });
             var groups = [];
             if (inputs.length) groups.push({ label: 'Inputs', items: inputs });
@@ -635,6 +647,7 @@ function fSignalDialog(self) {
             row.className = 'signal-row';
             row.dataset.value = value;
             row.dataset.kind = kind;
+            if (isObj && entry.nodes) row.dataset.nodes = JSON.stringify(entry.nodes);
             row.onclick = function(e) {
                 e.stopPropagation();
                 selfDialog.selectRow(row, value);
@@ -718,7 +731,8 @@ function fSignalDialog(self) {
         var result = {
             selectedSignal: selfDialog.selectedSignal,
             selectedFunction: selectedFunction,
-            selectedKind: selRow ? selRow.dataset.kind : null    // 'voltage' | 'current'
+            selectedKind: selRow ? selRow.dataset.kind : null,   // 'voltage' | 'current' | 'digital'
+            selectedNodes: (selRow && selRow.dataset.nodes) ? JSON.parse(selRow.dataset.nodes) : null   // digital: nodes, LSB first
         };
         selfDialog.hide();
         if (typeof selfDialog.onSubmit === 'function') {

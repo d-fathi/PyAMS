@@ -7,7 +7,7 @@ long_description = (HERE / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="pyams_lib",
-    version="0.5.0",
+    version="0.6.0",
     author="Dhiabi.Fathi",
     author_email="dhiabi.fathi@gmail.com",
     maintainer="Dhiabi.Fathi",
@@ -16,7 +16,7 @@ setup(
     long_description_content_type="text/markdown",
     license="MIT",
     license_files=["LICENSE"],
-    url="https://github.com/d-fathi/pyams_lib",
+    url="https://pyams-lib.readthedocs.io/",
     packages=find_packages(include=["pyams", "pyams.*"]),
     include_package_data=True,
     python_requires=">=3.8",

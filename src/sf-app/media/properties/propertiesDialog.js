@@ -900,15 +900,17 @@ drawing.getListParameter(code)
         case 'addOutputY': {
    
             var code=generateCodePyofCircuit();
+            var tdomain=false;
+            try { tdomain=(JSON.parse(mtable.select.getAttribute("description")).type=='Time Domain'); } catch(e){}
             drawing.getListParameter(code).then(function (data) {
                  drawing.getSignalDialog(data,null, false,
                     function (result) {
-                        ioSetPosProbe('Y',result.selectedSignal,null);
-               // console.log(result.selectedSignal,   // 
-                //            result.selectedKind);    // "voltage" أو "current"
+                        // a digital signal (dsignal) is drawn in the digital rows, a bus as a hexagon with its value
+                        ioSetPosProbe('Y',result.selectedSignal,null, result.selectedKind=='digital' ? result.selectedNodes : null);
                 },
-                function () { console.log('Cancelled'); }
-            ); })
+                function () { console.log('Cancelled'); },
+                { digital: tdomain }
+                ); })
             .catch(function (err) {
                 console.error('getListParameter failed:', err);
             });
@@ -966,7 +968,7 @@ drawing.getListParameter(code)
 }
 
 
-function ioSetPosProbe(pos,name,func) {
+function ioSetPosProbe(pos,name,func,digitalNodes) {
 
 
     if(mtable.type=='analysis'){
@@ -979,6 +981,8 @@ function ioSetPosProbe(pos,name,func) {
     if(pos=='Y')
     {
       var output={name:name,color:'#000000'};
+      if(digitalNodes && digitalNodes.length)
+          output={name:name,color:'#8a63d2',digital:{nodes:digitalNodes,fmt:(digitalNodes.length==1?'bit':'hex')}};
      
       r.push(output);
       mtable.select.setAttribute("description", JSON.stringify(analy));

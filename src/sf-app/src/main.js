@@ -289,6 +289,25 @@ function addTab(kind, doc) {
     lockWebContents(wc);
     wc.setVisualZoomLevelLimits(1, 1).catch(() => {});
     if (kind === 'doc') {
+        // Keyboard shortcuts of the edit commands. A menu accelerator is not reliable when the focus is in
+        // a child view, so the keys are handled here and sent to the page like the menu items do.
+        wc.on('before-input-event', (event, input) => {
+            if (input.type !== 'keyDown' || input.isAutoRepeat) return;
+            if (!(input.control || input.meta) || input.alt) return;
+            const key = String(input.key || '').toLowerCase();
+            let msg = null;
+            if (!input.shift) {
+                if (key === 'c') msg = { type: 'execCopy' };
+                else if (key === 'x') msg = { type: 'execCut' };
+                else if (key === 'v') msg = { type: 'execPaste', data: clipboard.readText() };
+                else if (key === 'z') msg = { type: 'execUndo' };
+                else if (key === 'y') msg = { type: 'execRedo' };
+            } else if (key === 'z') msg = { type: 'execRedo' };
+            if (!msg) return;
+            event.preventDefault();
+            const doc = docs.get(wc.id);
+            if (doc) send(doc, msg);
+        });
         // Native edit menu for text fields (dialogs); the schematic keeps its own right-click behaviour.
         wc.on('context-menu', (_e, params) => {
             if (!params.isEditable && !params.selectionText) return;
@@ -944,19 +963,82 @@ function buildMenu() {
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-function showAbout() {
-    dialog.showMessageBox(mainWin || undefined, {
-        type: 'info',
-        title: 'About PyAMS',
-        message: 'PyAMS ' + app.getVersion(),
-        detail: 'Python for Analog and Mixed Signals\n' +
-            'Schematic capture, symbol design and circuit simulation.\n\n' +
-            'https://pyams.sf.net/\nLicense: MIT\n\n' +
-            'Electron ' + process.versions.electron + '  •  Chromium ' + process.versions.chrome + '  •  Node ' + process.versions.node,
-        icon: nativeImage.createFromPath(ICON_PNG).resize({ width: 96, height: 96 }),
-        buttons: ['OK']
-    });
+let aboutWin = null;
+
+function plotlyVersion() {
+    try {
+        const head = fs.readFileSync(path.join(APP_ROOT, 'media', 'pack', 'plotly-latest.min.js'), 'utf8').slice(0, 400);
+        const m = /plotly\.js v([\d.]+)/.exec(head);
+        return m ? m[1] : '';
+    } catch (e) { return ''; }
 }
+
+async function aboutInfo() {
+    const info = {
+        version: app.getVersion(),
+        electron: process.versions.electron,
+        chrome: process.versions.chrome,
+        node: process.versions.node,
+        plotly: plotlyVersion(),
+        python: '', numpy: '', matplotlib: ''
+    };
+    const script = [
+        'import sys',
+        'print("python=" + sys.version.split()[0])',
+        'for m in ("numpy", "matplotlib"):',
+        '    try:',
+        '        print(m + "=" + __import__(m).__version__)',
+        '    except Exception:',
+        '        pass'
+    ].join('\n');
+    try {
+        const run = await LibrarySync.runPython(['-c', script], { timeout: 15000 });
+        if (!run.error) {
+            for (const line of (run.stdout || '').split(/\r?\n/)) {
+                const m = /^(python|numpy|matplotlib)=(.+)$/.exec(line.trim());
+                if (m) info[m[1]] = m[2];
+            }
+        }
+    } catch (e) { /* Python not available */ }
+    return info;
+}
+
+function showAbout() {
+    if (aboutWin && !aboutWin.isDestroyed()) { aboutWin.focus(); return; }
+    aboutWin = new BrowserWindow({
+        width: 680,
+        height: 530,
+        useContentSize: true,
+        resizable: false,
+        minimizable: false,
+        maximizable: false,
+        fullscreenable: false,
+        parent: mainWin && !mainWin.isDestroyed() ? mainWin : undefined,
+        modal: !!(mainWin && !mainWin.isDestroyed()),
+        show: false,
+        backgroundColor: '#f5f5f5',
+        icon: ICON_FILE,
+        title: 'About PyAMS',
+        autoHideMenuBar: true,
+        webPreferences: {
+            preload: path.join(__dirname, 'preload-about.js'),
+            contextIsolation: true,
+            sandbox: true,
+            nodeIntegration: false
+        }
+    });
+    aboutWin.setMenuBarVisibility(false);
+    lockWebContents(aboutWin.webContents);
+    aboutWin.once('ready-to-show', () => aboutWin.show());
+    aboutWin.on('closed', () => { aboutWin = null; });
+    aboutWin.loadFile(path.join(RENDERER, 'about.html'));
+}
+
+ipcMain.handle('about:getInfo', () => aboutInfo());
+ipcMain.on('about:openUrl', (_e, url) => {
+    if (typeof url === 'string' && /^https:\/\/(pyams\.sf\.net|doi\.org\/10\.(3906\/elk-1601-156|18178\/ijeetc\.10\.4\.233-242|1007\/s10825-026-02536-1))(\/|$)/i.test(url)) shell.openExternal(url);
+});
+ipcMain.on('about:close', () => { if (aboutWin && !aboutWin.isDestroyed()) aboutWin.close(); });
 
 // ---------------------------------------------------------------------------------------------
 // Application life cycle

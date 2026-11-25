@@ -437,6 +437,33 @@ function netListPins(part) {
 
 
 
+// Bus pins: a pin named D[0:7] gets the list of the 8 nodes of its bus,
+// ["D0","D1",...,"D7"], in the order of the pin name (D[7:0] gives D7 ... D0).
+// null for a normal pin (or a bus pin whose wire does not have the same width).
+function busNodeNames(ref) {
+    var b = busParse(ref);
+    if (!b) return null;
+    var step = b.from <= b.to ? 1 : -1, names = [];
+    for (var k = b.from; step > 0 ? k <= b.to : k >= b.to; k += step) names.push(b.base + k);
+    return names;
+}
+
+function netListPinsBus(part) {
+    var pins = getListPins(part);
+    return pins.map(function (pin) {
+        var pb = busParse(pin.elem.childNodes[2].textContent);
+        if (!pb) return null;
+        if (pin.elem.childNodes[1].style.display != "none") {          // not connected
+            var zeros = [];
+            for (var k = 0; k < pb.width; k++) zeros.push('0');
+            return zeros;
+        }
+        var net = document.getElementById(pin.elem.getAttribute('netId'));
+        var nb = net ? busParse(net.getAttribute('ref')) : null;
+        return (nb && nb.width == pb.width) ? busNodeNames(net.getAttribute('ref')) : null;
+    });
+}
+
 function getListParams(part) {
    var sym=JSON.parse(part.firstChild.getAttribute("symbol")); 
     return  getParamPart(sym.model.setParams,part) 
@@ -460,6 +487,7 @@ function netList() {
                 directory: sym.model.dir,
                 file: sym.model.file,
                 pins: netListPins(parts[i]),
+                pinsBus: netListPinsBus(parts[i]),   // list of node names for a bus pin, otherwise null
                 pinsName: getListPins(parts[i]).map(pin => pin.elem.childNodes[2].textContent),
                 params: getListParams(parts[i]),
                 bound: getBoundParams(parts[i])
@@ -486,7 +514,7 @@ function generateCodePyofCircuit(){
     
     //get Elements---------------------------------------------------------------------
     pythonScript += elemList.map(elem => 
-        `${elem.ref} = ${elem.model}(${elem.pins.map(pin => `"${pin}"`).concat(elem.bound.init).join(",")});`
+        `${elem.ref} = ${elem.model}(${elem.pins.map((pin, i) => elem.pinsBus[i] ? '[' + elem.pinsBus[i].map(n => `"${n}"`).join(', ') + ']' : `"${pin}"`).concat(elem.bound.init).join(",")});`
     ).join("\n") + "\n"; 
 
     // get paramtres------------------------------------------------------------------

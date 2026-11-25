@@ -11,7 +11,7 @@ PyAMS: Python for Analog and Mixed Signals
 <p align="center">
  
  <a href="#News">
-    <img src="https://img.shields.io/badge/Version-0.5.0-blue" alt="v0.5.0">
+    <img src="https://img.shields.io/badge/Version-0.6.0-blue" alt="v0.6.0">
  </a>
   <a href="#Installation">
       <img src="https://img.shields.io/badge/Python->=3-blue" alt="Python 3+">
@@ -49,7 +49,27 @@ Both use the same `pyams` library and the same models, so a model written for on
 
 ## News
 
-**v0.5.0 (Current)**
+**v0.6.0 (Current)2026/11/25**
+
+### Added
+- **Digital design and logic waveforms:** a logic waveform viewer in the Time Domain analysis (digital signals shown from the `Y axe outputs`), a new `Digital` symbol category (clock, gates NOT / AND / OR / NAND / NOR / XOR / XNOR, 3-input gates, latches, flip-flops, counter, registers, shift register, LFSR, multiplexers, adders...) and the models `AND3`, `OR3`, `NAND3`, `NOR3`.
+- **Buses:** a wire or pin named `D[0:7]` is a bus of 8 lines. Drawing, width check between pins and wires, and the generated netlist (list of nodes) are supported.
+- **Mixed-signal converters:** `ADC` / `DAC` symbols and the models `ADC_analog`, `DAC_analog`, `ADC_clocked`, `DAC_clocked`, with an 8-bit ADC, bus and DAC demo.
+- **New symbols:** Timer 555, Comparator, and LEDs (Red, Green, Blue, Yellow) with the `LED` model.
+- **Symbol editor:** new *Closed path* tool (filled polygon with curved segments).
+- **Wire name label:** *Show name* option in the wire properties.
+- **New demos:** astable 555, comparator with hysteresis, relaxation oscillator, Hartley and Colpitts oscillators, logic gates with switches and LEDs (live), 8-bit ADC and DAC with a bus.
+
+### Changed
+- **Panels:** *List of elements* and *Live simulation* open at the top left like *Symbols library*; Properties stays on the right. Better panel widths, and the symbols library height follows the window.
+- **Live simulation:** *Step* and *Speed* are saved in the circuit file.
+
+### Fixed
+- **Copy / Cut / Paste:** the context-menu items now work, and copying inside a text box (dialogs, Explorer rename) no longer copies the circuit.
+- **Selection box and pin names:** the box of parts containing arcs (XOR, XNOR) and its margins are symmetric; pin names are placed correctly.
+- **Junction dots** follow the z-order of the wires.
+
+**v0.5.0**
 
 ### Added
 - **Switches and relays:** manual switches (SPST, SPDT), voltage- and current-controlled switches (`Switch`, `SwitchV`, `SwitchI`) and relays (SPST, SPDT) with their symbols and models. The switch widgets have a *Line width* property.

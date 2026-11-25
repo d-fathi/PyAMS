@@ -77,7 +77,7 @@ oupouts:{
 
         // 3. show the results with Plotly
         var elem = elemAnalysis.lastChild.firstChild;
-        drawing.plotPyAMSResults(elem, results, { func: analysis.options && analysis.options.func });
+        drawing.plotPyAMSResults(elem, results, Object.assign({ func: analysis.options && analysis.options.func }, waveOptions(analy)));
         modifedSizeAnalysis(elemAnalysis);
         plotsSaveDataLayoutInDiv();
         drawing.saveData(analy.type + ' analysis');

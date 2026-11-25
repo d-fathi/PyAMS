@@ -655,6 +655,19 @@ function fshapes(svg, setDrawing, width, height) {
             svg.appendChild(newElement);
             break;
 
+        case 'cpath':
+            // closed path: a polygon whose segments can be curved (see polyline.js)
+            var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+            newElement.style.stroke = "#2196f3";
+            newElement.style.fill = "rgb(255, 255, 127)";
+            newElement.style.strokeWidth = "1px";
+            newElement.setAttribute("class", "draggable");
+            newElement.setAttribute("name", "polygon");
+            newElement.setAttribute("bulges", "0,1,0,0");
+            newElement.setAttribute("points", "50,50 60,50 60,70 50,70");
+            svg.appendChild(newElement);
+            break;
+
         case 'getPart':
             alert(document.getElementById("sym").innerHTML);
             break;

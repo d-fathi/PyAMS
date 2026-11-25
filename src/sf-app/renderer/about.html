@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; script-src 'self'">
+    <title>About PyAMS</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            user-select: none; -webkit-user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .tab-container {
+            background: #fff;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Tab Header */
+        .tab-header {
+            display: flex;
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #666;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            position: relative;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .tab-btn:hover {
+            color: #333;
+            background: #f0f0f0;
+        }
+
+        .tab-btn.active {
+            color: #2196F3;
+            background: #fff;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #2196F3;
+        }
+
+        /* Tab Content - fixed height with scrollbar */
+        .tab-content {
+            display: none;
+            padding: 24px;
+            animation: fadeIn 0.25s ease;
+            height: 320px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar styling */
+        .tab-content::-webkit-scrollbar { width: 8px; }
+        .tab-content::-webkit-scrollbar-track { background: #f1f1f1; }
+        .tab-content::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        .tab-content::-webkit-scrollbar-thumb:hover { background: #a1a1a1; }
+
+        /* About Tab */
+        .logo-wrapper {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-wrapper img {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .logo-wrapper img:hover {
+            transform: scale(1.05);
+        }
+
+        .app-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #2196F3;
+            padding: 4px 14px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Consolas', monospace;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 16px;
+            color: #888;
+            font-size: 12px;
+        }
+
+        /* License Tab */
+        .license-text {
+            background: #fafafa;
+            border-radius: 4px;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .license-text pre {
+            color: #555;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .license-text a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+
+        .license-text a:hover {
+            text-decoration: underline;
+        }
+
+        .section-desc {
+            color: #666;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        /* Software Tab */
+        .software-list {
+            list-style: none;
+        }
+
+        .software-list li {
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            background: #fafafa;
+            border-radius: 3px;
+            border: 1px solid #e8e8e8;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .software-list li:hover {
+            background: #f0f0f0;
+            border-color: #ddd;
+        }
+
+        .lib-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            flex-shrink: 0;
+            font-family: 'Consolas', monospace;
+        }
+
+        .lib-py { background: #fff8e1; color: #f57f17; }
+        .lib-electron { background: #e8f5e9; color: #2e7d32; }
+        .lib-node { background: #e3f2fd; color: #1565c0; }
+        .lib-chromium { background: #fff3e0; color: #ef6c00; }
+        .lib-plotly { background: #f3e5f5; color: #7b1fa2; }
+        .lib-numpy { background: #e0f2f1; color: #00695c; }
+        .lib-mpl { background: #fce4ec; color: #ad1457; }
+
+        .lib-info {
+            flex: 1;
+        }
+
+        .lib-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .lib-version {
+            color: #888;
+            font-size: 11px;
+            margin-top: 1px;
+            font-family: 'Consolas', monospace;
+        }
+
+        .lib-license {
+            font-size: 11px;
+            color: #2196F3;
+            background: #e3f2fd;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+            font-family: 'Consolas', monospace;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* OK Button */
+        .ok-button {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .ok-button button {
+            padding: 8px 32px;
+            background: #2196F3;
+            color: #fff;
+            border: 1px solid #1976D2;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+
+        .ok-button button:hover {
+            background: #1976D2;
+            border-color: #1565C0;
+        }
+
+        .ok-button button:active {
+            transform: translateY(0);
+        }
+    
+        .license-text { user-select: text; -webkit-user-select: text; }
+        .links { text-align: center; margin-top: 14px; }
+        .site { color: #1565c0; font-size: 14px; font-weight: 600; text-decoration: none; }
+        .site:hover { text-decoration: underline; }
+        .link-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid #bbdefb;
+            background: #e3f2fd; color: #1565c0; border-radius: 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+            text-decoration: none; font-family: inherit; transition: all .15s ease; }
+        .link-btn:hover { background: #2196F3; color: #fff; border-color: #2196F3; }
+        .link-btn.primary { background: #2196F3; color: #fff; border-color: #1976D2; }
+        .link-btn.primary:hover { background: #1976D2; }
+        .tagline { text-align: center; color: #777; font-size: 12.5px; margin: 0 0 12px; }
+        .info-table { width: 100%; margin-top: 18px; border-collapse: collapse; font-size: 12px; }
+        .info-table td { padding: 5px 8px; border-top: 1px solid #eee; }
+        .info-table td:first-child { color: #888; width: 34%; }
+        .info-table td:last-child { color: #333; font-family: 'Consolas', monospace; word-break: break-all; }
+        .ok { color: #2e7d32; } .miss { color: #c62828; }
+        .doi { color: #1565c0; text-decoration: none; } .doi:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="tab-container">
+        <div class="tab-header">
+            <button class="tab-btn active" data-tab="about">About</button>
+            <button class="tab-btn" data-tab="license">License</button>
+            <button class="tab-btn" data-tab="papers">Publications</button>
+            <button class="tab-btn" data-tab="software">Software Used</button>
+        </div>
+
+        <div id="about" class="tab-content active">
+            <div class="logo-wrapper"><img src="logo.png" alt="PyAMS Logo"></div>
+            <h3 class="app-title">Python for Analog and Mixed Signals</h3>
+            <p class="tagline">Schematic capture, symbol design and circuit simulation</p>
+            <div style="text-align: center;"><span class="version-badge" id="version">PyAMS</span></div>
+            <div class="links">
+                <a class="site" href="#" data-url="https://pyams.sf.net/">pyams.sf.net</a>
+            </div>
+            <p class="copyright">&copy; D.Fathi 2017-2026 &middot; MIT License</p>
+        </div>
+
+        <div id="license" class="tab-content">
+            <h3 class="section-title">License</h3>
+            <p class="section-desc">The PyAMS source code is licensed under the MIT License.</p>
+            <div class="license-text">
+                <pre>MIT License
+
+Copyright (c) 2017-2026 PyAMS
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.</pre>
+            </div>
+        </div>
+
+        <div id="papers" class="tab-content">
+            <h3 class="section-title">Publications</h3>
+            <p class="section-desc">Articles published about PyAMS. Click a DOI to open the article.</p>
+            <ul class="software-list">
+                <li>
+                    <div class="lib-icon lib-numpy">1</div>
+                    <div class="lib-info">
+                        <div class="lib-name">doi: <a class="doi" href="#" data-url="https://doi.org/10.3906/elk-1601-156">10.3906/elk-1601-156</a></div>
+                        <div class="lib-version">12/07/2016</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="lib-icon lib-numpy">2</div>
+                    <div class="lib-info">
+                        <div class="lib-name">doi: <a class="doi" href="#" data-url="https://doi.org/10.18178/ijeetc.10.4.233-242">10.18178/ijeetc.10.4.233-242</a></div>
+                        <div class="lib-version">04/06/2021</div>
+                    </div>
+                </li>
+                <li>
+                    <div class="lib-icon lib-numpy">3</div>
+                    <div class="lib-info">
+                        <div class="lib-name">doi: <a class="doi" href="#" data-url="https://doi.org/10.1007/s10825-026-02536-1">10.1007/s10825-026-02536-1</a></div>
+                        <div class="lib-version">12/04/2026</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div id="software" class="tab-content">
+            <h3 class="section-title">Libraries &amp; Dependencies</h3>
+            <ul class="software-list" id="software-list"></ul>
+        </div>
+    </div>
+
+    <div class="ok-button"><button id="okBtn">OK</button></div>
+
+    <script src="about.js"></script>
+</body>
+</html>

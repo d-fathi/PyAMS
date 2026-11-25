@@ -119,6 +119,7 @@ function reorderListElement(action, elem) {
 		break;
 	}
 
+	if (changed && typeof updateNodesVisibility === 'function') updateNodesVisibility();   // dots follow the new order
 	selectListElement(elem);
 	if (changed) drawing.saveData('Changed order of elements');
 	return changed;

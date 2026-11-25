@@ -274,6 +274,7 @@ function polygonSelect() {
     var el = mtable.select, live = el.hasAttribute('wlive');
     var rows = [{ label: "Stroke", type: "color", value: rgb2hex(el.style.stroke), color: rgb2hex(el.style.stroke) }];
     if (!live) rows.push({ label: "Fill", type: "color", value: rgb2hex(el.style.fill), color: rgb2hex(el.style.fill) });
+    if (pathIsClosed(el)) rows.push({ label: "Curved segments", type: "text", value: pathGetBulges(el, getArrayPointsFloat(el).length).join(',') });
     rows.push({ label: "Live segment", type: "dropdown", options: ["No", "Yes"], value: live ? "Yes" : "No" });
     rows.push({ label: "Style", type: "Button", value: 'CSS Code', setClick:'openEditCSS' });
     var sections = [{ title: "Basic Properties", collapsed: false, showReset: true, rows: rows }];
@@ -290,6 +291,7 @@ function polygonModified() {
     var row = function (l) { for (var i = 0; i < B.length; i++) if (B[i].label === l) return B[i]; return null; };
     el.style.stroke = row("Stroke").color;
     var fill = row("Fill"); if (fill) el.style.fill = fill.color;
+    var cv = row("Curved segments"); if (cv && pathIsClosed(el)) pathSetBulges(el, cv.value.split(/[ ,]+/).filter(function (s) { return s !== ''; }).map(function (s) { return parseFloat(s) || 0; }));
     var want = row("Live segment") ? row("Live segment").value === "Yes" : false, rebuild = false;
     if (want && !el.hasAttribute('wlive')) { try { liveWidget.makeLive(el); } catch (e) { console.error(e); } rebuild = true; }
     else if (!want && el.hasAttribute('wlive')) { liveWidget.makeNormal(el); rebuild = true; }
@@ -362,7 +364,8 @@ function netSelect() {
                 rows: [
                     { label: "Stroke", type: "color", value: rgb2hex(mtable.select.style.stroke), color: rgb2hex(mtable.select.style.stroke) },
                     { label: 'Reference', type: "text", value: mtable.select.getAttribute("ref") },
-                    { label: 'Diagonal',  type: "dropdown", value: mtable.select.getAttribute("diagonal"), options: ['false', 'true'] }
+                    { label: 'Diagonal',  type: "dropdown", value: mtable.select.getAttribute("diagonal"), options: ['false', 'true'] },
+                    { label: 'Show name', type: "dropdown", value: netLabelShown(mtable.select) ? 'true' : 'false', options: ['false', 'true'] }
                 ]
             }
         ]
@@ -378,6 +381,7 @@ function netModified() {
     
     mtable.select.setAttribute("diagonal", propertiesData.sections[0].rows[2].value);
     getNetRef();
+    netLabelSet(mtable.select, propertiesData.sections[0].rows[3].value == 'true');
     if(rgb2hex(mtable.select.style.stroke) != propertiesData.sections[0].rows[0].color) {
          mtable.select.setAttribute("setcolor", propertiesData.sections[0].rows[0].color);
         mtable.select.setAttribute("parentcolor", true);
@@ -784,9 +788,9 @@ function textSelect(){
                     { label: 'Font.family', type: "dropdown", value: mtable.select.style.fontFamily, options: fontAvailable },
                     { label: 'Pos.x', type: "number", value: parseInt(mtable.select.getAttribute("x")) },
                     { label: 'Pos.y', type: "number", value: parseInt(mtable.select.getAttribute("y")) },
-                    { label: 'Rotation', type: "dropdown", value: mtable.select.getAttribute("r") + "°", options: ['0°', '90°'] },
+                    { label: 'Rotation', type: "dropdown", value: mtable.select.getAttribute("r") + "°", options: mtable.select.hasAttribute('netlabel') ? ['0°', '90°', '270°'] : ['0°', '90°'] },
                     { label: 'Fill', type: "color", value: rgb2hex(mtable.select.style.fill), color: rgb2hex(mtable.select.style.fill) },
-                    { label: 'Text', type: "text", value: mtable.select.textContent },
+                    { label: 'Text', type: "text", value: mtable.select.textContent, readonly: mtable.select.hasAttribute('netlabel') },
                     { label: 'Stroke.used', type: "dropdown", value: mtable.select.style.stroke ? 'true' : 'false', options: ['false', 'true'] },
                     { label: 'Stroke.width', type: "number", value: mtable.select.style.strokeWidth}
                 ]
@@ -816,6 +820,7 @@ function modifiedText() {
         mtable.select.style.stroke=null;
     mtable.select.style.strokeWidth = propertiesData.sections[0].rows[10].value;
     setPosText();
+    if (mtable.select.hasAttribute('netlabel')) netLabelUpdate();   // a name label follows its wire
     deleteEllipseMS(mtable.resize);
     mtable.resize.updateSlect();
 }
@@ -1022,6 +1027,8 @@ function removeOutput(n){
 function analysisSelect() {
 
         var analy=JSON.parse(mtable.select.getAttribute("description"));
+        if(typeof waveMigrate=='function' && waveMigrate(analy))       // digital rows of the first version
+            mtable.select.setAttribute("description", JSON.stringify(analy));
         var sweep=analy.sweep;
         var r=analy.yAxe;
 	    var x=analy.xAxe;
@@ -1086,6 +1093,18 @@ function analysisSelect() {
      defaultData.sections.push({ title: "Y axe outputs", collapsed: false, showReset: true, rows: [] });
     for(var i=0;i<r.length;i++){
         defaultData.sections[2].rows.push( { label: r[i].name , type: "axeproperty", value: r[i].color, color: r[i].color, delete: false, setChange: 'colorOutput('+i+',this)', setClick: 'removeOutput('+i+')' });
+    }
+    // digital outputs (Time Domain): format of each one and the logic threshold, after the rows of the outputs
+    var nDigital=0;
+    if(analy.type=='Time Domain'){
+        for(var i=0;i<r.length;i++)
+            if(r[i].digital){
+                nDigital++;
+                defaultData.sections[2].rows.push( { label: 'Format '+r[i].name, type: "dropdown", value: r[i].digital.fmt||'hex',
+                                                     options: (r[i].digital.nodes.length==1 ? ['bit','hex','bin','dec'] : ['hex','bin','dec']) });
+            }
+        if(nDigital)
+            defaultData.sections[2].rows.push( { label: 'Logic threshold (V)', type: "text", value: analy.wavevth||'' });
     }
     defaultData.sections[2].rows.push({ label: 'Add output', type: "Button", value: 'Add', setClick: 'addOutputY' });
 
@@ -1157,6 +1176,18 @@ function modifiedAnalysis() {
       for(var i=0;i<r.length;i++){
          r[i].color=propertiesData.sections[2].rows[i].color;
       }
+
+ // digital outputs: the format of each one (rows after the outputs) and the logic threshold
+ if(analy.type=='Time Domain'){
+     var yr=propertiesData.sections[2].rows, nd=0;
+     for(var i=0;i<r.length;i++)
+         if(r[i].digital){
+             var fr=yr[r.length+nd];
+             if(fr && fr.type=="dropdown") r[i].digital.fmt=fr.value;
+             nd++;
+         }
+     if(nd && yr[r.length+nd] && yr[r.length+nd].label=='Logic threshold (V)') analy.wavevth=yr[r.length+nd].value;
+ }
 
  mtable.select.setAttribute("description", JSON.stringify(analy));
             

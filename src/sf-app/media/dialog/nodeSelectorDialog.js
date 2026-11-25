@@ -31,10 +31,9 @@ function fNodeSelectorDialog(self) {
 /* ===== Node Selector Dialog ===== */
 #nodeSelectorDialog {
     position: fixed;
-    top: 60px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 420px;
+    top: 50px;
+    left: 20px;
+    width: 340px;
     max-width: 90vw;
     background: var(--vscode-editorWidget-background, var(--vscode-editor-background, #ffffff));
     border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border, #ccc));

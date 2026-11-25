@@ -81,6 +81,7 @@ width: fit-content;
 #btnArc { --icon-color: #6642f5; }
 #btnPolyline { --icon-color: #6642f5; }
 #btnPolygon { --icon-color:  #6642f5; }
+#btnPath { --icon-color:  #6642f5; }
 #btnVCC { --icon-color: #aa5c09; }
 #btnGND { --icon-color: #aa5c09; }
 #btnPort { --icon-color: #aa5c09; }
@@ -207,6 +208,9 @@ body.innerHTML = `
    </button>
    <button class="toolbar-btn" id="btnPolygon" title="Polygon (Y)">
      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 20 8 17 18 7 18 4 8"/></svg>
+   </button>
+   <button class="toolbar-btn" id="btnPath" title="Closed path with curved segments">
+     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5 H11 A7 7 0 0 1 11 19 H4 Z"/></svg>
    </button>
  </div>
  <div class="toolbar-group" id="grpPower">
@@ -547,6 +551,7 @@ document.getElementById('btnEllipse').addEventListener('click',  () =>{self.acti
 document.getElementById('btnRectangle').addEventListener('click',  () =>{self.activeBtnById('btnRectangle'); addShape('rect'); });
 document.getElementById('btnPolyline').addEventListener('click',  () =>{self.activeBtnById('btnPolyline'); addShape('polyline'); });
 document.getElementById('btnPolygon').addEventListener('click',  () =>{self.activeBtnById('btnPolygon'); addShape('polygon'); });
+document.getElementById('btnPath').addEventListener('click',  () =>{self.activeBtnById('btnPath'); addShape('cpath'); });
 document.getElementById('btnArc').addEventListener('click',  () =>{self.activeBtnById('btnArc'); addShape('arc'); });
 document.getElementById('btnAV').addEventListener('click',  () =>{self.activeBtnById('btnAV'); addShape('probe'); });
 document.getElementById('btnText').addEventListener('click',  () =>{self.activeBtnById('btnText'); addShape('text');});
@@ -617,7 +622,7 @@ const toolButtons = [
   'btnRotate', 'btnFlipVertical', 'btnFlipHorizontal',
   'btnModel', 'btnCommand',
   'btnHTML', 'btnAnalysis', 'btnAV', 'btnScope',
-  'btnSubBlock', 'btnWidget'
+  'btnSubBlock', 'btnWidget', 'btnPath'
 ];   
 
 const toolNames = [

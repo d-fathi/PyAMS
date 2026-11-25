@@ -26,38 +26,38 @@ function drawingPin(pinElement) {
     pinElement.childNodes[1].setAttribute("x", points[0].x - 3);
     pinElement.childNodes[1].setAttribute("y", points[0].y - 3);
 
+    // name of the pin: inside the body, after the end of the pin.
+    //  gap : free space between the end of the pin and the name; wider when the end carries
+    //        the clock triangle (it goes inside the body by `mark`)
+    //  vo  : the baseline is lowered by a part of the font size, so the name is centred on the line of the pin
+    var mark = pinMark(points);
+    var type0 = pinElement.getAttribute("type");
+    var gap = (type0 == "clk" || type0 == "dotclk") ? mark + 3.5 : 3;
+    var fs = parseFloat(pinElement.childNodes[2].style.fontSize) || 7;
+    var vo = Math.round(fs * 0.35 * 2) / 2;
+    var w = pinTextWidth(pinElement.childNodes[2]);
+
     if ((points[0].y == points[1].y) && (points[0].x <= points[1].x)) {
-        var xt = points[1].x + 2;
-        var yt = points[1].y + 2;
+        var xt = points[1].x + gap;
+        var yt = points[1].y + vo;
         pinElement.childNodes[2].setAttribute('x', xt);
         pinElement.childNodes[2].setAttribute('y', yt);
         pinElement.childNodes[2].setAttribute('transform', 'rotate(0 ' + xt + ' ' + yt + ')');
     } else if ((points[0].y == points[1].y) && (points[0].x > points[1].x)) {
-
-        var bbox = pinElement.childNodes[2].getBBox();
-        var w = bbox.width;
-        var h = bbox.height;
-        var xt = points[1].x-w-2;
-        var yt = points[1].y + 2;
+        var xt = points[1].x - w - gap;
+        var yt = points[1].y + vo;
         pinElement.childNodes[2].setAttribute('x', xt);
         pinElement.childNodes[2].setAttribute('y', yt);
         pinElement.childNodes[2].setAttribute('transform', 'rotate(0 ' + xt + ' ' + yt + ')');
     } else if ((points[0].y <= points[1].y) && (points[0].x == points[1].x)) {
-        var bbox = pinElement.childNodes[2].getBBox();
-        var w = bbox.width;
-        var h = bbox.height;
-        var xt = points[1].x - 2;
-        var yt = points[1].y + 2
-            pinElement.childNodes[2].setAttribute('x', xt);
+        var xt = points[1].x - vo;
+        var yt = points[1].y + gap;
+        pinElement.childNodes[2].setAttribute('x', xt);
         pinElement.childNodes[2].setAttribute('y', yt);
         pinElement.childNodes[2].setAttribute('transform', 'rotate(90 ' + xt + ' ' + yt + ')');
     } else if ((points[0].y > points[1].y) && (points[0].x == points[1].x)) {
-
-        var bbox = pinElement.childNodes[2].getBBox();
-        var w = bbox.width;
-        var h = bbox.height;
-        var xt = points[1].x - 2;
-        var yt = points[1].y - 2 - w;
+        var xt = points[1].x - vo;
+        var yt = points[1].y - gap - w;
         pinElement.childNodes[2].setAttribute('x', xt);
         pinElement.childNodes[2].setAttribute('y', yt);
         pinElement.childNodes[2].setAttribute('transform', 'rotate(90 ' + xt + ' ' + yt + ')');
@@ -71,7 +71,20 @@ function drawingPin(pinElement) {
     pinElement.childNodes[3].setAttribute('transform', 'rotate(0 ' + xt + ' ' + yt + ')');
 
     drawingPinByType(pinElement, points)
+    pinBusStyle(pinElement);
 
+}
+
+// a pin named like D[0:7] is a bus pin: thick line + width attribute
+function pinBusStyle(pinElement) {
+    var bus = (typeof busParse == 'function') ? busParse(pinElement.childNodes[2].textContent) : null;
+    if (bus) {
+        pinElement.setAttribute('bus', bus.width);
+        pinElement.childNodes[0].style.strokeWidth = (typeof BUS_STROKE != 'undefined' ? BUS_STROKE : 3) + 'px';
+    } else if (pinElement.hasAttribute('bus')) {
+        pinElement.removeAttribute('bus');
+        pinElement.childNodes[0].style.strokeWidth = '1px';
+    }
 }
 
 
@@ -161,11 +174,36 @@ function ItShowPolarity() {
     return drawing.showPolarity;
 }
 
+// width of the name of a pin. getBBox() answers 0 when the pin is not displayed (the library preview,
+// a part being built or rotated): the text is then measured with a canvas, with the same font
+var pinTextCanvas = null;
+function pinTextWidth(textElement) {
+    var w = 0;
+    try { w = textElement.getBBox().width; } catch (e) { w = 0; }
+    if (w > 0) return w;
+    var st = textElement.style;
+    var fs = parseFloat(st.fontSize) || 7;
+    var txt = textElement.textContent || '';
+    try {
+        if (!pinTextCanvas) pinTextCanvas = document.createElement('canvas');
+        var ctx = pinTextCanvas.getContext('2d');
+        ctx.font = fs + 'px ' + (st.fontFamily || 'Arial');
+        w = ctx.measureText(txt).width;
+    } catch (e) { w = 0; }
+    return w > 0 ? w : txt.length * fs * 0.55;
+}
+
+// size of the marks at the end of a pin (dot, clock triangle, arrows): follows the length of the pin
+function pinMark(points) {
+    var len = Math.abs(points[1].x - points[0].x) + Math.abs(points[1].y - points[0].y);
+    return Math.min(3, Math.max(1.5, Math.round(len * 0.2 * 2) / 2));
+}
+
 function drawingPinByType(pinElement, points) {
 
     var x = points[1].x;
     var y = points[1].y;
-    var n = 1.5;
+    var n = pinMark(points);
     if (!pinElement.getAttribute("type")) {
         var newElement5 = document.createElementNS("http://www.w3.org/2000/svg", 'ellipse');
         newElement5.style.strokeWidth = "1px";
