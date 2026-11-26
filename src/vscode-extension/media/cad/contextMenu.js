@@ -2,8 +2,8 @@
 #--------------------------------------------------------------------------------------------------
 Name:        contextMenu.js
 Description: Popup menu of the schematic (right mouse button): Cut / Copy / Paste (enabled or disabled
-             according to the selection and the clipboard) and Rotate (only when a single symbol is
-             selected). The menu is shown on the schematic only; dialogs and panels keep no menu.
+             according to the selection and the clipboard) and Rotate, Flip Vertical and Flip Horizontal (only when a
+             single symbol is selected). The menu is shown on the schematic only; dialogs and panels keep no menu.
 #---------------------------------------------------------------------------------------------------
 */
 (function () {
@@ -70,6 +70,8 @@ Description: Popup menu of the schematic (right mouse button): Cut / Copy / Past
             else if (cmd === 'copy') drawing.copy();
             else if (cmd === 'paste') drawing.paste(clipText);
             else if (cmd === 'rotate') rotatePart();
+            else if (cmd === 'flipv') flipVerticallyPart();
+            else if (cmd === 'fliph') flipHorizontalPart();
         } catch (err) { console.log('context menu: ' + err.message); }
     }
 
@@ -79,7 +81,8 @@ Description: Popup menu of the schematic (right mouse button): Cut / Copy / Past
         var sel = hasSelection();
         var html = item('cut', 'Cut', 'Ctrl+X', sel) + item('copy', 'Copy', 'Ctrl+C', sel) +
                    item('paste', 'Paste', 'Ctrl+V', canPaste());
-        if (singlePart()) html += '<div class="sep"></div>' + item('rotate', 'Rotate', 'Shift+R', true);
+        if (singlePart()) html += '<div class="sep"></div>' + item('rotate', 'Rotate', 'Shift+R', true) +
+                item('flipv', 'Flip Vertical', 'Shift+V', true) + item('fliph', 'Flip Horizontal', 'Shift+H', true);
         menu = document.createElement('div');
         menu.id = 'pyamsCtx';
         menu.innerHTML = html;
