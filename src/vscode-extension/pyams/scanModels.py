@@ -13,6 +13,7 @@ import ast
 import json
 import os
 import sys
+import time
 
 
 def _base_name(node):
@@ -67,25 +68,69 @@ def scan_file(path, root):
 
 IGNORED_DIRS = {'__pycache__', 'node_modules', '.git', '.vscode', '.venv', 'venv', 'site-packages'}
 
+# A project folder can be huge (the whole drive may be the opened folder): its scan is limited so
+# that the dialog always opens: depth, number of folders, size of a file and a time budget.
+# Python installations, virtual environments and folders of installed packages are never entered.
+PROJECT_IGNORED = IGNORED_DIRS | {'env', 'dist-packages', 'lib-python', 'lib_pypy', 'dlls', 'scripts', 'tcl',
+                                  'include', '$recycle.bin', 'system volume information', 'windows',
+                                  'program files', 'program files (x86)', 'programdata', 'appdata'}
+THIRD_PARTY = {'numpy', 'scipy', 'pandas', 'matplotlib', 'sympy', 'pip', 'setuptools', 'wheel', 'numpy.libs',
+               'scipy.libs', 'pyams', 'cython', 'pythonwin', 'win32', 'pywin32_system32'}
+MAX_DEPTH = 8
+MAX_FOLDERS = 20000
+MAX_FILE_SIZE = 1000000
+TIME_BUDGET = 8.0
+
 
 def _inside(path, folder):
     rel = os.path.relpath(path, folder)
     return rel == '.' or not (rel.startswith('..') or os.path.isabs(rel))
 
 
+def _is_python_home_or_packages(dirs, names):
+    """True for a Python installation, a virtual environment or a folder of installed packages."""
+    low = {n.lower() for n in names}
+    dl = {d.lower() for d in dirs}
+    if ('os.py' in low and 'site.py' in low) or low & {'python.exe', 'pythonw.exe', 'pypy.exe', 'pypy3.exe', 'pyvenv.cfg'}:
+        return True
+    if dl & {'site-packages', 'lib-python', 'lib_pypy'}:
+        return True
+    if dl & THIRD_PARTY or any(d.endswith(('.dist-info', '.egg-info')) for d in dl):
+        return True
+    return any(n.endswith(('.pyd', '.so', '.egg-link')) for n in low)
+
+
 def scan_dir(root, label=None, skip=None):
     """Model files of a folder tree.  label=None: the PyAMS library (name = file name).
     label='Project': a project folder: relativePath is 'Project/sub/File.py', origin 'project'."""
     files = []
+    project = label is not None
+    ignored = PROJECT_IGNORED if project else IGNORED_DIRS
+    start = time.time()
+    visited = 0
+    base_depth = root.rstrip(os.sep).count(os.sep)
     for folder, dirs, names in os.walk(root):
+        if project:
+            visited += 1
+            if (visited > MAX_FOLDERS or time.time() - start > TIME_BUDGET
+                    or folder.rstrip(os.sep).count(os.sep) - base_depth > MAX_DEPTH
+                    or _is_python_home_or_packages(dirs, names)):
+                dirs[:] = []
+                continue
         dirs[:] = sorted(d for d in dirs
-                         if d not in IGNORED_DIRS and (label is None or not d.startswith('.'))
+                         if d.lower() not in ignored and (not project or not d.startswith('.'))
                          and not (skip and _inside(os.path.join(folder, d), skip)))
         for name in sorted(names):
             if name.endswith('.py') and name != '__init__.py':
-                entry = scan_file(os.path.join(folder, name), root)
+                full = os.path.join(folder, name)
+                try:
+                    if project and os.path.getsize(full) > MAX_FILE_SIZE:
+                        continue
+                except OSError:
+                    continue
+                entry = scan_file(full, root)
                 if entry['classes'] or entry['error']:
-                    if label is not None:
+                    if project:
                         rel = os.path.relpath(entry['fullPath'], root).replace(os.sep, '/')
                         entry['relativePath'] = label + '/' + rel
                         entry['name'] = entry['relativePath']

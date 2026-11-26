@@ -2,6 +2,11 @@
 
 All notable changes to PyAMS will be documented in this file.
 
+## [0.7.0] - Unreleased
+
+### Fixed
+- The `Select Model` dialog (`Model.name`) stayed on `Loading models...` and then showed no model when the opened folder was very large (for example a whole drive): the search of the project models walked every folder, with no limit, until the 30 s time-out, and the library models were lost with it. The search of the project folder is now limited (depth 8, 20000 folders, 8 s, files up to 1 MB) and never enters a Python installation, a virtual environment or a folder of installed packages, so the library models always appear.
+
 ## [0.6.0] - Unreleased
 
 ### Added
