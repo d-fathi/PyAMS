@@ -8,6 +8,7 @@ All notable changes to PyAMS will be documented in this file.
 - Own popup menu of the schematic (right mouse button): `Cut`, `Copy` and `Paste` (enabled or disabled according to the selection and to the clipboard) and `Rotate`, `Flip Vertical` and `Flip Horizontal` (only when a single symbol is selected). It replaces the menu of VS Code on the schematic; dialogs and panels no longer show any menu (text boxes keep the native one).
 
 ### Fixed
+- Rotate, `Flip Vertical` and `Flip Horizontal` (toolbar, shortcuts and popup menu) detached the wires from the pins of the part: the wire ends now follow the pins, with the same routing as when the part is dragged.
 - The `Select Model` dialog (`Model.name`) stayed on `Loading models...` and then showed no model when the opened folder was very large (for example a whole drive): the search of the project models walked every folder, with no limit, until the 30 s time-out, and the library models were lost with it. The search of the project folder is now limited (depth 8, 20000 folders, 8 s, files up to 1 MB) and never enters a Python installation, a virtual environment or a folder of installed packages, so the library models always appear.
 
 ## [0.6.0] - 2026-11-25

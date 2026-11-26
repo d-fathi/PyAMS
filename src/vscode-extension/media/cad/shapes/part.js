@@ -274,7 +274,21 @@ function addParamToPart(){
 
 
 
-function rotatePart() {
+// Rotate / flip a part and keep its wires attached: the pins move, so the end of every wire that was
+// connected to a pin follows it (the same routing as when the part is dragged).
+function partKeepWires(op) {
+    var part = drawing.resize.setElement;
+    if (!part || part.getAttribute("name") != 'part') { op(); return; }
+    refNetWithPart();                       // the pin <-> wire links are up to date
+    op();
+    movePartWithConnectNets({ selectedElement: part });
+    refNetWithPart();                       // links of the new pin positions
+}
+function rotatePart() { partKeepWires(rotatePartRaw); }
+function flipHorizontalPart() { partKeepWires(flipHorizontalPartRaw); }
+function flipVerticallyPart() { partKeepWires(flipVerticallyPartRaw); }
+
+function rotatePartRaw() {
    
     if (drawing.resize.setElement) {
         elem = drawing.resize.setElement;
@@ -435,7 +449,7 @@ function rotatePart() {
 
 }
 
-function flipHorizontalPart() {
+function flipHorizontalPartRaw() {
     if (drawing.resize.setElement) {
         elem = drawing.resize.setElement;
         var name = elem.getAttribute("name");
@@ -552,7 +566,7 @@ function flipHorizontalPart() {
 
 }
 
-function flipVerticallyPart() {
+function flipVerticallyPartRaw() {
     if (drawing.resize.setElement) {
         var elem = drawing.resize.setElement;
         var name = elem.getAttribute("name");
