@@ -4,10 +4,13 @@ All notable changes to PyAMS will be documented in this file.
 
 ## [0.7.0] - Unreleased
 
+### Added
+- Own popup menu of the schematic (right mouse button): `Cut`, `Copy` and `Paste` (enabled or disabled according to the selection and to the clipboard) and `Rotate` (only when a single symbol is selected). It replaces the menu of VS Code on the schematic; dialogs and panels no longer show any menu (text boxes keep the native one).
+
 ### Fixed
 - The `Select Model` dialog (`Model.name`) stayed on `Loading models...` and then showed no model when the opened folder was very large (for example a whole drive): the search of the project models walked every folder, with no limit, until the 30 s time-out, and the library models were lost with it. The search of the project folder is now limited (depth 8, 20000 folders, 8 s, files up to 1 MB) and never enters a Python installation, a virtual environment or a folder of installed packages, so the library models always appear.
 
-## [0.6.0] - Unreleased
+## [0.6.0] - 2026-11-25
 
 ### Added
 - Symbol `Timer 555` (category `Analog ICs`) for the model `Timer555` (pins `trig`, `thres`, `ctrl`, `reset`, `disch`, `out`, `vcc`, `gnd`; `vcc` on top and `gnd` at the bottom) and the demo `demo/Astable with 555 Timer.dcs`: an astable multivibrator (R1 = 1k, R2 = 10k, C1 = 100n, time domain 0 ... 8 ms) with a note that explains the formulas. In the PyAMS simulation the period is 1.476 ms (formula 1.455 ms).

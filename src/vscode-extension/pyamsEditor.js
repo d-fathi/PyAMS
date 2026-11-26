@@ -169,6 +169,11 @@ case 'ready':
                     await vscode.env.clipboard.writeText(message.data);
                     break;
 
+                // the popup menu of the schematic asks for the clipboard text (to enable / disable Paste)
+                case 'queryClipboard':
+                    webviewPanel.webview.postMessage({ type: 'clipboardText', data: await vscode.env.clipboard.readText() });
+                    break;
+
                 // The keyboard focus left the editor (e.g. to a text box of the Explorer) or came back:
                 // Copy / Cut / Paste must act on the circuit only while the editor itself has the focus
                 case 'webviewFocus':
@@ -375,6 +380,7 @@ webviewPanel.onDidDispose(() => {
         const rulerJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'ruler.js'));
         const gridJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'grid.js'));
         const bodyJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'body.js'));
+        const contextMenuJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'contextMenu.js'));
         const shapesJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'shapes.js'));
         const resizeJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'resize.js'));
         const designeJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'designe.js'));
@@ -521,6 +527,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${liveJs}"></script>
     <script nonce="${nonce}" src="${simulationJs}"></script>
     <script nonce="${nonce}" src="${drawingJs}"></script>
+    <script nonce="${nonce}" src="${contextMenuJs}"></script>
     <script nonce="${nonce}" src="${stdJs}"></script>
     <script nonce="${nonce}" src="${plotlyJs}"></script>
     <script nonce="${nonce}" src="${plotlyFixJs}"></script>
@@ -624,62 +631,7 @@ webviewPanel.onDidDispose(() => {
            
         });
 
-        // Hide the VS Code Cut/Copy/Paste context menu inside dialogs (keep it on the schematic only)
-        document.addEventListener('contextmenu', function (e) {
-            if (e.target && e.target.closest && e.target.closest('[id$="Dialog"], [id$="DialogOverlay"]')) {
-                e.preventDefault();
-            }
-        }, true);
-
-        // Context menu (Cut / Copy / Paste of VS Code) on the schematic.
-        // VS Code runs these commands on the page selection / the focused editable element, so a hidden
-        // editable element with a selected text is prepared when the menu opens; its copy / cut / paste
-        // events are then given to the circuit.
-        (function () {
-            var proxy = null, back = null;
-            function removeProxy() {
-                if (!proxy) return;
-                var p = proxy; proxy = null;
-                if (p.parentNode) p.parentNode.removeChild(p);
-                var sel = window.getSelection(); if (sel) sel.removeAllRanges();
-                if (back && back.focus && document.body.contains(back)) { try { back.focus({ preventScroll: true }); } catch (e) {} }
-                back = null;
-            }
-            document.addEventListener('contextmenu', function (e) {
-                var t = e.target;
-                if (!t || !t.closest) return;
-                if (t.closest('[id$="Dialog"], [id$="DialogOverlay"]')) return;   // dialogs: handled above
-                if (t.closest('input, textarea, select, [contenteditable="true"]')) return;   // a text box: native menu
-                removeProxy();
-                back = document.activeElement;
-                proxy = document.createElement('div');
-                proxy.id = 'ctxProxy';
-                proxy.setAttribute('contenteditable', 'true');
-                proxy.style.cssText = 'position:fixed;left:-1000px;top:0;width:10px;height:10px;opacity:0;overflow:hidden;user-select:text;-webkit-user-select:text;';
-                proxy.textContent = 'x';
-                document.body.appendChild(proxy);
-                proxy.focus({ preventScroll: true });
-                var r = document.createRange(); r.selectNodeContents(proxy);
-                var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
-            }, true);
-            ['mousedown', 'keydown', 'wheel'].forEach(function (n) {
-                document.addEventListener(n, function () { if (proxy) removeProxy(); }, true);
-            });
-            // no time limit: the menu of VS Code takes the focus away from the page until an item is chosen
-            function onClip(kind) {
-                document.addEventListener(kind, function (e) {
-                    if (!proxy || e.target !== proxy) return;
-                    e.preventDefault();
-                    try {
-                        if (kind === 'copy') drawing.copy();
-                        else if (kind === 'cut') drawing.cut();
-                        else drawing.paste(e.clipboardData ? e.clipboardData.getData('text/plain') : '');
-                    } catch (err) { console.log('clipboard: ' + err.message); }
-                    setTimeout(removeProxy, 0);
-                }, true);
-            }
-            onClip('copy'); onClip('cut'); onClip('paste');
-        })();
+        // The right-click menu (Cut / Copy / Paste / Rotate) is built by media/cad/contextMenu.js
 
         // Tell VS Code when the keyboard focus leaves / enters the editor
         window.addEventListener('focus', function () { vscode.postMessage({ type: 'webviewFocus', focused: true }); });
