@@ -6,7 +6,7 @@
 #                  (widget bindings, scope channels, step, speed)
 #                * input widgets   (liveWidgetRT.onInput)  -> {"cmd":"input"} to Python
 #                * output widgets  <- "widgets" events      (liveWidgetRT.setValues)
-#                * scope channels  <- "scope" events        (liveScope.push)
+#                * scope channels  <- "scope" events        (liveScope.push, liveProbe.push)
 #              The extension host (pyamsEditor.js) starts the process and relays the JSON lines:
 #                webview -> host : liveStart {code, config} | liveSend {cmd} | liveStop
 #                host -> webview : liveEvent {event}
@@ -46,6 +46,7 @@ var liveBridge = (function () {
         Array.prototype.slice.call(document.querySelectorAll('#sym [name="liveScope"]')).forEach(function (el) {
             try { liveScope.getConfig(el).channels.forEach(function (c) { if (c.on !== false && c.signal && names.indexOf(c.signal) < 0) names.push(c.signal); }); } catch (e) {}
         });
+        try { liveProbe.signals().forEach(function (n) { if (names.indexOf(n) < 0) names.push(n); }); } catch (e) {}   // signals of the probes
         return names;
     }
 
@@ -95,6 +96,7 @@ var liveBridge = (function () {
         if (opts.stop) config.stop = opts.stop;
         session++; active = true; inputsSent = false;
         try { liveScope.clear(); } catch (e) {}
+        try { liveProbe.begin(); } catch (e) {}
         liveWidgetRT.demo = false;
         liveWidgetRT.start();
         liveWidgetRT.onInput = function (ref, value) { if (active) post({ type: 'liveSend', cmd: { cmd: 'input', ref: ref, value: value } }); };
@@ -105,11 +107,12 @@ var liveBridge = (function () {
     function cmd(o) { if (active) post({ type: 'liveSend', cmd: o }); }
     function pause() { cmd({ cmd: 'pause' }); liveWidgetRT.pause(); }
     function resume() { cmd({ cmd: 'resume' }); liveWidgetRT.start(); setState('running'); }
-    function reset() { cmd({ cmd: 'reset' }); try { liveScope.clear(); } catch (e) {} liveWidgetRT.reset(); }
+    function reset() { cmd({ cmd: 'reset' }); try { liveScope.clear(); } catch (e) {} try { liveProbe.clear(); } catch (e) {} liveWidgetRT.reset(); }
     function setRate(r) { cmd({ cmd: 'rate', value: r }); }
     function stop() {
         if (!active) return;
         active = false; post({ type: 'liveStop' });
+        try { liveProbe.end(); } catch (e) {}
         liveWidgetRT.onInput = null; liveWidgetRT.demo = true; liveWidgetRT.stop();
         setState('idle');
     }
@@ -131,13 +134,14 @@ var liveBridge = (function () {
                     var v = {};
                     for (var k in s) if (s[k][i] !== null && s[k][i] !== undefined) v[k] = s[k][i];
                     try { liveScope.push(t[i], v); } catch (e) {}
+                    try { liveProbe.push(t[i], v); } catch (e) {}
                 }
                 break;
             }
             case 'status': setState(ev.state === 'paused' ? 'paused' : 'running', { t: ev.t, speed: ev.speed, late: ev.late }); break;
             case 'log': log(ev.message, ev.level); break;
-            case 'error': log(ev.message + (ev.line ? ' (line ' + ev.line + ')' : ''), 'error'); active = false; liveWidgetRT.onInput = null; liveWidgetRT.demo = true; liveWidgetRT.stop(); setState('error', { message: ev.message }); break;
-            case 'end': active = false; liveWidgetRT.onInput = null; liveWidgetRT.demo = true; liveWidgetRT.stop(); setState('idle', { t: ev.t }); break;
+            case 'error': try { liveProbe.end(); } catch (e) {} log(ev.message + (ev.line ? ' (line ' + ev.line + ')' : ''), 'error'); active = false; liveWidgetRT.onInput = null; liveWidgetRT.demo = true; liveWidgetRT.stop(); setState('error', { message: ev.message }); break;
+            case 'end': try { liveProbe.end(); } catch (e) {} active = false; liveWidgetRT.onInput = null; liveWidgetRT.demo = true; liveWidgetRT.stop(); setState('idle', { t: ev.t }); break;
         }
     }
     window.addEventListener('message', function (e) {

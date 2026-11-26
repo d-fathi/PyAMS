@@ -5,8 +5,12 @@ All notable changes to PyAMS will be documented in this file.
 ## [0.7.0] - Unreleased
 
 ### Added
+- Probes in the live simulation: the probe shows the changing value of its signal (`R1.I=2.1mA`; a digital signal shows 0 or 1); the box keeps the widest size reached so it does not jump. The signals of the probes are added to the outputs of the live session; when the simulation stops the probe returns to its previous text. New file `media/live/liveProbe.js`.
 - Probe `OP ▶` (function `opAnalysis`): runs the DC operating point of the circuit and writes the value of the signal of every probe in it (for example `R1.I=215.1µA` or `Out1=5.2V`). The OP dialog and the Python script accept the list of the signals to report.
 - Own popup menu of the schematic (right mouse button): `Cut`, `Copy` and `Paste` (enabled or disabled according to the selection and to the clipboard) and `Rotate`, `Flip Vertical` and `Flip Horizontal` (only when a single symbol is selected). It replaces the menu of VS Code on the schematic; dialogs and panels no longer show any menu (text boxes keep the native one).
+
+### Changed
+- New look of the probe: a dark rounded box with a slate border and the value in a monospace font (green for a voltage, amber for a current); the dashed line to the signal is now very thin. Probes of old files take the new look.
 
 ### Fixed
 - Probe: `Select signal` opened a dialog filled with a fixed example circuit and did nothing with the choice. It now lists the signals of the real circuit, writes the name of the chosen signal in the probe and joins the probe with a dashed line to the place of the signal (the wire, or the part; red for a current). The missing function `parseSignal` was added and `getPosRef` no longer fails on a wire without a straight segment.

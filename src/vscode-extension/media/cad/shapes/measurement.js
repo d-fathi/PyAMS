@@ -96,24 +96,24 @@ function modifedNetName(list)
 
 
 
+// Look of a probe: a dark rounded box with a slate border and a monospace value in green (amber for a
+// current); a very thin dashed line joins it to the place of the signal.
+var PROBE_LOOK = {
+    box: '#0b0f14', border: '#1f2937', voltage: '#22c55e', current: '#f59e0b',
+    font: 'Consolas, "Courier New", monospace', padX: 6, padY: 3, borderWidth: 2, dash: '2,2', lineWidth: 0.5
+};
+
 function newProbe(elem) {
 
     var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'polyline');
-    newElement.style.stroke = "#000000";
-	newElement.style.fill = "none";
-    newElement.style["stroke-dasharray"] = "2,2";
-	
-    var xo = 20;
-    var yo = 10;
-    var x = xo;
-    var y = yo;
-    newElement.setAttribute("points", xo + "," + yo + " " + x + "," + y);
+    newElement.style.stroke = PROBE_LOOK.voltage;
+    newElement.style.fill = "none";
+    newElement.style["stroke-dasharray"] = PROBE_LOOK.dash;
+    newElement.style.strokeWidth = PROBE_LOOK.lineWidth + "px";
+    newElement.setAttribute("points", "20,10 20,10");
     elem.appendChild(newElement);
 
     var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
-    newElement.style.stroke = "#000000";
-    newElement.style.fill = "#000000";
-    newElement.style.strokeWidth = "1px";
     newElement.setAttribute("x", 0);
     newElement.setAttribute("y", 0);
     newElement.setAttribute("width", 60);
@@ -121,14 +121,11 @@ function newProbe(elem) {
     elem.appendChild(newElement);
 
     var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-    newElement.style.fill = "#ffffff";
-    newElement.style.fontSize = "8";
-    newElement.style.fontFamily = "Times New Roman";
     newElement.textContent = 'None';
     newElement.setAttribute("x", 0);
     newElement.setAttribute("y", 0);
-    
     elem.appendChild(newElement);
+
     elem.setAttribute("pos",'None');
     elem.setAttribute("unit",'');
     elem.setAttribute("type",'');
@@ -136,13 +133,55 @@ function newProbe(elem) {
 }
 
 function structProbe(elem) {
-    elem.childNodes[2]
-    bbox = elem.childNodes[2].getBBox();
-    var w = bbox.width;
-    var h = bbox.height;
-    elem.childNodes[2].setAttribute("y", h);
-    elem.childNodes[1].setAttribute("width", w);
-    elem.childNodes[1].setAttribute("height", h + (h / 4));
+    var L = PROBE_LOOK;
+    var line = elem.childNodes[0], box = elem.childNodes[1], text = elem.childNodes[2];
+    var color = (elem.getAttribute('type') == 'current') ? L.current : L.voltage;
+    // during the live simulation (see liveProbe.js) the box does not shrink while the value changes
+    var lv = (typeof liveProbe !== 'undefined' && liveProbe.owns(elem)) ? elem._live : null;
+
+    // the text, measured at the origin
+    text.style.fill = color;
+    text.style.fontFamily = L.font;
+    text.style.fontSize = '8px';
+    text.setAttribute("x", 0);
+    text.setAttribute("y", 0);
+    var bbox = text.getBBox();
+    var w = Math.ceil(bbox.width) + 2 * L.padX;
+    var h = Math.ceil(bbox.height) + 2 * L.padY;
+    if (lv) { w = Math.max(w, lv.minW || 0); lv.minW = w; }      // the box does not shrink while the value changes
+    text.setAttribute("x", L.padX);
+    text.setAttribute("y", L.padY - bbox.y);          // bbox.y < 0: the ascent above the baseline
+
+    // the box
+    box.setAttribute("x", 0);
+    box.setAttribute("y", 0);
+    box.setAttribute("width", w);
+    box.setAttribute("height", h);
+    var r = Math.round(h * 0.35);
+    box.setAttribute("rx", r);
+    box.setAttribute("ry", r);
+    box.style.fill = L.box;
+    box.style.stroke = L.border;
+    box.style.strokeWidth = L.borderWidth + 'px';
+
+    // the dashed line starts at the centre of the box (the box hides its beginning)
+    var p = getArrayPoints(line);
+    var cx = Math.round(w / 2), cy = Math.round(h / 2);
+    var same = (p.length < 2) || (p[1].x == p[0].x && p[1].y == p[0].y);
+    p[0].x = cx; p[0].y = cy;
+    if (same) { p[1] = { x: cx, y: cy }; }
+    line.setAttribute("points", polylineToAttribute(p, 0, 0));
+    line.style.stroke = color;
+    line.style.strokeWidth = L.lineWidth + 'px';
+    line.style["stroke-dasharray"] = L.dash;
+    line.style.fill = "none";
+
+    // a wave left by an older version in a saved file is removed
+    ['.probeWave', '.probeDot', '.probeZero'].forEach(function (c) {
+        var old = elem.querySelector(c);
+        if (old) elem.removeChild(old);
+    });
+
     elem.setAttribute("width", w);
     elem.setAttribute("height", h);
 }
@@ -163,24 +202,10 @@ function getProbes(posDisplay) {
 
 
 function stylePosProbe(elem,nature){
-
-
-
-    switch(nature){
-        case 'current':
-            elem.childNodes[1].style.stroke = "#ff0000";
-        break;
-
-        default:
-            elem.childNodes[1].style.stroke = "#000000";
-        break;
-    }
-
-    elem.childNodes[0].style.stroke = elem.childNodes[1].style.stroke;
-    elem.childNodes[1].style.fill =elem.childNodes[1].style.stroke;
-
+    // the colour follows the type of the signal (green: voltage, amber: current)
+    if (nature == 'current') elem.setAttribute('type', 'current');
+    else if (elem.getAttribute('type') == 'current') elem.setAttribute('type', 'voltage');
     structProbe(elem);
-   
 }
 
 

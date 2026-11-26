@@ -40,28 +40,21 @@ function  getPosRef(probe)
 			if(ref== probe.pos)
 			{
 				var p=getArrayPoints(elem);
-				for(i=0; i<p.length;i++)
+				// the signal is shown on the longest segment of the wire (its middle)
+				var best=-1, bestLen=-1;
+				for(var i=0; i<p.length-1; i++)
 				{
-					if((p[i].x==p[i+1].x)&&(p[i].y!=p[i+1].y))
-					{
-					position.x = p[i].x;
-                    position.y = (p[i].y+p[i+1].y)/2;
-                    position.w = 0;
-                    position.h = 0;
+					var len=Math.abs(p[i].x-p[i+1].x)+Math.abs(p[i].y-p[i+1].y);
+					if(len>bestLen) { bestLen=len; best=i; }
+				}
+				if(best>=0 && bestLen>0)
+				{
+					position.x = (p[best].x+p[best+1].x)/2;
+					position.y = (p[best].y+p[best+1].y)/2;
+					position.w = 0;
+					position.h = 0;
 					position.used=true;
-                    return position;	
-					}
-					
-					if((p[i].x!=p[i+1].x)&&(p[i].y==p[i+1].y))
-					{
-					position.y = p[i].y;
-                    position.x = (p[i].x+p[i+1].x)/2;
-                    position.w = 0;
-                    position.h = 0;
-					position.used=true;
-                    return position;
-						
-					}
+					return position;
 				}
 			}
 
@@ -103,24 +96,24 @@ function modifedNetName(list)
 
 
 
+// Look of a probe: a dark rounded box with a slate border and a monospace value in green (amber for a
+// current); a very thin dashed line joins it to the place of the signal.
+var PROBE_LOOK = {
+    box: '#0b0f14', border: '#1f2937', voltage: '#22c55e', current: '#f59e0b',
+    font: 'Consolas, "Courier New", monospace', padX: 6, padY: 3, borderWidth: 2, dash: '2,2', lineWidth: 0.5
+};
+
 function newProbe(elem) {
 
     var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'polyline');
-    newElement.style.stroke = "#000000";
-	newElement.style.fill = "none";
-    newElement.style["stroke-dasharray"] = "2,2";
-	
-    var xo = 20;
-    var yo = 10;
-    var x = xo;
-    var y = yo;
-    newElement.setAttribute("points", xo + "," + yo + " " + x + "," + y);
+    newElement.style.stroke = PROBE_LOOK.voltage;
+    newElement.style.fill = "none";
+    newElement.style["stroke-dasharray"] = PROBE_LOOK.dash;
+    newElement.style.strokeWidth = PROBE_LOOK.lineWidth + "px";
+    newElement.setAttribute("points", "20,10 20,10");
     elem.appendChild(newElement);
 
     var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
-    newElement.style.stroke = "#000000";
-    newElement.style.fill = "#000000";
-    newElement.style.strokeWidth = "1px";
     newElement.setAttribute("x", 0);
     newElement.setAttribute("y", 0);
     newElement.setAttribute("width", 60);
@@ -128,14 +121,11 @@ function newProbe(elem) {
     elem.appendChild(newElement);
 
     var newElement = document.createElementNS("http://www.w3.org/2000/svg", 'text');
-    newElement.style.fill = "#ffffff";
-    newElement.style.fontSize = "8";
-    newElement.style.fontFamily = "Times New Roman";
     newElement.textContent = 'None';
     newElement.setAttribute("x", 0);
     newElement.setAttribute("y", 0);
-    
     elem.appendChild(newElement);
+
     elem.setAttribute("pos",'None');
     elem.setAttribute("unit",'');
     elem.setAttribute("type",'');
@@ -143,13 +133,45 @@ function newProbe(elem) {
 }
 
 function structProbe(elem) {
-    elem.childNodes[2]
-    bbox = elem.childNodes[2].getBBox();
-    var w = bbox.width;
-    var h = bbox.height;
-    elem.childNodes[2].setAttribute("y", h);
-    elem.childNodes[1].setAttribute("width", w);
-    elem.childNodes[1].setAttribute("height", h + (h / 4));
+    var L = PROBE_LOOK;
+    var line = elem.childNodes[0], box = elem.childNodes[1], text = elem.childNodes[2];
+    var color = (elem.getAttribute('type') == 'current') ? L.current : L.voltage;
+
+    // the text, measured at the origin
+    text.style.fill = color;
+    text.style.fontFamily = L.font;
+    text.style.fontSize = '8px';
+    text.setAttribute("x", 0);
+    text.setAttribute("y", 0);
+    var bbox = text.getBBox();
+    var w = Math.ceil(bbox.width) + 2 * L.padX;
+    var h = Math.ceil(bbox.height) + 2 * L.padY;
+    text.setAttribute("x", L.padX);
+    text.setAttribute("y", L.padY - bbox.y);          // bbox.y < 0: the ascent above the baseline
+
+    // the box
+    box.setAttribute("x", 0);
+    box.setAttribute("y", 0);
+    box.setAttribute("width", w);
+    box.setAttribute("height", h);
+    box.setAttribute("rx", Math.round(h * 0.35));
+    box.setAttribute("ry", Math.round(h * 0.35));
+    box.style.fill = L.box;
+    box.style.stroke = L.border;
+    box.style.strokeWidth = L.borderWidth + 'px';
+
+    // the dashed line starts at the centre of the box (the box hides its beginning)
+    var p = getArrayPoints(line);
+    var cx = Math.round(w / 2), cy = Math.round(h / 2);
+    var same = (p.length < 2) || (p[1].x == p[0].x && p[1].y == p[0].y);
+    p[0].x = cx; p[0].y = cy;
+    if (same) { p[1] = { x: cx, y: cy }; }
+    line.setAttribute("points", polylineToAttribute(p, 0, 0));
+    line.style.stroke = color;
+    line.style.strokeWidth = L.lineWidth + 'px';
+    line.style["stroke-dasharray"] = L.dash;
+    line.style.fill = "none";
+
     elem.setAttribute("width", w);
     elem.setAttribute("height", h);
 }
@@ -170,24 +192,10 @@ function getProbes(posDisplay) {
 
 
 function stylePosProbe(elem,nature){
-
-
-
-    switch(nature){
-        case 'current':
-            elem.childNodes[1].style.stroke = "#ff0000";
-        break;
-
-        default:
-            elem.childNodes[1].style.stroke = "#000000";
-        break;
-    }
-
-    elem.childNodes[0].style.stroke = elem.childNodes[1].style.stroke;
-    elem.childNodes[1].style.fill =elem.childNodes[1].style.stroke;
-
+    // the colour follows the type of the signal (green: voltage, amber: current)
+    if (nature == 'current') elem.setAttribute('type', 'current');
+    else if (elem.getAttribute('type') == 'current') elem.setAttribute('type', 'voltage');
     structProbe(elem);
-   
 }
 
 
@@ -204,6 +212,19 @@ function setProbesValues(val) {
 }
 
 
+// Description of the signal measured by a probe, from its name:
+//   "Out1"   a node (wire)            -> { nod: true,  pos: 'Out1' }
+//   "R1.I"   a signal of an element   -> { nod: false, pos: 'R1', pin: '' }
+// type: 'current' (red dashed line) or 'voltage'; the type saved in the probe tells it
+function parseSignal(name, nodes, probe) {
+    var kind = probe ? probe.getAttribute('type') : '';
+    var type = (kind == 'current') ? 'current' : 'voltage';
+    if (name.indexOf('.') < 0)
+        return { nod: nodes.includes(name), pos: name, pin: '', type: type };
+    return { nod: false, pos: name.split('.')[0], pin: '', type: type };
+}
+
+
 function findPosProb() {
 
     var nodes=getNetRefs();
@@ -212,7 +233,7 @@ function findPosProb() {
         var name = probes[i].childNodes[2].textContent.split("=")[0];
         if(name=='None')
             continue;
-        var tprobe = parseSignal(name, nodes);
+        var tprobe = parseSignal(name, nodes, probes[i]);
         stylePosProbe(probes[i],tprobe.type);
         var elem = probes[i].childNodes[0];
 		var pos=getPosRef(tprobe);
@@ -240,6 +261,17 @@ function findPosProb() {
 
 }
 
+
+// "1.5 mA", "12 V": engineering notation of a value
+function probeValueText(v, unit) {
+    if (v === null || v === undefined || !isFinite(v)) return '?';
+    var a = Math.abs(v);
+    var p = [[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p']];
+    if (a === 0) return '0' + unit;
+    for (var i = 0; i < p.length; i++)
+        if (a >= p[i][0]) return parseFloat((v / p[i][0]).toPrecision(4)) + p[i][1] + unit;
+    return v.toExponential(2) + unit;
+}
 
 function modifedProbeDisplay(elem)
 {

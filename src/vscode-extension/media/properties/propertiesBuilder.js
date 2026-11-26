@@ -697,7 +697,6 @@ function probeSelect() {
                     { label: "Pos.y", type: "number", value: parseInt(mtable.select.getAttribute("y")) },
                     { label: "Select signal", type: "Button", value: 'Show list', setClick: 'ioPosProbe' },     
                     { label: "OP", type: "Button", value: 'Run ▶', setClick: 'ioProbe' }
-                          
                 ]
             }
         ]
@@ -717,6 +716,7 @@ function probeModified() {
     deleteEllipseMS(mtable.resize);
     mtable.resize.updateSlect();
 }
+
 
 
 //-------codeHTML description ---------------------------------------------------

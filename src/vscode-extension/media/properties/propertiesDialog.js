@@ -671,6 +671,7 @@ function getDialog(setClick) {
                         probe.setAttribute('pos', name);
                         // a node (no '.') is a wire; otherwise 'voltage' or 'current' of an element
                         probe.setAttribute('type', name.indexOf('.') < 0 ? 'wire' : (result.selectedKind || 'voltage'));
+                        probe.setAttribute('sigkind', result.selectedKind || 'voltage');
                         structProbe(probe);
                         findPosProb();
                         if (mtable.select === probe) {
