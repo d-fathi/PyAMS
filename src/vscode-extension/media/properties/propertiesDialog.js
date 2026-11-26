@@ -655,41 +655,36 @@ function getDialog(setClick) {
         break;
     }
         case 'ioPosProbe': {
-            var str = mtable.select.childNodes[2].textContent.split('=');
+            // Select the signal measured by the probe: its name is written in the probe and a dashed line
+            // joins the probe to the place of the signal in the circuit (the part or the wire).
+            var probe = mtable.select;
+            var current = probe.childNodes[2].textContent.split('=')[0];
+            if (current == 'None') current = null;
+            var code = generateCodePyofCircuit();
 
-            var code = `
-from pyams.models import BJT, Resistor
-
-Qc1 = BJT("Vcc", "Out1", "Out2")
-R1 = Resistor("Vcc", "Out1")
-`;
-
-drawing.getListParameter(code)
-    .then(function (data) {
-        drawing.getSignalDialog(data, "R1.I", false,
-            function (result) {
-                console.log(result.selectedSignal,   // "R1.I" أو اسم عقدة مثل "Vcc"
-                            result.selectedKind);    // "voltage" أو "current"
-            },
-            function () { console.log('Cancelled'); }
-        );
-    })
-    .catch(function (err) {
-        console.error('getListParameter failed:', err);
-    });
-           /* try {
-                if (!signalDialog) signalDialog = new fSignalDialog();
-                const result = getElementListSpice();
-                signalDialog.initData(result, str[0], false);
-                signalDialog.onSubmit = function (result) {
-                    mtable.select.childNodes[2].textContent = result.selectedSignal;
-                    findPosProb();
-                    probeSelect();
-                };
-                signalDialog.show();
-            } catch (error) {
-                console.log('Error', error.message);
-            }*/
+            drawing.getListParameter(code).then(function (data) {
+                drawing.getSignalDialog(data, current, false,
+                    function (result) {
+                        if (!result || !result.selectedSignal) return;
+                        var name = result.selectedSignal;
+                        probe.childNodes[2].textContent = name;
+                        probe.setAttribute('pos', name);
+                        // a node (no '.') is a wire; otherwise 'voltage' or 'current' of an element
+                        probe.setAttribute('type', name.indexOf('.') < 0 ? 'wire' : (result.selectedKind || 'voltage'));
+                        structProbe(probe);
+                        findPosProb();
+                        if (mtable.select === probe) {
+                            deleteEllipseMS(mtable.resize);
+                            mtable.resize.updateSlect();
+                            probeSelect();
+                        }
+                        scheduleSavePropertyChange();
+                    },
+                    function () { console.log('Cancelled'); }
+                );
+            }).catch(function (err) {
+                console.error('getListParameter failed:', err);
+            });
             break;
         }
 

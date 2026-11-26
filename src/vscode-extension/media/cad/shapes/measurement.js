@@ -40,28 +40,21 @@ function  getPosRef(probe)
 			if(ref== probe.pos)
 			{
 				var p=getArrayPoints(elem);
-				for(i=0; i<p.length;i++)
+				// the signal is shown on the longest segment of the wire (its middle)
+				var best=-1, bestLen=-1;
+				for(var i=0; i<p.length-1; i++)
 				{
-					if((p[i].x==p[i+1].x)&&(p[i].y!=p[i+1].y))
-					{
-					position.x = p[i].x;
-                    position.y = (p[i].y+p[i+1].y)/2;
-                    position.w = 0;
-                    position.h = 0;
+					var len=Math.abs(p[i].x-p[i+1].x)+Math.abs(p[i].y-p[i+1].y);
+					if(len>bestLen) { bestLen=len; best=i; }
+				}
+				if(best>=0 && bestLen>0)
+				{
+					position.x = (p[best].x+p[best+1].x)/2;
+					position.y = (p[best].y+p[best+1].y)/2;
+					position.w = 0;
+					position.h = 0;
 					position.used=true;
-                    return position;	
-					}
-					
-					if((p[i].x!=p[i+1].x)&&(p[i].y==p[i+1].y))
-					{
-					position.y = p[i].y;
-                    position.x = (p[i].x+p[i+1].x)/2;
-                    position.w = 0;
-                    position.h = 0;
-					position.used=true;
-                    return position;
-						
-					}
+					return position;
 				}
 			}
 
@@ -204,6 +197,19 @@ function setProbesValues(val) {
 }
 
 
+// Description of the signal measured by a probe, from its name:
+//   "Out1"   a node (wire)            -> { nod: true,  pos: 'Out1' }
+//   "R1.I"   a signal of an element   -> { nod: false, pos: 'R1', pin: '' }
+// type: 'current' (red dashed line) or 'voltage'; the type saved in the probe tells it
+function parseSignal(name, nodes, probe) {
+    var kind = probe ? probe.getAttribute('type') : '';
+    var type = (kind == 'current') ? 'current' : 'voltage';
+    if (name.indexOf('.') < 0)
+        return { nod: nodes.includes(name), pos: name, pin: '', type: type };
+    return { nod: false, pos: name.split('.')[0], pin: '', type: type };
+}
+
+
 function findPosProb() {
 
     var nodes=getNetRefs();
@@ -212,7 +218,7 @@ function findPosProb() {
         var name = probes[i].childNodes[2].textContent.split("=")[0];
         if(name=='None')
             continue;
-        var tprobe = parseSignal(name, nodes);
+        var tprobe = parseSignal(name, nodes, probes[i]);
         stylePosProbe(probes[i],tprobe.type);
         var elem = probes[i].childNodes[0];
 		var pos=getPosRef(tprobe);
