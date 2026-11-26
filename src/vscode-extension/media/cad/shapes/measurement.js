@@ -247,6 +247,17 @@ function findPosProb() {
 }
 
 
+// "1.5 mA", "12 V": engineering notation of a value
+function probeValueText(v, unit) {
+    if (v === null || v === undefined || !isFinite(v)) return '?';
+    var a = Math.abs(v);
+    var p = [[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p']];
+    if (a === 0) return '0' + unit;
+    for (var i = 0; i < p.length; i++)
+        if (a >= p[i][0]) return parseFloat((v / p[i][0]).toPrecision(4)) + p[i][1] + unit;
+    return v.toExponential(2) + unit;
+}
+
 function modifedProbeDisplay(elem)
 {
 	 var r= elem.childNodes[2].textContent.split("=");

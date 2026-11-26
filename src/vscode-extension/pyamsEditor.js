@@ -203,7 +203,8 @@ case 'startPyAMSOp': {
     // DC operating point with PyAMS: run the circuit code in Python and stream events to the OP dialog
     if (this.pyamsOpRun) { this.pyamsOpRun.kill(); this.pyamsOpRun = null; }
     this.pyamsOpRun = LibrarySync.startPyAMSAnalysis(
-        this.context.extensionPath, message.code, { type: 'op' },
+        this.context.extensionPath, message.code,
+        (message.signals && message.signals.length) ? { type: 'op', outputs: message.signals } : { type: 'op' },
         (ev) => webviewPanel.webview.postMessage({ type: 'pyamsOpEvent', event: ev }));
     break;
 }

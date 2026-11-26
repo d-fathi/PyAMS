@@ -445,8 +445,10 @@ function fOpAnalysisDialog(self) {
         return v.toExponential(3) + ' ' + unit;
     }
 
-    this.initData = function(pyamsCode) {
+    // signals: optional list of signals to report (the signals of the probes); without it every node
+    this.initData = function(pyamsCode, signals) {
         selfDialog.pyamsCode = pyamsCode || '';
+        selfDialog.signals = signals || [];
         selfDialog.resetDialog();
     };
 
@@ -467,7 +469,7 @@ function fOpAnalysisDialog(self) {
         selfDialog.appendLog('Starting DC Operating Point analysis (PyAMS)...', 'info');
 
         if (typeof vscode !== 'undefined') {
-            vscode.postMessage({ type: 'startPyAMSOp', code: selfDialog.pyamsCode });
+            vscode.postMessage({ type: 'startPyAMSOp', code: selfDialog.pyamsCode, signals: selfDialog.signals || [] });
         } else {
             selfDialog.errorAnalysis('vscode API not available.');
         }

@@ -378,7 +378,7 @@ self.getPyAMSCircuitEditor = function(data, onSubmit, onCancel) {
 };
 
 //****************check circuit by pyams.lib**********************************************************//
-self.runOpCheck = function(data) {
+self.runOpCheck = function(data, signals) {
     return new Promise((resolve, reject) => {
         if (typeof opAnalysisDialog === 'undefined' || !opAnalysisDialog) {
             opAnalysisDialog = new fOpAnalysisDialog(self);
@@ -393,7 +393,7 @@ self.runOpCheck = function(data) {
             }
         );
 
-        opAnalysisDialog.initData(data);
+        opAnalysisDialog.initData(data, signals);
         opAnalysisDialog.show();
     });
 };

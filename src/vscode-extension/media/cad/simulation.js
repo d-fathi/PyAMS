@@ -13,10 +13,40 @@ Licence:     free
 
 
 var libarayPath='';
- // op Simulation
- function opAnalysis(){
+// op Simulation
+// Value of the signal of every probe at the DC operating point (the probe shows "R1.I=2.1mA").
+function opAnalysis() {
+    var probes = [].slice.call(document.getElementsByClassName('probe')).filter(function (p) {
+        return p.childNodes[2].textContent.split('=')[0] != 'None';
+    });
+    if (!probes.length) {
+        if (typeof showWarning === 'function')
+            showWarning('Probe', 'No probe has a signal: select a signal (Select signal) for at least one probe.');
+        return;
+    }
+    var signals = [];
+    probes.forEach(function (p) {
+        var n = p.childNodes[2].textContent.split('=')[0];
+        if (signals.indexOf(n) < 0) signals.push(n);
+    });
 
- }
+    drawing.runOpCheck(generateCodePyofCircuit(), signals).then(function (result) {
+        var values = {};
+        ((result && result.nodes) || []).concat((result && result.currents) || []).forEach(function (e) {
+            values[e.name] = e;
+        });
+        probes.forEach(function (p) {
+            var name = p.childNodes[2].textContent.split('=')[0];
+            var e = values[name];
+            if (!e) return;
+            var unit = e.unit || (p.getAttribute('type') == 'current' ? 'A' : 'V');
+            p.childNodes[2].textContent = name + '=' + probeValueText(e.value, unit);
+            structProbe(p);
+        });
+        findPosProb();
+        try { scheduleSavePropertyChange(); } catch (e) {}
+    }).catch(function () { /* cancelled */ });
+}
 
 
 

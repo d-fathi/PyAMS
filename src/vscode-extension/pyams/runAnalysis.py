@@ -111,6 +111,7 @@ def run_op(cir, elements, options):
         current_names = ['%s.I' % n for n, el in elements.items()
                          if 'I' in el._signals and getattr(el._signals['I'], 'kind', None) is not None
                          and str(el._signals['I'].kind).lower().find('current') >= 0]
+        current_names = [n for n in current_names if n not in node_names]   # already asked as outputs
         if current_names:
             cir.setOutPuts(*(node_names + current_names))
             cir.analysis(mode='dc', start=0.0, **options)

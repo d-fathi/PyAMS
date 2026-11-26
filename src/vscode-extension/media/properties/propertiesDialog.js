@@ -689,7 +689,7 @@ function getDialog(setClick) {
         }
 
         case 'ioProbe': {
-            var str = mtable.select.childNodes[2].textContent.split('=');
+            // value of the signal of every probe at the DC operating point
             try {
                 opAnalysis();
             } catch (error) {
