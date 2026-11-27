@@ -381,6 +381,7 @@ webviewPanel.onDidDispose(() => {
         const rulerJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'ruler.js'));
         const gridJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'grid.js'));
         const bodyJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'body.js'));
+        const pastePlaceJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'pastePlace.js'));
         const contextMenuJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'contextMenu.js'));
         const shapesJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'shapes.js'));
         const resizeJs = webview.asWebviewUri(vscode.Uri.joinPath(cadPath, 'resize.js'));
@@ -530,6 +531,7 @@ webviewPanel.onDidDispose(() => {
     <script nonce="${nonce}" src="${liveJs}"></script>
     <script nonce="${nonce}" src="${simulationJs}"></script>
     <script nonce="${nonce}" src="${drawingJs}"></script>
+    <script nonce="${nonce}" src="${pastePlaceJs}"></script>
     <script nonce="${nonce}" src="${contextMenuJs}"></script>
     <script nonce="${nonce}" src="${stdJs}"></script>
     <script nonce="${nonce}" src="${plotlyJs}"></script>

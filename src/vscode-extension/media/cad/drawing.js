@@ -201,6 +201,8 @@ self.copy = function () {
     
     var data_ = { pageType: self.pageType, copyList: copyList };
     var clipboardData = JSON.stringify(data_);
+    self.pasteFirst = 10;          // offset of the first paste when the pointer position is unknown (see pastePlace.js)
+    self.lastPasteText = null;
 
     if (typeof vscode !== 'undefined') {
         vscode.postMessage({ type: 'copyData', data: clipboardData });
@@ -226,7 +228,13 @@ self.paste = function (clipboardText) {
             return;
         }
 
+        try { if (pastePlace.active()) pastePlace.cancel(); } catch (e) {}
+        // the successive pastes of the same copy are shifted so that they do not pile up
+        self.pasteCount = (clipboardText === self.lastPasteText) ? (self.pasteCount || 1) + 1 : 1;
+        self.lastPasteText = clipboardText;
+
         const svgContainer = document.getElementById("sym");
+        const pasted = [];
         self.copyList = [];
         self.copyLength = data.copyList.length;
 
@@ -241,6 +249,7 @@ self.paste = function (clipboardText) {
             while (tempSvg.firstChild) {
                 const node = tempSvg.firstChild;
                 svgContainer.appendChild(node);
+                pasted.push(node);
                 self.copyData=true;
                 // pasted plots are redrawn: a copy of the rendered plot is only a picture
                 try { if (typeof plotsRestoreIn === 'function') plotsRestoreIn(node); } catch (e) { console.error(e); }
@@ -250,8 +259,8 @@ self.paste = function (clipboardText) {
         }
 
         deletMultiRef();
-        selectPast(self);
-        self.saveData('Paste ');
+        pastePlace.renameRefs(pasted);                  // a symbol never keeps the reference of another one
+        pastePlace.begin(self, pasted, self.pasteFirst === undefined ? 10 : self.pasteFirst, self.pasteCount);
         
     } catch (err) {
         console.error(err);
@@ -261,6 +270,7 @@ self.paste = function (clipboardText) {
 
 self.cut = function () {
         self.copy();
+        self.pasteFirst = 0;           // after a cut the first paste is at the place of the cut
         if (self.shapes.lsg.elms.length > 0) {
             for (var i = 0; i < self.shapes.lsg.elms.length; i++)
                 self.shapes.lsg.elms[i].remove();
