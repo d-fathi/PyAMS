@@ -589,6 +589,72 @@ function netSimplifyForEdit(self)
 }
 
 
+// wires that end in the middle of a segment of `elemNet` (T junctions)
+function netJunctionsOn(elemNet, points)
+{
+	var found=[];
+	var pinAt={};                                   // a wire end on a pin is a connection to that pin, not a junction
+	document.querySelectorAll('#sym [name="part"]').forEach(function(pt){
+		getListPins(pt).forEach(function(pn){ pinAt[pn.x+','+pn.y]=true; });
+	});
+	var nets=document.querySelectorAll('#sym [name="net"]');
+	for(var n=0;n<nets.length;n++)
+	{
+		if(nets[n]===elemNet) continue;
+		var q=getArrayPoints(nets[n]);
+		if(q.length<2) continue;
+		[0,q.length-1].forEach(function(idx){
+			var e=q[idx];
+			if(pinAt[e.x+','+e.y]) return;
+			for(var k=0;k<points.length-1;k++)
+			{
+				var a=points[k], b=points[k+1];
+				var onSeg=(a.x==b.x)
+					? (e.x==a.x && e.y>Math.min(a.y,b.y) && e.y<Math.max(a.y,b.y))
+					: (a.y==b.y && e.y==a.y && e.x>Math.min(a.x,b.x) && e.x<Math.max(a.x,b.x));
+				if(onSeg){ found.push({net:nets[n], idx:idx}); break; }
+			}
+		});
+	}
+	return found;
+}
+
+// after the wire was re-routed, the wires that were joined to its middle follow it
+function netJunctionsReattach(elemNet, junctions)
+{
+	var pts=getArrayPoints(elemNet);
+	junctions.forEach(function(j){
+		var q=getArrayPoints(j.net);
+		var e=q[j.idx];
+		var best=null;
+		for(var k=0;k<pts.length-1;k++)
+		{
+			var a=pts[k], b=pts[k+1], c;
+			if(a.x==b.x) c={x:a.x, y:Math.min(Math.max(e.y,Math.min(a.y,b.y)),Math.max(a.y,b.y))};
+			else         c={x:Math.min(Math.max(e.x,Math.min(a.x,b.x)),Math.max(a.x,b.x)), y:a.y};
+			var d=Math.abs(c.x-e.x)+Math.abs(c.y-e.y);
+			if(best===null || d<best.d) best={d:d,c:c};
+		}
+		if(best===null || best.d===0) return;                      // still joined
+		var nb=(j.idx===0)?q[1]:q[q.length-2];                      // neighbour of the end
+		var c=best.c;
+		var horiz=(nb.y===e.y);                                     // the last segment is horizontal
+		if(horiz) c={x:c.x,y:(c.y===e.y?c.y:c.y)};
+		q[j.idx]={x:c.x,y:c.y};
+		if(nb.x!==c.x && nb.y!==c.y)                                // keep the wire orthogonal
+		{
+			var el=horiz?{x:nb.x,y:c.y}:{x:c.x,y:nb.y};
+			if(j.idx===0) q.splice(1,0,el); else q.splice(q.length-1,0,el);
+		}
+		j.net.setAttribute("points", polylineToAttribute(q,0,0));
+		// pins attached to the far end of this wire keep pointing at its last point
+		var id=j.net.getAttribute("id");
+		document.querySelectorAll('#sym [name="pin"][netId="'+id+'"]').forEach(function(pe){
+			if(parseInt(pe.getAttribute('netIdPos'))!==0) pe.setAttribute('netIdPos',q.length-1);
+		});
+	});
+}
+
 function movePartWithConnectNets(self)
 {
 	var part=self.selectedElement;
@@ -602,6 +668,7 @@ function movePartWithConnectNets(self)
 			var elemNet=document.getElementById(netId);
 			var points=getArrayPoints(elemNet);
 			var atStart=(netIdPos==0);
+			var junctions=netJunctionsOn(elemNet, points);
 			var q={x:parseInt(pins[i].x),y:parseInt(pins[i].y)};
 
 			if(elemNet.getAttribute("diagonal")=='true')
@@ -620,6 +687,7 @@ function movePartWithConnectNets(self)
 			elemNet.setAttribute("points", polylineToAttribute(points, 0, 0));
 			if(!atStart)
 				pins[i].elem.setAttribute('netIdPos',points.length-1);
+			netJunctionsReattach(elemNet, junctions);
 		}
 }
 
