@@ -10,7 +10,7 @@ All notable changes to PyAMS will be documented in this file.
 - Own popup menu of the schematic (right mouse button): `Cut`, `Copy` and `Paste` (enabled or disabled according to the selection and to the clipboard) and `Rotate`, `Flip Vertical` and `Flip Horizontal` (only when a single symbol is selected). It replaces the menu of VS Code on the schematic; dialogs and panels no longer show any menu (text boxes keep the native one).
 
 ### Changed
-- **Copy / paste** — pasted items now follow the mouse pointer, snapped to the grid, until you click to place them (Esc / right-click cancels); without a pointer, repeated pastes are offset by 10, 20, 30… so they no longer pile up. A pasted symbol whose reference already exists gets the next free reference (e.g. R1 → R3).
+- **Copy / paste** — pasted items now follow the mouse pointer, snapped to the grid, until you click to place them (Esc / right-click cancels); without a pointer, repeated pastes are offset by 10, 20, 30… so they no longer pile up. Pasted symbols, wires and texts are always placed on the grid (multiples of 5), even when the copied items were off-grid. A pasted symbol whose reference already exists gets the next free reference (e.g. R1 → R3).
 - New look of the probe: a dark rounded box with a slate border and the value in a monospace font (green for a voltage, amber for a current); the dashed line to the signal is now very thin. Probes of old files take the new look.
 
 ### Fixed

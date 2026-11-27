@@ -50,6 +50,45 @@ var pastePlace = (function () {
         return { x: Math.min.apply(null, xs), y: Math.min.apply(null, ys) };
     }
 
+
+    // ------------------------------------------------------------------ grid
+    function step() { return (drawing.shapes && (drawing.shapes.pr || drawing.shapes.px)) || 5; }
+    function snap(v) { var g = step(); return g * Math.round(v / g); }
+    // the pointer position moved by a whole number of grid steps from the group reference:
+    // the group keeps the alignment it had (and normalize() puts it on the grid)
+    function align(p, ref) {
+        var g = step();
+        return { x: ref.x + g * Math.round((p.x - ref.x) / g), y: ref.y + g * Math.round((p.y - ref.y) / g) };
+    }
+    // every point / position of the pasted elements becomes a multiple of the grid step
+    function normalize(nodes) {
+        nodes.forEach(function (n) {
+            if (!n.getAttribute) return;
+            var name = n.getAttribute('name');
+            switch (name) {
+            case 'net': case 'polyline': case 'polygon':
+                var pts = getArrayPoints(n);
+                pts.forEach(function (p) { p.x = snap(p.x); p.y = snap(p.y); });
+                n.setAttribute('points', polylineToAttribute(pts, 0, 0));
+                break;
+            case 'part': case 'probe': case 'liveScope': case 'liveWidget': case 'analysis':
+                var x = snap(parseFloat(n.getAttribute('x'))), y = snap(parseFloat(n.getAttribute('y')));
+                n.setAttribute('x', x); n.setAttribute('y', y);
+                n.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+                break;
+            case 'rect': case 'image':
+                n.setAttribute('x', snap(parseFloat(n.getAttribute('x'))));
+                n.setAttribute('y', snap(parseFloat(n.getAttribute('y'))));
+                break;
+            case 'text': case 'param': case '.param': case 'label': case 'modelSpice':
+                var tx = snap(parseFloat(n.getAttribute('x'))), ty = snap(parseFloat(n.getAttribute('y')));
+                n.setAttribute('x', tx); n.setAttribute('y', ty);
+                n.setAttribute('transform', 'rotate(' + (n.getAttribute('r') || 0) + ' ' + tx + '  ' + ty + ')');
+                break;
+            }
+        });
+    }
+
     // ------------------------------------------------------------------ references
     function partsOf(nodes) {
         var out = [];
@@ -103,7 +142,7 @@ var pastePlace = (function () {
         shapes.lsg.move = true;
 
         if (lastMouse) {
-            shapes.coord = { x: lastMouse.x, y: lastMouse.y };          // the group follows the pointer
+            shapes.coord = align(lastMouse, ref);                          // the group follows the pointer
             moveElemGroup(shapes);
             placing = { nodes: nodes, ref: ref };
         } else {
@@ -113,15 +152,24 @@ var pastePlace = (function () {
                 y: px * Math.round((ref.y + step) / px)
             };
             moveElemGroup(shapes);
+            normalize(nodes);
             shapes.lsg.move = false;
+            clearSelectElms(shapes);
+            shapes.lsg.elms = []; shapes.lsg.oldPos = [];
+            nodes.forEach(function (n) { saveInArrayElemSelectByRect(shapes, n); });
             creatLimiteOfSelect(shapes);
+            try { refNetWithPart(); } catch (e) {}
             self.saveData('Paste ');
         }
     };
 
     function finish() {
         var shapes = drawing.shapes;
+        var nodes = placing ? placing.nodes : [];
         placing = null;
+        normalize(nodes);
+        shapes.lsg.elms = []; shapes.lsg.oldPos = [];
+        nodes.forEach(function (n) { saveInArrayElemSelectByRect(shapes, n); });
         shapes.lsg.move = true;
         upElemGroup(shapes);                // the new positions become the reference of the group
         shapes.lsg.move = false;
@@ -151,7 +199,7 @@ var pastePlace = (function () {
         if (!placing) return;
         e.stopImmediatePropagation();
         var shapes = drawing.shapes;
-        shapes.coord = p;
+        shapes.coord = align(p, placing.ref);
         shapes.lsg.move = true;
         moveElemGroup(shapes);
     }, true);
